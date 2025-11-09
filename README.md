@@ -2,7 +2,20 @@
 Schneaggchat server for v3
 
 # How to build
+## Server
 There are two docker - setups included: The one in the main structure for Localhost execution, and one in the server_docker folder for executing on a remote server (this one pulls the github repository during build). 
+
+## Localhost
+* Install docker desktop
+* Open project in Intellij Idea Ultimate (Basic version does not support Docker execution)
+* Add run configuration
+    * Top Right Center -> Current file dropdown -> Edit Configurations
+    * Add new run configuration -> Docker compose
+    * Name: Localhost(Title where the "Current File" text is)
+    * Select compose file (./docker-compose.yml)
+    * Modify dropdown -> Build -> select Always (Always rebuild for the changes to take effect)
+    * Press ok
+* Ready to build!
 
 # Port
 The server will run on port 8080
