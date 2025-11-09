@@ -1,4 +1,4 @@
-package com.lerchenflo.hallenmanager_server.core
+package com.lerchenflo.schneaggchatv3server.core.database
 
 import com.mongodb.ConnectionString
 import com.mongodb.MongoClientSettings

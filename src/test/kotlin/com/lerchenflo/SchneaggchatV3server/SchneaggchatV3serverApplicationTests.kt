@@ -1,10 +1,10 @@
-package com.lerchenflo.SchneaggchatV3server
+package com.lerchenflo.schneaggchatv3server
 
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
 
 @SpringBootTest
-class SchneaggchatV3serverApplicationTests {
+class Schneaggchatv3serverApplicationTests {
 
 	@Test
 	fun contextLoads() {

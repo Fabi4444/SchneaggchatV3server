@@ -26,7 +26,7 @@ services:
     environment:
       ME_CONFIG_MONGODB_ADMINUSERNAME: admin
       ME_CONFIG_MONGODB_ADMINPASSWORD: password
-      ME_CONFIG_MONGODB_URL: mongodb://admin:password@mongodb:27017/
+      ME_CONFIG_MONGODB_URL: mongodb://admin:password@schneaggchat_db:27017/
       ME_CONFIG_BASICAUTH: false
     depends_on:
       - schneaggchat_db
@@ -44,7 +44,7 @@ services:
     ports:
       - "8080:8080"
     environment:
-      SPRING_DATA_MONGODB_URI: mongodb://admin:password@mongodb:27017/db?authSource=admin
+      SPRING_DATA_MONGODB_URI: mongodb://admin:password@schneaggchat_db:27017/db?authSource=admin
     networks:
       - spring-mongo-network
     volumes:

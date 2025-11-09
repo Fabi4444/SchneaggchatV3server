@@ -3,7 +3,7 @@ Schneaggchat server for v3
 
 # How to build
 ## Server
-There are two docker - setups included: The one in the main structure for Localhost execution, and one in the server_docker folder for executing on a remote server (this one pulls the github repository during build). 
+There are two docker - setups included: The one in the main structure for Localhost execution, and one in the server_docker folder for executing on a remote server (this one pulls the github repository during build). Just clone the project and Use the Dockerfile and docker-compose.yaml to start the server. 
 
 ## Localhost
 * Install docker desktop

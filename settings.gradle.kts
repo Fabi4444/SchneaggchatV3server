@@ -1,1 +1,1 @@
-rootProject.name = "SchneaggchatV3server"
+rootProject.name = "schneaggchatv3server"
