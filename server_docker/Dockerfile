@@ -1,0 +1,41 @@
+FROM eclipse-temurin:17-jdk-alpine AS build
+WORKDIR /app
+
+# Install git
+RUN apk add --no-cache git
+
+# Clone the repository
+ARG GIT_REPO_URL="https://github.com/lerchenflo/SchneaggchatV3server.git"
+ARG GIT_BRANCH=main
+RUN git clone --branch ${GIT_BRANCH} ${GIT_REPO_URL} . && \
+    rm -rf .git
+
+# Download dependencies (cached layer)
+RUN chmod +x gradlew && \
+    ./gradlew dependencies --no-daemon
+
+# Build the application with production settings
+RUN ./gradlew clean build -x test --no-daemon
+
+# Production runtime stage
+FROM eclipse-temurin:17-jre-alpine
+WORKDIR /app
+
+# Create non-root user for security
+RUN addgroup -S spring && adduser -S spring -G spring
+USER spring:spring
+
+# Copy the built artifact
+COPY --from=build --chown=spring:spring /app/build/libs/*.jar app.jar
+
+EXPOSE 8080
+
+# Production JVM settings
+ENTRYPOINT ["java", \
+    "-XX:+UseContainerSupport", \
+    "-XX:MaxRAMPercentage=75.0", \
+    "-XX:+UseG1GC", \
+    "-XX:+OptimizeStringConcat", \
+    "-Djava.security.egd=file:/dev/./urandom", \
+    "-jar", \
+    "app.jar"]
