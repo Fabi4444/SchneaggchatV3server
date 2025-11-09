@@ -17,5 +17,7 @@ There are two docker - setups included: The one in the main structure for Localh
     * Press ok
 * Ready to build!
 
-# Port
+## Port
 The server will run on port 8080
+
+# Features
