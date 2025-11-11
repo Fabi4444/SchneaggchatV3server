@@ -45,6 +45,7 @@ services:
       - "8080:8080"
     environment:
       SPRING_DATA_MONGODB_URI: mongodb://admin:password@schneaggchat_db:27017/db?authSource=admin
+      JWT_SECRET: "very_very_very_very_very_very_very_very_very_secret_key"
     networks:
       - spring-mongo-network
     volumes:

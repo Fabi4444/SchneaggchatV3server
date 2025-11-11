@@ -17,6 +17,10 @@ There are two docker - setups included: The one in the main structure for Localh
     * Press ok
 * Ready to build!
 
+## Fast build without docker (Just for compile errors)
+* On the right side click on Gradle -> Tasks -> application -> bootRun
+* Main Project is now shown in the run config and can be used
+
 ## Port
 The server will run on port 8080
 

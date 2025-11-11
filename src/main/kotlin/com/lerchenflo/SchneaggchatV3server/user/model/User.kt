@@ -11,12 +11,13 @@ import kotlin.time.Instant
 @Document("users")
 data class User(
     @Id val id: ObjectId = ObjectId.get(),
-    val name: String,
+    val username: String,
     val hashedPassword: String,
     val email: String,
-    val profilePicture: String?,
+    val profilePictureUrl: String?,
     val userDescription: String,
     val userStatus: String,
+    val birthDate: String,
 
     val firebaseTokens: List<String>,
 
