@@ -25,6 +25,10 @@ class MongoDBConfig : AbstractMongoClientConfiguration() {
 
     override fun getDatabaseName(): String = databaseName
 
+    override fun autoIndexCreation(): Boolean {
+        return true
+    }
+
     @Bean
     override fun mongoClient(): MongoClient {
         val connectionString = ConnectionString(mongoUri)

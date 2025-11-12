@@ -1,4 +1,4 @@
-package com.lerchenflo.schneaggchatv3server.core
+package com.lerchenflo.schneaggchatv3server
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
@@ -6,7 +6,7 @@ import org.springframework.context.annotation.ComponentScan
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories
 
 @SpringBootApplication
-@ComponentScan(basePackages = ["com.lerchenflo.schneaggchatv3server"])
+//@ComponentScan(basePackages = ["com.lerchenflo.schneaggchatv3server"])
 @EnableMongoRepositories(basePackages = ["com.lerchenflo.schneaggchatv3server.repository"])
 class Schneaggchatv3serverApplication
 

@@ -5,15 +5,12 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpStatus
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
-import org.springframework.security.web.AuthenticationEntryPoint
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.HttpStatusEntryPoint
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 
 @Configuration
-@EnableWebSecurity
 class SecurityConfig(
     private val jwtAuthFilter: JwtAuthFilter
 ) {
@@ -21,24 +18,25 @@ class SecurityConfig(
     @Bean
     fun filterChain(httpSecurity: HttpSecurity): SecurityFilterChain {
         return httpSecurity
-            .csrf { csrf ->
-                csrf.disable()
-            }
+            .csrf { csrf -> csrf.disable() }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
-            .authorizeHttpRequests { auth->
+            .authorizeHttpRequests { auth ->
                 auth
-                    .requestMatchers("/auth/**").permitAll() //Permit all requests to auth without authentication
+                    .requestMatchers("/")
+                    .permitAll()
+                    .requestMatchers("/auth/**")
+                    .permitAll()
                     .dispatcherTypeMatchers(
-                        DispatcherType.ERROR, //Forward exceptions and not throw 500 server errors
-                        DispatcherType.REQUEST,
+                        DispatcherType.ERROR,
+                        DispatcherType.FORWARD
                     )
                     .permitAll()
                     .anyRequest()
-                    .authenticated() //Any other request require authentication
-
+                    .authenticated()
             }
             .exceptionHandling { configurer ->
-                configurer.authenticationEntryPoint(HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+                configurer
+                    .authenticationEntryPoint(HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
             }
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter::class.java)
             .build()
