@@ -29,6 +29,7 @@ class JwtService(
         val expiryDate = Date(now.time + expiry)
 
         return Jwts.builder()
+            .setHeaderParam("typ", type)
             .subject(userId)
             .claim("type", type)
             .issuedAt(now)
