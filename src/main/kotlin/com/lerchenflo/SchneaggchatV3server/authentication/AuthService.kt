@@ -9,12 +9,15 @@ import com.lerchenflo.schneaggchatv3server.repository.RefreshTokenRepository
 import com.lerchenflo.schneaggchatv3server.repository.UserRepository
 import com.lerchenflo.schneaggchatv3server.user.model.User
 import org.bson.types.ObjectId
+import org.springframework.http.HttpStatus
+import org.springframework.http.HttpStatusCode
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.client.HttpStatusCodeException
+import org.springframework.web.server.ResponseStatusException
 import java.security.MessageDigest
-import java.time.temporal.ChronoUnit
-import java.util.Base64
+import java.util.*
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
@@ -34,6 +37,18 @@ class AuthService(
 
     //TODO: ADD PROFILEPICTURE
     fun register(username: String, password: String, email: String, birthdate: String) : User {
+
+        val usernameexists = userRepository.findByUsername(username)
+        if (usernameexists != null) {
+            throw ResponseStatusException(HttpStatus.CONFLICT, "A user with this username already exists")
+        }
+
+        val emailexists = userRepository.findByEmail(email.trim())
+        if (emailexists != null) {
+            throw ResponseStatusException(HttpStatus.CONFLICT, "A user with this email already exists")
+        }
+
+
         val now = Clock.System.now()
         return userRepository.save(User(
             username = username,
@@ -77,16 +92,17 @@ class AuthService(
     @Transactional //Only apply db operations if all succeed
     fun refresh(refreshToken: String) : TokenPair {
         if (!jwtService.validateRefreshToken(refreshToken)) {
-            throw IllegalArgumentException("Invalid refresh token")
+            throw ResponseStatusException(HttpStatusCode.valueOf(401) ,"Invalid refresh token")
         }
 
         val userId = jwtService.getUserIdFromToken(refreshToken)
         val user = userRepository.findById(ObjectId(userId)).orElseThrow{
-            IllegalArgumentException("Invalid refresh token")
+            throw ResponseStatusException(HttpStatusCode.valueOf(404) ,"Invalid refresh token")
         }
 
         val hashed = hashToken(refreshToken)
-        refreshTokenRepository.findByUserIdAndHashedToken(user.id, hashed)?: throw IllegalArgumentException("Refreshtoken not recognized (maybe used or expired)")
+        refreshTokenRepository.findByUserIdAndHashedToken(user.id, hashed)
+            ?: throw ResponseStatusException(HttpStatusCode.valueOf(401),"Refreshtoken not recognized (maybe used or expired)")
 
         refreshTokenRepository.deleteByUserIdAndHashedToken(user.id, hashed)
 

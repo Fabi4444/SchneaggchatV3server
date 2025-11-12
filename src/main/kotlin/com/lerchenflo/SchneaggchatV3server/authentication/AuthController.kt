@@ -1,9 +1,11 @@
 package com.lerchenflo.schneaggchatv3server.authentication
 
+import jakarta.validation.Valid
+import jakarta.validation.constraints.Email
+import jakarta.validation.constraints.Pattern
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 //https://schneaggchat.eu/auth
@@ -21,7 +23,12 @@ class AuthController(
 
     data class RegisterRequest(
         val username: String,
+        @field:Pattern(
+            regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}\$",
+            message = "Password must be at least 8 characters long and contain at least one digit, uppercase and lowercase character."
+        )
         val password: String,
+        @field:Email(message = "Invalid email format.")
         val email: String,
         val birthDate: String,
         //TODO: Add fields (Profilepic)
@@ -34,7 +41,7 @@ class AuthController(
     //https://schneaggchat.eu/auth/register
     @PostMapping("/register")
     fun register(
-        @RequestBody registerRequest: RegisterRequest
+        @Valid @RequestBody registerRequest: RegisterRequest //Valid for checking the constraints (Email etc)
     ) {
         authService.register(
             username = registerRequest.username,
