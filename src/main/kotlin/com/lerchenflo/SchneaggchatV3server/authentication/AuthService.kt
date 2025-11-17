@@ -8,6 +8,7 @@ import com.lerchenflo.schneaggchatv3server.core.security.JwtService
 import com.lerchenflo.schneaggchatv3server.repository.RefreshTokenRepository
 import com.lerchenflo.schneaggchatv3server.repository.UserRepository
 import com.lerchenflo.schneaggchatv3server.user.model.User
+import com.lerchenflo.schneaggchatv3server.util.ImageManager
 import org.bson.types.ObjectId
 import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatusCode
@@ -15,6 +16,7 @@ import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.client.HttpStatusCodeException
+import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
 import java.security.MessageDigest
 import java.util.*
@@ -27,7 +29,9 @@ class AuthService(
     private val jwtService: JwtService,
     private val userRepository: UserRepository,
     private val hashEncoder: HashEncoder,
-    private val refreshTokenRepository: RefreshTokenRepository
+    private val refreshTokenRepository: RefreshTokenRepository,
+
+    private val imageManager: ImageManager
 ) {
 
     data class TokenPair(
@@ -36,7 +40,7 @@ class AuthService(
     )
 
     //TODO: ADD PROFILEPICTURE
-    fun register(username: String, password: String, email: String, birthdate: String) : User {
+    fun register(username: String, password: String, email: String, birthdate: String, profilePic: MultipartFile) : User {
 
         val usernameexists = userRepository.findByUsername(username)
         if (usernameexists != null) {
@@ -50,7 +54,8 @@ class AuthService(
 
 
         val now = Clock.System.now()
-        return userRepository.save(User(
+
+        val user = User(
             username = username,
             hashedPassword = hashEncoder.encode(password),
             email = email,
@@ -61,7 +66,13 @@ class AuthService(
             firebaseTokens = emptyList(),
             createdAt = now, //TODO: Fix return value
             updatedAt = now
-        ))
+        )
+
+        val profilepicurl = imageManager.saveProfilePic(profilePic, user.id.toHexString())
+
+        user.profilePictureUrl = profilepicurl
+
+        return userRepository.save(user)
     }
 
     fun login(username: String, password: String) : TokenPair {
@@ -104,7 +115,7 @@ class AuthService(
         refreshTokenRepository.findByUserIdAndHashedToken(user.id, hashed)
             ?: throw ResponseStatusException(HttpStatusCode.valueOf(401),"Refreshtoken not recognized (maybe used or expired)")
 
-        refreshTokenRepository.deleteByUserIdAndHashedToken(user.id, hashed)
+        println("Deleted refreshtokens: ${refreshTokenRepository.deleteByUserIdAndHashedToken(user.id, hashed)}")
 
         val newAccessToken = jwtService.generateAccessToken(userId)
         val newRefreshToken = jwtService.generateRefreshToken(userId)

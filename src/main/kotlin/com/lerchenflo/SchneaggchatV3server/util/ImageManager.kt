@@ -1,0 +1,43 @@
+package com.lerchenflo.schneaggchatv3server.util
+
+import org.springframework.stereotype.Component
+import org.springframework.web.multipart.MultipartFile
+import java.io.File
+import java.nio.file.FileSystem
+
+@Component
+class ImageManager {
+    private fun saveImageToFile(image: MultipartFile, fileName: String) {
+        val imagesDir = File("/app/images")
+        if (!imagesDir.exists()) {
+            imagesDir.mkdirs()
+        }
+        val targetFile = File(imagesDir, fileName)
+        image.inputStream.use { input ->
+            targetFile.outputStream().use { output ->
+                input.copyTo(output)
+            }
+        }
+    }
+
+    fun loadImageFromFile(fileName: String): ByteArray {
+        val imagesDir = File("/app/images")
+        val targetFile = File(imagesDir, fileName)
+
+        if (!targetFile.exists()) {
+            throw IllegalArgumentException("Image file not found: $fileName")
+        }
+
+        return targetFile.readBytes()
+    }
+
+    fun saveProfilePic(image: MultipartFile, userId: String): String {
+        val filename = getProfilePicFileName(userId)
+        saveImageToFile(image, filename)
+        return filename
+    }
+
+    fun getProfilePicFileName(userId: String): String {
+        return "profilepic_${userId}.jpg"
+    }
+}

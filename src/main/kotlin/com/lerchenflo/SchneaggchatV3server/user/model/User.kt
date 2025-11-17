@@ -14,12 +14,14 @@ data class User(
     val username: String,
     val hashedPassword: String,
     val email: String,
-    val profilePictureUrl: String?,
+    var profilePictureUrl: String?,
     val userDescription: String,
     val userStatus: String,
     val birthDate: String,
 
     val firebaseTokens: List<String>,
+
+    //TODO: User profile pic privacy settings
 
     val createdAt: Instant,
     val updatedAt: Instant

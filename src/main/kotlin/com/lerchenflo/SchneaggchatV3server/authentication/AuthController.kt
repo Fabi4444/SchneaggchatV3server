@@ -1,12 +1,17 @@
 package com.lerchenflo.schneaggchatv3server.authentication
 
+import com.lerchenflo.schneaggchatv3server.util.ImageManager
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.Pattern
+import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.multipart.MultipartFile
+import java.awt.PageAttributes
 
 //https://schneaggchat.eu/auth
 
@@ -31,7 +36,6 @@ class AuthController(
         @field:Email(message = "Invalid email format.")
         val email: String,
         val birthDate: String,
-        //TODO: Add fields (Profilepic)
     )
 
     data class RefreshRequest(
@@ -39,15 +43,20 @@ class AuthController(
     )
 
     //https://schneaggchat.eu/auth/register
-    @PostMapping("/register")
+    @PostMapping("/register", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun register(
-        @Valid @RequestBody registerRequest: RegisterRequest //Valid for checking the constraints (Email etc)
+        @RequestParam("username") username: String,
+        @RequestParam("password") password: String,
+        @RequestParam("email") email: String,
+        @RequestParam("birthDate") birthDate: String,
+        @RequestParam("profilepic") profilePic: MultipartFile
     ) {
         authService.register(
-            username = registerRequest.username,
-            password = registerRequest.password,
-            email = registerRequest.email,
-            birthdate = registerRequest.birthDate
+            username = username,
+            password = password,
+            email = email,
+            birthdate = birthDate,
+            profilePic = profilePic
         )
     }
 

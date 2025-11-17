@@ -50,6 +50,7 @@ services:
       - spring-mongo-network
     volumes:
       - gradle-cache:/root/.gradle
+      - ./images:/app/images
 
 networks:
   spring-mongo-network:

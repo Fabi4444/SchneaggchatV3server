@@ -3,6 +3,7 @@
 package com.lerchenflo.schneaggchatv3server.authentication.model
 
 import org.bson.types.ObjectId
+import org.springframework.data.mongodb.core.index.CompoundIndex
 import org.springframework.data.mongodb.core.index.Indexed
 import org.springframework.data.mongodb.core.mapping.Document
 import kotlin.time.Clock
@@ -15,6 +16,6 @@ data class RefreshToken(
     val hashedToken: String,
 
     @Indexed(expireAfter = "0s")
-    val expiresAt: Instant = Clock.System.now(),
+    val expiresAt: Instant,
     val createdAt: Instant = Clock.System.now()
     )
