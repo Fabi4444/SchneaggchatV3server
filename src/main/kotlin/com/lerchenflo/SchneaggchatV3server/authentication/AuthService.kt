@@ -7,7 +7,7 @@ import com.lerchenflo.schneaggchatv3server.core.security.HashEncoder
 import com.lerchenflo.schneaggchatv3server.core.security.JwtService
 import com.lerchenflo.schneaggchatv3server.repository.RefreshTokenRepository
 import com.lerchenflo.schneaggchatv3server.repository.UserRepository
-import com.lerchenflo.schneaggchatv3server.user.model.User
+import com.lerchenflo.schneaggchatv3server.user.usermodel.User
 import com.lerchenflo.schneaggchatv3server.util.ImageManager
 import org.bson.types.ObjectId
 import org.springframework.http.HttpStatus
@@ -15,7 +15,6 @@ import org.springframework.http.HttpStatusCode
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.client.HttpStatusCodeException
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
 import java.security.MessageDigest
@@ -39,7 +38,6 @@ class AuthService(
         val refreshToken: String
     )
 
-    //TODO: ADD PROFILEPICTURE
     fun register(username: String, password: String, email: String, birthdate: String, profilePic: MultipartFile) : User {
 
         val usernameexists = userRepository.findByUsername(username)
@@ -59,18 +57,20 @@ class AuthService(
             username = username,
             hashedPassword = hashEncoder.encode(password),
             email = email,
-            profilePictureUrl = "",
             userDescription = "",
             userStatus = "",
             birthDate = birthdate,
             firebaseTokens = emptyList(),
-            createdAt = now, //TODO: Fix return value
+            createdAt = now,
             updatedAt = now
         )
 
-        val profilepicurl = imageManager.saveProfilePic(profilePic, user.id.toHexString())
-
-        user.profilePictureUrl = profilepicurl
+        //Save users profilepicture
+        imageManager.saveProfilePic(
+            image = profilePic,
+            userId = user.id.toHexString(),
+            group = false
+        )
 
         return userRepository.save(user)
     }

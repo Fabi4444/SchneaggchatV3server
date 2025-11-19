@@ -31,13 +31,13 @@ class ImageManager {
         return targetFile.readBytes()
     }
 
-    fun saveProfilePic(image: MultipartFile, userId: String): String {
-        val filename = getProfilePicFileName(userId)
+    fun saveProfilePic(image: MultipartFile, userId: String, group: Boolean): String {
+        val filename = getProfilePicFileName(userId, group)
         saveImageToFile(image, filename)
         return filename
     }
 
-    fun getProfilePicFileName(userId: String): String {
-        return "profilepic_${userId}.jpg"
+    fun getProfilePicFileName(userId: String, group: Boolean): String {
+        return "${if (group) "group" else "user"}_${userId}_profilepic.jpg"
     }
 }

@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalTime::class)
 
-package com.lerchenflo.schneaggchatv3server.user.model
+package com.lerchenflo.schneaggchatv3server.user.usermodel
 
 import org.bson.types.ObjectId
 import org.springframework.data.annotation.Id
@@ -14,7 +14,6 @@ data class User(
     val username: String,
     val hashedPassword: String,
     val email: String,
-    var profilePictureUrl: String?,
     val userDescription: String,
     val userStatus: String,
     val birthDate: String,

@@ -1,0 +1,200 @@
+@file:OptIn(ExperimentalTime::class)
+
+package com.lerchenflo.schneaggchatv3server.user
+
+import com.lerchenflo.schneaggchatv3server.repository.FriendshipRepository
+import com.lerchenflo.schneaggchatv3server.repository.FriendshipSettingsRepository
+import com.lerchenflo.schneaggchatv3server.user.friendshipmodel.Friendship
+import com.lerchenflo.schneaggchatv3server.user.friendshipmodel.FriendshipStatus
+import org.bson.types.ObjectId
+import org.springframework.stereotype.Component
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.days
+import kotlin.time.ExperimentalTime
+
+@Component
+class FriendsService(
+    private val friendshipRepository: FriendshipRepository,
+    //TODO: Friendsettingsservice
+
+    ) {
+
+    /**
+     * Send a friend request from one user to another
+     * @return The created Friendship or existing one if already exists
+     * @throws IllegalArgumentException if users try to friend themselves
+     */
+    fun sendFriendRequest(fromUserId: ObjectId, toUserId: ObjectId): Friendship {
+        require(fromUserId != toUserId) { "Users cannot send friend requests to themselves" }
+
+        // Check if friendship already exists (in any direction)
+        val existing = findFriendship(fromUserId, toUserId)
+
+        if (existing != null) {
+            return when (existing.status) {
+                FriendshipStatus.ACCEPTED -> existing // Already friends
+                FriendshipStatus.PENDING -> {
+                    // If the other user already sent a request, auto-accept
+                    if (existing.requesterId == toUserId) {
+                        acceptFriendRequest(toUserId, fromUserId)
+                    } else {
+                        existing // Request already sent
+                    }
+                }
+                FriendshipStatus.DECLINED -> {
+                    // Resend request - update existing record
+                    existing.apply {
+                        status = FriendshipStatus.PENDING
+                        updatedAt = Clock.System.now()
+                    }
+                    friendshipRepository.save(existing)
+                }
+                FriendshipStatus.BLOCKED ->
+                    throw IllegalStateException("Cannot send friend request - user is blocked")
+            }
+        }
+
+        // Create new friendship request
+        val friendship = Friendship(
+            userId1 = minOf(fromUserId, toUserId),
+            userId2 = maxOf(fromUserId, toUserId),
+            requesterId = fromUserId,
+            status = FriendshipStatus.PENDING
+        )
+
+        return friendshipRepository.save(friendship)
+    }
+
+    /**
+     * Accept a pending friend request
+     * @throws IllegalArgumentException if request doesn't exist or not pending
+     */
+    fun acceptFriendRequest(acceptingUserId: ObjectId, requesterId: ObjectId): Friendship {
+        val friendship = findFriendship(acceptingUserId, requesterId)
+            ?: throw IllegalArgumentException("Friend request not found")
+
+        require(friendship.status == FriendshipStatus.PENDING) {
+            "Cannot accept - friendship status is ${friendship.status}"
+        }
+
+        require(friendship.requesterId == requesterId) {
+            "Only the recipient can accept a friend request"
+        }
+
+        friendship.status = FriendshipStatus.ACCEPTED
+        friendship.updatedAt = Clock.System.now()
+
+        return friendshipRepository.save(friendship)
+    }
+
+    /**
+     * Decline a pending friend request
+     * Sets expiration to 30 days from now
+     */
+    fun declineFriendRequest(decliningUserId: ObjectId, requesterId: ObjectId) {
+        val friendship = findFriendship(decliningUserId, requesterId)
+            ?: throw IllegalArgumentException("Friend request not found")
+
+        require(friendship.status == FriendshipStatus.PENDING) {
+            "Cannot decline - friendship status is ${friendship.status}"
+        }
+
+        require(friendship.requesterId == requesterId) {
+            "Only the recipient can decline a friend request"
+        }
+
+        //Delete friendship (there is none)
+        removeFriend(decliningUserId, requesterId)
+    }
+
+    /**
+     * Remove/unfriend a user
+     */
+    fun removeFriend(userId: ObjectId, friendId: ObjectId): Boolean {
+        val friendship = findFriendship(userId, friendId)
+            ?: return false
+
+        friendshipRepository.delete(friendship)
+
+        //TODO: Delete settings for this friendship
+        return true
+    }
+
+    /**
+     * Block a user - prevents any future friend requests
+     */
+    fun blockUser(blockingUserId: ObjectId, blockedUserId: ObjectId): Friendship {
+        val existing = findFriendship(blockingUserId, blockedUserId)
+
+        val friendship = existing?.copy(
+            status = FriendshipStatus.BLOCKED,
+            requesterId = blockingUserId,
+            updatedAt = Clock.System.now()
+        ) ?: Friendship(
+            userId1 = minOf(blockingUserId, blockedUserId),
+            userId2 = maxOf(blockingUserId, blockedUserId),
+            requesterId = blockingUserId,
+            status = FriendshipStatus.BLOCKED
+        )
+
+        return friendshipRepository.save(friendship)
+    }
+
+    /**
+     * Unblock a user
+     */
+    fun unblockUser(unblockingUserId: ObjectId, blockedUserId: ObjectId): Boolean {
+        val friendship = findFriendship(unblockingUserId, blockedUserId)
+            ?: return false
+
+        require(friendship.status == FriendshipStatus.BLOCKED) {
+            "User is not blocked"
+        }
+
+        friendshipRepository.delete(friendship)
+        return true
+    }
+
+    /**
+     * Get all friends for a user (accepted friendships only)
+     */
+    fun getFriends(userId: ObjectId): List<ObjectId> {
+        return friendshipRepository.findByUserId1OrUserId2(userId, userId)
+            .filter { it.status == FriendshipStatus.ACCEPTED }
+            .map { if (it.userId1 == userId) it.userId2 else it.userId1 }
+    }
+
+    /**
+     * Get all pending friend requests received by a user
+     */
+    fun getPendingRequests(userId: ObjectId): List<Friendship> {
+        return friendshipRepository.findByUserId1OrUserId2(userId, userId)
+            .filter { it.status == FriendshipStatus.PENDING && it.requesterId != userId }
+    }
+
+    /**
+     * Get all pending friend requests sent by a user
+     */
+    fun getSentRequests(userId: ObjectId): List<Friendship> {
+        return friendshipRepository.findByUserId1OrUserId2(userId, userId)
+            .filter { it.status == FriendshipStatus.PENDING && it.requesterId == userId }
+    }
+
+    /**
+     * Check if two users are friends
+     */
+    fun areFriends(userId1: ObjectId, userId2: ObjectId): Boolean {
+        val friendship = findFriendship(userId1, userId2)
+        return friendship?.status == FriendshipStatus.ACCEPTED
+    }
+
+    /**
+     * Helper function to find a friendship between two users (regardless of order)
+     */
+    private fun findFriendship(userId1: ObjectId, userId2: ObjectId): Friendship? {
+        val min = minOf(userId1, userId2)
+        val max = maxOf(userId1, userId2)
+        return friendshipRepository.findByUserId1AndUserId2(min, max)
+    }
+
+}
