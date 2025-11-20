@@ -4,6 +4,7 @@ package com.lerchenflo.schneaggchatv3server.user
 
 import com.lerchenflo.schneaggchatv3server.repository.FriendshipRepository
 import com.lerchenflo.schneaggchatv3server.repository.UserRepository
+import com.lerchenflo.schneaggchatv3server.user.friendshipmodel.FriendshipStatus
 import com.lerchenflo.schneaggchatv3server.user.usermodel.User
 import com.lerchenflo.schneaggchatv3server.user.usermodel.UserResponse
 import com.lerchenflo.schneaggchatv3server.util.ImageManager
@@ -27,34 +28,9 @@ import kotlin.time.Instant
 class UserController(
     private val userRepository: UserRepository,
     private val friendshipsService: FriendsService,
+    //TODO: Friendsettingsservice
     private val imageManager: ImageManager
 ) {
-
-
-    @GetMapping("/getbyid/{userId}")
-    fun getUserById(
-        @PathVariable("userId") requestedUserId: String,
-    ): UserResponse {
-        val requestingUserId =
-            SecurityContextHolder.getContext().authentication?.principal as? String ?: throw ResponseStatusException(
-                /* status = */ HttpStatus.FORBIDDEN,
-                /* reason = */ "Not logged in"
-            )
-
-        val areFriends =
-            friendshipsService.areFriends(ObjectId(requestingUserId), ObjectId(requestedUserId))
-
-        val requestedUser =
-            userRepository.findById(ObjectId(requestedUserId)).orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Not found") }
-
-
-        return serializeUser(
-            user = requestedUser,
-            requestingUserId = ObjectId(requestingUserId),
-            areFriends = areFriends
-        )
-    }
-
 
     data class IdTimeStamp(val id: String, val timeStamp: String)
 
@@ -70,25 +46,40 @@ class UserController(
                 /* reason = */ "Not logged in"
             )
 
-        val allFriendIds = friendshipsService.getFriends(ObjectId(requestingUserId))
-
+        //Users which the client has on his device
         val clientUsers = requestBody.associate {
             it.id to it.timeStamp
         }
 
-        val currentFriends = userRepository.findAllById(allFriendIds)
+        //All users this current client has interacted with (Friends, requested, blocked etc)
+        var allFriendInteractions = friendshipsService.getAllInteractions(ObjectId(requestingUserId))
+
+        //Add own user (also needs to be synced)
+        allFriendInteractions = allFriendInteractions + FriendsService.UserInteraction(
+            userId = ObjectId(requestingUserId),
+            status = FriendshipStatus.ACCEPTED,
+            requesterId = ObjectId(requestingUserId),
+        )
+
+        // Create a map for easy lookup
+        val interactionMap = allFriendInteractions.associateBy { it.userId }
+
+        //Find all friend objects from interactions
+        val currentFriends = userRepository.findAllById(allFriendInteractions.map { interaction ->
+            interaction.userId
+        })
 
         val usersToAdd = currentFriends
-            .filter { it.id.toString() !in clientUsers.keys }
+            .filter { it.id.toHexString() !in clientUsers.keys }
 
         val usersToUpdate = currentFriends
             .filter { user ->
-                val clientTimestamp = clientUsers[user.id.toString()]
+                val clientTimestamp = clientUsers[user.id.toHexString()]
                 clientTimestamp != null && user.updatedAt.toEpochMilliseconds() > clientTimestamp.toLong()
             }
 
-        val currentFriendIdStrings = allFriendIds.map { it.toString() }.toSet()
-        val usersToRemove = clientUsers.keys.filter { it !in currentFriendIdStrings }
+        val currentFriendIdStrings = allFriendInteractions.map { it.userId.toHexString() }.toSet()
+        val usersToRemove = clientUsers.keys.filter { it !in currentFriendIdStrings && it != requestingUserId } //do not remove own user
 
         val finalExistingToUpdate = usersToUpdate + usersToAdd
 
@@ -96,7 +87,8 @@ class UserController(
             serializeUser(
                 user = user,
                 requestingUserId = ObjectId(requestingUserId),
-                areFriends = true,
+                friendshipStatus = interactionMap[user.id]?.status,
+                requesterId = interactionMap[user.id]?.requesterId,
             )
         }
 
@@ -109,7 +101,7 @@ class UserController(
 
     //TODO: Check user profilepic settings (implement first)
     @GetMapping("/profilepic/{id}")
-    fun getProfilePic(@PathVariable userId: String): ResponseEntity<ByteArray> {
+    fun getProfilePic(@PathVariable("id") userId: String): ResponseEntity<ByteArray> {
         return try {
             val imageName = imageManager.getProfilePicFileName(userId, false)
             val imageBytes = imageManager.loadImageFromFile(imageName)
@@ -122,14 +114,15 @@ class UserController(
     }
 
 
+
+
+
     /**
      * Serialize a user into a specific response according to the friendship status
      * @param User the user to be serialized
      * @param requestingUserId the user which requested the serialisation
-     * @param areFriends is the requesting user friends with the requested user
-     * @param deleted is the requested user deleted
      */
-    private fun serializeUser(user: User, requestingUserId : ObjectId, areFriends: Boolean,): UserResponse {
+    private fun serializeUser(user: User, requestingUserId : ObjectId, friendshipStatus: FriendshipStatus?, requesterId: ObjectId?): UserResponse {
         //User requests his own data
         if (requestingUserId == user.id) {
             return UserResponse.SelfUserResponse(
@@ -137,23 +130,24 @@ class UserController(
                 username = user.username,
                 userDescription = user.userDescription,
                 userStatus = user.userStatus,
-                updatedAt = user.updatedAt,
+                updatedAt = user.updatedAt.toEpochMilliseconds(),
                 birthDate = user.birthDate,
                 email = user.email,
-                createdAt = user.createdAt,
+                createdAt = user.createdAt.toEpochMilliseconds(),
             )
         }
 
         //User requests friends data
-        else if (areFriends) {
+        else if (friendshipStatus == FriendshipStatus.ACCEPTED) {
             return UserResponse.FriendUserResponse(
                 id = user.id.toString(),
                 username = user.username,
                 userDescription = user.userDescription,
                 userStatus = user.userStatus,
-                updatedAt = user.updatedAt,
+                updatedAt = user.updatedAt.toEpochMilliseconds(),
                 birthDate = user.birthDate,
-                )
+                requesterId = requesterId?.toHexString(),
+            )
         }
 
         //User requests random other users data
@@ -161,11 +155,10 @@ class UserController(
             return UserResponse.SimpleUserResponse(
                 id = user.id.toString(),
                 username = user.username,
-                userDescription = user.userDescription,
-                userStatus = user.userStatus,
-                updatedAt = user.updatedAt,
-                commonFriendCount = friendshipsService.getFriends(requestingUserId).count(),
-                )
+                updatedAt = user.updatedAt.toEpochMilliseconds(),
+                friendShipStatus = friendshipStatus,
+                requesterId = requesterId?.toHexString(),
+            )
         }
     }
 

@@ -35,6 +35,8 @@ class SecurityConfig(
                     .permitAll()
                     .requestMatchers("/auth/**")
                     .permitAll()
+                    .requestMatchers("/test")
+                    .permitAll()
                     .dispatcherTypeMatchers(
                         DispatcherType.ERROR,
                         DispatcherType.FORWARD

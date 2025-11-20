@@ -2,46 +2,60 @@
 
 package com.lerchenflo.schneaggchatv3server.user.usermodel
 
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.lerchenflo.schneaggchatv3server.user.friendshipmodel.FriendshipStatus
+import org.bson.types.ObjectId
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
 
 //TODO: Request when the user changes something about his profile
 
-interface UserResponse {
+
+@JsonTypeInfo(
+    use = JsonTypeInfo.Id.NAME,
+    include = JsonTypeInfo.As.PROPERTY,
+    property = "type"
+)
+@JsonSubTypes(
+    JsonSubTypes.Type(value = UserResponse.SimpleUserResponse::class, name = "simple"),
+    JsonSubTypes.Type(value = UserResponse.FriendUserResponse::class, name = "friend"),
+    JsonSubTypes.Type(value = UserResponse.SelfUserResponse::class, name = "self")
+)
+
+sealed interface UserResponse {
 
     //Common data which every response contains
     val id: String
     val username: String
-    val userDescription: String
-    val userStatus: String
-    val updatedAt: Instant
+    val updatedAt: Long
 
 
     //Response for a user (Not yourself and not your friend)
     data class SimpleUserResponse(
         override val id: String,
         override val username: String,
-        override val userDescription: String,
-        override val userStatus: String,
-        override val updatedAt: Instant,
+        override val updatedAt: Long,
 
         //Custom to simpleuserresponse:
-        val commonFriendCount: Int,
+        val friendShipStatus: FriendshipStatus?,
+        val requesterId: String?,
 
-    ) : UserResponse
+        ) : UserResponse
 
     //Response for a friend (He accepted your request)
     data class FriendUserResponse(
         override val id: String,
         override val username: String,
-        override val userDescription: String,
-        override val userStatus: String,
-        override val updatedAt: Instant,
+        override val updatedAt: Long,
 
+        val requesterId: String?, //Who requested the friendship
 
         //Custom to friend response:
         val birthDate: String,
+        val userDescription: String,
+        val userStatus: String
 
 
 
@@ -51,17 +65,18 @@ interface UserResponse {
     data class SelfUserResponse(
         override val id: String,
         override val username: String,
-        override val userDescription: String,
-        override val userStatus: String,
-        override val updatedAt: Instant,
+
+        override val updatedAt: Long,
 
 
         //Custom to friend response
         val birthDate: String,
+        val userDescription: String,
+        val userStatus: String,
 
         //Custom to own user response:
         val email: String,
-        val createdAt: Instant,
+        val createdAt: Long,
 
 
         //TODO: User profile pic privacy settings??

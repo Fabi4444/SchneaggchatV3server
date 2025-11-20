@@ -15,8 +15,6 @@ import kotlin.time.ExperimentalTime
 @Component
 class FriendsService(
     private val friendshipRepository: FriendshipRepository,
-    //TODO: Friendsettingsservice
-
     ) {
 
     /**
@@ -162,6 +160,28 @@ class FriendsService(
         return friendshipRepository.findByUserId1OrUserId2(userId, userId)
             .filter { it.status == FriendshipStatus.ACCEPTED }
             .map { if (it.userId1 == userId) it.userId2 else it.userId1 }
+    }
+
+    data class UserInteraction(
+        val userId: ObjectId,
+        val status: FriendshipStatus,
+        val requesterId: ObjectId
+    )
+
+    fun getAllInteractions(userId: ObjectId): List<UserInteraction> {
+        return friendshipRepository.findByUserId1OrUserId2(userId, userId)
+            .map { friendship ->
+                val otherUserId = if (friendship.userId1 == userId) {
+                    friendship.userId2
+                } else {
+                    friendship.userId1
+                }
+                UserInteraction(
+                    userId = otherUserId,
+                    status = friendship.status,
+                    requesterId = friendship.requesterId,
+                )
+            }
     }
 
     /**
