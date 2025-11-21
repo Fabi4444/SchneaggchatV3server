@@ -5,6 +5,7 @@ package com.lerchenflo.schneaggchatv3server.user
 import com.lerchenflo.schneaggchatv3server.repository.FriendshipRepository
 import com.lerchenflo.schneaggchatv3server.repository.UserRepository
 import com.lerchenflo.schneaggchatv3server.user.friendshipmodel.FriendshipStatus
+import com.lerchenflo.schneaggchatv3server.user.usermodel.NewFriendsUserResponse
 import com.lerchenflo.schneaggchatv3server.user.usermodel.User
 import com.lerchenflo.schneaggchatv3server.user.usermodel.UserResponse
 import com.lerchenflo.schneaggchatv3server.util.ImageManager
@@ -84,7 +85,7 @@ class UserController(
         val finalExistingToUpdate = usersToUpdate + usersToAdd
 
         val addusers = finalExistingToUpdate.map { user ->
-            serializeUser(
+            serializeSyncUser(
                 user = user,
                 requestingUserId = ObjectId(requestingUserId),
                 friendshipStatus = interactionMap[user.id]?.status,
@@ -98,31 +99,12 @@ class UserController(
         )
     }
 
-
-    //TODO: Check user profilepic settings (implement first)
-    @GetMapping("/profilepic/{id}")
-    fun getProfilePic(@PathVariable("id") userId: String): ResponseEntity<ByteArray> {
-        return try {
-            val imageName = imageManager.getProfilePicFileName(userId, false)
-            val imageBytes = imageManager.loadImageFromFile(imageName)
-            ResponseEntity.ok()
-                .contentType(MediaType.IMAGE_JPEG)
-                .body(imageBytes)
-        } catch (e: IllegalArgumentException) {
-            ResponseEntity.notFound().build()
-        }
-    }
-
-
-
-
-
     /**
      * Serialize a user into a specific response according to the friendship status
      * @param User the user to be serialized
      * @param requestingUserId the user which requested the serialisation
      */
-    private fun serializeUser(user: User, requestingUserId : ObjectId, friendshipStatus: FriendshipStatus?, requesterId: ObjectId?): UserResponse {
+    private fun serializeSyncUser(user: User, requestingUserId : ObjectId, friendshipStatus: FriendshipStatus?, requesterId: ObjectId?): UserResponse {
         //User requests his own data
         if (requestingUserId == user.id) {
             return UserResponse.SelfUserResponse(
@@ -162,4 +144,77 @@ class UserController(
         }
     }
 
+
+
+    //TODO: Check user profilepic settings (implement first)
+    @GetMapping("/profilepic/{id}")
+    fun getProfilePic(@PathVariable("id") userId: String): ResponseEntity<ByteArray> {
+        return try {
+            val imageName = imageManager.getProfilePicFileName(userId, false)
+            val imageBytes = imageManager.loadImageFromFile(imageName)
+            ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_JPEG)
+                .body(imageBytes)
+        } catch (e: IllegalArgumentException) {
+            ResponseEntity.notFound().build()
+        }
+    }
+
+    @GetMapping("/availableusers/{searchterm}")
+    fun getAvailableUsers(
+        @PathVariable("searchterm") searchTerm: String?,
+    ) : List<NewFriendsUserResponse> {
+        val requestingUserId =
+            SecurityContextHolder.getContext().authentication?.principal as? String ?: throw ResponseStatusException(
+                /* status = */ HttpStatus.FORBIDDEN,
+                /* reason = */ "Not logged in"
+            )
+
+
+        //TODO: Very heavy db operation, fix??
+
+        //Is user searching?
+        if (searchTerm.isNullOrBlank()) {
+
+            //User is not searching, return all users with common friends
+            val alluserIds = userRepository.findAll().map { it.id }
+            val newusers = friendshipsService.getUsersWithNoInteraction(
+                userId = ObjectId(requestingUserId),
+                allUserIds = alluserIds
+            )
+
+            return userRepository.findAllById(newusers).map { user ->
+                NewFriendsUserResponse(
+                    id = user.id.toHexString(),
+                    username = user.username,
+                    commonFriendCount = friendshipsService.getCommonFriendCount(ObjectId(requestingUserId), user.id),
+                )
+            }
+        }else {
+            //return users searched by searchterm
+            val searchResults = userRepository.findByUsernameContainingIgnoreCase(searchTerm)
+
+            val interactedUserIds = friendshipsService.getAllInteractions(ObjectId(requestingUserId))
+                .map { it.userId }
+                .toSet()
+
+            return searchResults
+                .filter { user ->
+                    user.id != ObjectId(requestingUserId) && // Exclude self
+                            user.id !in interactedUserIds // Exclude already interacted users
+                }
+                .map { user ->
+                    NewFriendsUserResponse(
+                        id = user.id.toHexString(),
+                        username = user.username,
+                        commonFriendCount = friendshipsService.getCommonFriendCount(
+                            ObjectId(requestingUserId),
+                            user.id
+                        )
+                    )
+                }
+                .sortedByDescending { it.commonFriendCount }
+        }
+
+    }
 }

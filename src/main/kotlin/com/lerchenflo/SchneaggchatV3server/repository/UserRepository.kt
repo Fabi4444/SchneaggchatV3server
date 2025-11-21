@@ -10,5 +10,6 @@ interface UserRepository : MongoRepository<User, ObjectId> {
 
     fun findByEmail(email: String): User?
 
+    fun findByUsernameContainingIgnoreCase(searchTerm: String): List<User>
 
 }

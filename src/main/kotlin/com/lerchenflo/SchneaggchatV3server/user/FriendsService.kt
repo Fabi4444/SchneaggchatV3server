@@ -185,6 +185,25 @@ class FriendsService(
     }
 
     /**
+     * Get all users that the given user has not interacted with yet
+     * (no friendship, pending request, block, or declined status)
+     * @param userId The user to check interactions for
+     * @return List of ObjectIds for users with no interaction history
+     */
+    fun getUsersWithNoInteraction(userId: ObjectId, allUserIds: List<ObjectId>): List<ObjectId> {
+        // Get all users this user has interacted with
+        val interactedUserIds = friendshipRepository.findByUserId1OrUserId2(userId, userId)
+            .map { friendship ->
+                if (friendship.userId1 == userId) friendship.userId2 else friendship.userId1
+            }
+            .toSet()
+
+        // Return all users excluding the current user and those with interactions
+        return allUserIds.filter { it != userId && it !in interactedUserIds }
+    }
+
+
+    /**
      * Get all pending friend requests received by a user
      */
     fun getPendingRequests(userId: ObjectId): List<Friendship> {
@@ -206,6 +225,50 @@ class FriendsService(
     fun areFriends(userId1: ObjectId, userId2: ObjectId): Boolean {
         val friendship = findFriendship(userId1, userId2)
         return friendship?.status == FriendshipStatus.ACCEPTED
+    }
+
+    /**
+     * Get all users that share at least one mutual friend with the given user,
+     * excluding users already interacted with
+     * @return Map of userId to count of common friends (only users with count > 0)
+     */
+    fun getUsersWithCommonFriends(userId: ObjectId): Map<ObjectId, Int> {
+        val myFriends = getFriends(userId).toSet()
+
+        if (myFriends.isEmpty()) {
+            return emptyMap()
+        }
+
+        // Get all users that have interacted with this user (to exclude them)
+        val interactedUserIds = friendshipRepository.findByUserId1OrUserId2(userId, userId)
+            .map { friendship ->
+                if (friendship.userId1 == userId) friendship.userId2 else friendship.userId1
+            }
+            .toSet()
+
+        // Map to store potential friends and their common friend count
+        val potentialFriends = mutableMapOf<ObjectId, Int>()
+
+        // For each of my friends, get their friends
+        myFriends.forEach { friendId ->
+            val friendsOfFriend = getFriends(friendId)
+
+            friendsOfFriend.forEach { potentialFriendId ->
+                // Skip if it's me or if I've already interacted with them
+                if (potentialFriendId != userId && potentialFriendId !in interactedUserIds) {
+                    potentialFriends[potentialFriendId] =
+                        potentialFriends.getOrDefault(potentialFriendId, 0) + 1
+                }
+            }
+        }
+
+        return potentialFriends
+    }
+
+    fun getCommonFriendCount(userId1: ObjectId, userId2: ObjectId): Int {
+        val user1Friends = getFriends(userId1).toSet()
+        val user2Friends = getFriends(userId2).toSet()
+        return user1Friends.intersect(user2Friends).size
     }
 
     /**

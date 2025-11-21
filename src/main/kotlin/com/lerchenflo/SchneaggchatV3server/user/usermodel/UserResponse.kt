@@ -23,7 +23,9 @@ import kotlin.time.Instant
     JsonSubTypes.Type(value = UserResponse.FriendUserResponse::class, name = "friend"),
     JsonSubTypes.Type(value = UserResponse.SelfUserResponse::class, name = "self")
 )
-
+/**
+ * Response to use when syncing users
+ */
 sealed interface UserResponse {
 
     //Common data which every response contains
@@ -84,6 +86,15 @@ sealed interface UserResponse {
 
     ) : UserResponse
 }
+
+/**
+ * Response to use when showing the new friends screen
+ */
+data class NewFriendsUserResponse(
+    val id: String,
+    val username: String,
+    val commonFriendCount: Int,
+)
 
 
 
