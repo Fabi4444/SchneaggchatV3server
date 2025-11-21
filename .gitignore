@@ -2,6 +2,7 @@ HELP.md
 .gradle
 build/
 mongodb_data
+images
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/

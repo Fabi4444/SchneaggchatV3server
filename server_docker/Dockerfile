@@ -23,10 +23,17 @@ WORKDIR /app
 
 # Create non-root user for security
 RUN addgroup -S spring && adduser -S spring -G spring
-USER spring:spring
+
+RUN mkdir -p /app/images && \
+    chown -R spring:spring /app/images && \
+    chmod -R 755 /app/images
 
 # Copy the built artifact
 COPY --from=build --chown=spring:spring /app/build/libs/*.jar app.jar
+
+#Switch to non root user after directory setup
+USER spring:spring
+
 
 EXPOSE 8080
 

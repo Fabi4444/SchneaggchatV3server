@@ -49,9 +49,8 @@ services:
     networks:
       - spring-mongo-network
     volumes:
-      - ./mongodb_data:/mongodb_data
       - gradle-cache:/root/.gradle
-      - ./images:/app/images
+      - app-images:/app/images
 
 
 networks:
@@ -60,3 +59,4 @@ networks:
 
 volumes:
   gradle-cache:
+  app-images:
