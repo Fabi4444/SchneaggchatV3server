@@ -23,6 +23,11 @@ class MainController(
         return "Hello World!"
     }
 
+    @GetMapping("/test")
+    fun test(): String {
+        return "Up and running!"
+    }
+
     @EventListener(ApplicationReadyEvent::class)
     fun onStartup() {
 
