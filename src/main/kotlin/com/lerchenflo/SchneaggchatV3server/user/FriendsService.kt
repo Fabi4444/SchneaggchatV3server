@@ -82,6 +82,8 @@ class FriendsService(
         friendship.status = FriendshipStatus.ACCEPTED
         friendship.updatedAt = Clock.System.now()
 
+        println("New friendship saved")
+
         return friendshipRepository.save(friendship)
     }
 

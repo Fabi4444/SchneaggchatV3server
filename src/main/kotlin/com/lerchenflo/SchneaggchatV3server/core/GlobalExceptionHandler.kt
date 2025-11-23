@@ -18,4 +18,12 @@ class GlobalExceptionHandler{
             .status(400)
             .body(mapOf("errors" to errors))
     }
+
+    @ExceptionHandler(IllegalArgumentException::class)
+    fun handleIllegalArgumentException(e: IllegalArgumentException): ResponseEntity<String> {
+        val error = e.message
+        return ResponseEntity
+            .status(400)
+            .body(error)
+    }
 }

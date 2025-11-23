@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import kotlin.time.ExperimentalTime
@@ -160,16 +161,15 @@ class UserController(
         }
     }
 
-    @GetMapping("/availableusers/{searchterm}")
+    @GetMapping("/availableusers")
     fun getAvailableUsers(
-        @PathVariable("searchterm") searchTerm: String?,
+        @RequestParam("searchterm", required = false) searchTerm: String?,
     ) : List<NewFriendsUserResponse> {
         val requestingUserId =
             SecurityContextHolder.getContext().authentication?.principal as? String ?: throw ResponseStatusException(
                 /* status = */ HttpStatus.FORBIDDEN,
                 /* reason = */ "Not logged in"
             )
-
 
         //TODO: Very heavy db operation, fix??
 
@@ -216,5 +216,38 @@ class UserController(
                 .sortedByDescending { it.commonFriendCount }
         }
 
+    }
+
+
+    @GetMapping("/addfriend/{id}")
+    fun sendFriendRequest(
+        @PathVariable("id") touserId: String
+    ) {
+        val requestingUserId =
+            SecurityContextHolder.getContext().authentication?.principal as? String ?: throw ResponseStatusException(
+                /* status = */ HttpStatus.FORBIDDEN,
+                /* reason = */ "Not logged in"
+            )
+
+        friendshipsService.sendFriendRequest(
+            fromUserId = ObjectId(requestingUserId),
+            toUserId = ObjectId(touserId)
+        )
+    }
+
+    @GetMapping("/denyfriend/{id}")
+    fun denyFriendRequest(
+        @PathVariable("id") touserId: String
+    ) {
+        val requestingUserId =
+            SecurityContextHolder.getContext().authentication?.principal as? String ?: throw ResponseStatusException(
+                /* status = */ HttpStatus.FORBIDDEN,
+                /* reason = */ "Not logged in"
+            )
+
+        friendshipsService.declineFriendRequest(
+            ObjectId(requestingUserId),
+            ObjectId(touserId)
+        )
     }
 }
