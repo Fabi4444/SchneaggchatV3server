@@ -35,7 +35,7 @@ class FriendsService(
                 FriendshipStatus.PENDING -> {
                     // If the other user already sent a request, auto-accept
                     if (existing.requesterId == toUserId) {
-                        acceptFriendRequest(toUserId, fromUserId)
+                        acceptFriendRequest(fromUserId, toUserId)
                     } else {
                         existing // Request already sent
                     }

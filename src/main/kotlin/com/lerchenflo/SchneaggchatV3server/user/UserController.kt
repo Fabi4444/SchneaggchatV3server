@@ -231,10 +231,12 @@ class UserController(
                 /* reason = */ "Not logged in"
             )
 
-        friendshipsService.sendFriendRequest(
+        val friendship = friendshipsService.sendFriendRequest(
             fromUserId = ObjectId(requestingUserId),
             toUserId = ObjectId(touserId)
         )
+
+        println("Friend request: $friendship")
     }
 
     @GetMapping("/denyfriend/{id}")
