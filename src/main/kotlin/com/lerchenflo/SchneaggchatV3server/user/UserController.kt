@@ -88,11 +88,18 @@ class UserController(
         val finalExistingToUpdate = usersToUpdate + usersToAdd
 
         val addusers = finalExistingToUpdate.map { user ->
+
+            //Calculate newest lastchanged timestamp
+            val userTimestamp = user.updatedAt.toEpochMilliseconds()
+            val friendshipTimestamp = interactionMap[user.id]?.lastChanged?.toEpochMilliseconds() ?: 0
+            val newestTimestamp = maxOf(userTimestamp, friendshipTimestamp)
+
             serializeSyncUser(
                 user = user,
                 requestingUserId = ObjectId(requestingUserId),
                 friendshipStatus = interactionMap[user.id]?.status,
                 requesterId = interactionMap[user.id]?.requesterId,
+                lastChangedAt = newestTimestamp,
             )
         }
 
@@ -107,7 +114,7 @@ class UserController(
      * @param User the user to be serialized
      * @param requestingUserId the user which requested the serialisation
      */
-    private fun serializeSyncUser(user: User, requestingUserId : ObjectId, friendshipStatus: FriendshipStatus?, requesterId: ObjectId?): UserResponse {
+    private fun serializeSyncUser(user: User, requestingUserId : ObjectId, friendshipStatus: FriendshipStatus?, requesterId: ObjectId?, lastChangedAt: Long? = null): UserResponse {
         //User requests his own data
         if (requestingUserId == user.id) {
             return UserResponse.SelfUserResponse(
@@ -115,7 +122,7 @@ class UserController(
                 username = user.username,
                 userDescription = user.userDescription,
                 userStatus = user.userStatus,
-                updatedAt = user.updatedAt.toEpochMilliseconds(),
+                updatedAt = lastChangedAt ?: user.updatedAt.toEpochMilliseconds(),
                 birthDate = user.birthDate,
                 email = user.email,
                 createdAt = user.createdAt.toEpochMilliseconds(),
@@ -129,7 +136,7 @@ class UserController(
                 username = user.username,
                 userDescription = user.userDescription,
                 userStatus = user.userStatus,
-                updatedAt = user.updatedAt.toEpochMilliseconds(),
+                updatedAt = lastChangedAt ?: user.updatedAt.toEpochMilliseconds(),
                 birthDate = user.birthDate,
                 requesterId = requesterId?.toHexString(),
             )
@@ -140,7 +147,7 @@ class UserController(
             return UserResponse.SimpleUserResponse(
                 id = user.id.toString(),
                 username = user.username,
-                updatedAt = user.updatedAt.toEpochMilliseconds(),
+                updatedAt = lastChangedAt ?: user.updatedAt.toEpochMilliseconds(),
                 friendShipStatus = friendshipStatus,
                 requesterId = requesterId?.toHexString(),
             )

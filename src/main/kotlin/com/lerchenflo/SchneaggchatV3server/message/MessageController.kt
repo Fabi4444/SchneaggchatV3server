@@ -10,11 +10,14 @@ import org.springframework.web.bind.annotation.RestController
 class MessageController(
     private val messageRepository: MessageRepository
 ) {
-    /*
+
     @PostMapping("/send/text")
-    fun sendTextMessage()
+    fun sendTextMessage(){
+
+    }
 
 
+    /*
     @PostMapping("/send/image")
 
      */
