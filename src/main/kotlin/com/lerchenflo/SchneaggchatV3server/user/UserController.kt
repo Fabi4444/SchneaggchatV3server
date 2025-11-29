@@ -76,12 +76,10 @@ class UserController(
 
         val usersToUpdate = currentFriends
             .filter { user ->
-                val clientTimestamp = clientUsers[user.id.toHexString()]
-                val userUpdated = user.updatedAt.toEpochMilliseconds() > (clientTimestamp?.toLong() ?: 0)
-                val friendshipUpdated = interactionMap[user.id]?.lastChanged?.toEpochMilliseconds()
-                    ?.let { it > (clientTimestamp?.toLong() ?: 0) } ?: false
-
-                clientTimestamp != null && (userUpdated || friendshipUpdated)
+                clientUsers[user.id.toHexString()]?.toLong()?.let { clientTimestamp ->
+                    user.updatedAt.toEpochMilliseconds() > clientTimestamp ||
+                            (interactionMap[user.id]?.lastChanged?.toEpochMilliseconds() ?: 0) > clientTimestamp
+                } ?: false
             }
 
         val currentFriendIdStrings = allFriendInteractions.map { it.userId.toHexString() }.toSet()
