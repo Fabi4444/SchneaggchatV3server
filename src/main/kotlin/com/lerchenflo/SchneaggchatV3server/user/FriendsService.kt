@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
 import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 @Component
 class FriendsService(
@@ -167,7 +168,8 @@ class FriendsService(
     data class UserInteraction(
         val userId: ObjectId,
         val status: FriendshipStatus,
-        val requesterId: ObjectId
+        val requesterId: ObjectId,
+        val lastChanged: Instant? = null,
     )
 
     fun getAllInteractions(userId: ObjectId): List<UserInteraction> {
@@ -182,6 +184,7 @@ class FriendsService(
                     userId = otherUserId,
                     status = friendship.status,
                     requesterId = friendship.requesterId,
+                    lastChanged = friendship.updatedAt,
                 )
             }
     }
