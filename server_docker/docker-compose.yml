@@ -46,6 +46,7 @@ services:
     environment:
       SPRING_DATA_MONGODB_URI: mongodb://admin:password@schneaggchat_db:27017/db?authSource=admin
       JWT_SECRET: "very_very_very_very_very_very_very_very_very_secret_key"
+      DEFAULTACCOUNT_PASSWORD: "defaultpassword_verYsEcret1!"
     networks:
       - spring-mongo-network
     volumes:
