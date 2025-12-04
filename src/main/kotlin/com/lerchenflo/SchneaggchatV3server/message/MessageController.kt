@@ -1,6 +1,7 @@
 package com.lerchenflo.schneaggchatv3server.message
 
 import com.lerchenflo.schneaggchatv3server.message.messagemodel.MessageRequest
+import com.lerchenflo.schneaggchatv3server.message.messagemodel.MessageResponse
 import com.lerchenflo.schneaggchatv3server.repository.MessageRepository
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -16,8 +17,8 @@ class MessageController(
     @PostMapping("/send/text")
     fun sendTextMessage(
         @RequestBody messageRequest: MessageRequest
-    ){
-
+    ): MessageResponse {
+        println("Message received: $messageRequest")
     }
 
 
