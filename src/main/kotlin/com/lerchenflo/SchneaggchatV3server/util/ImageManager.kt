@@ -40,4 +40,15 @@ class ImageManager {
     fun getProfilePicFileName(userId: String, group: Boolean): String {
         return "${if (group) "group" else "user"}_${userId}_profilepic.jpg"
     }
+
+
+    fun saveImageMessage(image: MultipartFile, messageId: String): String {
+        val filename = getImageMessageFileName(messageId)
+        saveImageToFile(image, filename)
+        return filename
+    }
+
+    fun getImageMessageFileName(messageId: String): String {
+        return "image_${messageId}_message.jpg"
+    }
 }

@@ -9,6 +9,7 @@ import org.bson.types.ObjectId
 import org.springframework.data.mongodb.core.mapping.Document
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
+import kotlin.time.toJavaInstant
 
 @Document("messages")
 data class Message(
@@ -16,7 +17,7 @@ data class Message(
     val senderId: ObjectId,
     val receiverId: ObjectId,
     val groupMessage: Boolean,
-    val msgtype: MessageType,
+    val msgType: MessageType,
     val content: String,
     val answerId: ObjectId?,
 
@@ -29,4 +30,19 @@ data class Message(
 enum class MessageType {
     TEXT,
     IMAGE
+}
+
+fun Message.toMessageResponse() : MessageResponse {
+    return MessageResponse(
+        messageId = this.id.toHexString(),
+        senderId = this.senderId.toHexString(),
+        receiverId = this.receiverId.toHexString(),
+        groupMessage = this.groupMessage,
+        msgType = this.msgType,
+        content = this.content,
+        answerId = this.answerId?.toHexString(),
+        sendDate = this.sendDate.toEpochMilliseconds(),
+        lastChanged = this.lastChanged.toEpochMilliseconds(),
+        deleted = this.deleted,
+    )
 }

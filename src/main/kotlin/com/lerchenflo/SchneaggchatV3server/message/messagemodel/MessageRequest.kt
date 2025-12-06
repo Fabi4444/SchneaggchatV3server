@@ -8,7 +8,7 @@ data class MessageRequest(
 
     val receiverId: String,
     val groupMessage: Boolean,
-    val msgtype: MessageType,
+    val msgType: MessageType,
     val content: String,
     val answerId: String?,
 )
