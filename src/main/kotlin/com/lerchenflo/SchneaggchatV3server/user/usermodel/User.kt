@@ -13,14 +13,15 @@ data class User(
     @Id val id: ObjectId = ObjectId.get(),
     val username: String,
     val hashedPassword: String,
+
     val email: String,
+    val emailVerifiedAt: Instant? = null,
+
     val userDescription: String,
     val userStatus: String,
     val birthDate: String,
 
     val firebaseTokens: List<String>,
-
-    //TODO: User profile pic privacy settings
 
     val createdAt: Instant,
     val updatedAt: Instant

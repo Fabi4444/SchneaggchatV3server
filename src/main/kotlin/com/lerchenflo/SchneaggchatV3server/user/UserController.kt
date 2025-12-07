@@ -126,6 +126,7 @@ class UserController(
                 birthDate = user.birthDate,
                 email = user.email,
                 createdAt = user.createdAt.toEpochMilliseconds(),
+                emailVerifiedAt = user.emailVerifiedAt?.toEpochMilliseconds(),
             )
         }
 

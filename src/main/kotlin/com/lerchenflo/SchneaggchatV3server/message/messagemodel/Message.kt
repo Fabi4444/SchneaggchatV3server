@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeName
 import org.bson.types.ObjectId
+import org.springframework.data.mongodb.core.index.Indexed
 import org.springframework.data.mongodb.core.mapping.Document
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
@@ -14,7 +15,10 @@ import kotlin.time.toJavaInstant
 @Document("messages")
 data class Message(
     val id: ObjectId = ObjectId.get(),
+
+    @Indexed
     val senderId: ObjectId,
+    @Indexed
     val receiverId: ObjectId,
     val groupMessage: Boolean,
     val msgType: MessageType,
@@ -23,9 +27,11 @@ data class Message(
 
     val sendDate: Instant,
     val lastChanged: Instant,
-    val deleted: Boolean = false,
 
-    )
+    @Indexed
+    val deleted: Boolean
+
+)
 
 enum class MessageType {
     TEXT,
@@ -39,7 +45,7 @@ fun Message.toMessageResponse() : MessageResponse {
         receiverId = this.receiverId.toHexString(),
         groupMessage = this.groupMessage,
         msgType = this.msgType,
-        content = this.content,
+        content = if (msgType == MessageType.IMAGE) "" else this.content,
         answerId = this.answerId?.toHexString(),
         sendDate = this.sendDate.toEpochMilliseconds(),
         lastChanged = this.lastChanged.toEpochMilliseconds(),

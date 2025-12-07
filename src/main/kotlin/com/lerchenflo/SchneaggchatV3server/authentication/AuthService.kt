@@ -112,6 +112,7 @@ class AuthService(
         }
 
         val hashed = hashToken(refreshToken)
+        println("Hashed token: $hashed")
         refreshTokenRepository.findByUserIdAndHashedToken(user.id, hashed)
             ?: throw ResponseStatusException(HttpStatusCode.valueOf(401),"Refreshtoken not recognized (maybe used or expired)")
 
@@ -121,6 +122,7 @@ class AuthService(
         val newRefreshToken = jwtService.generateRefreshToken(userId)
 
         storeRefreshToken(user.id, newRefreshToken)
+        println("New refreshtoken saved")
 
         return TokenPair(
             accessToken = newAccessToken,
