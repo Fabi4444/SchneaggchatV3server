@@ -2,15 +2,11 @@
 
 package com.lerchenflo.schneaggchatv3server.message.messagemodel
 
-import com.fasterxml.jackson.annotation.JsonSubTypes
-import com.fasterxml.jackson.annotation.JsonTypeInfo
-import com.fasterxml.jackson.annotation.JsonTypeName
 import org.bson.types.ObjectId
 import org.springframework.data.mongodb.core.index.Indexed
 import org.springframework.data.mongodb.core.mapping.Document
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
-import kotlin.time.toJavaInstant
 
 @Document("messages")
 data class Message(
@@ -29,8 +25,15 @@ data class Message(
     val lastChanged: Instant,
 
     @Indexed
-    val deleted: Boolean
+    val deleted: Boolean,
 
+    val readers: List<Reader>,
+)
+
+data class Reader(
+    @Indexed
+    val userId: ObjectId,
+    val readAt: Instant
 )
 
 enum class MessageType {
@@ -50,5 +53,13 @@ fun Message.toMessageResponse() : MessageResponse {
         sendDate = this.sendDate.toEpochMilliseconds(),
         lastChanged = this.lastChanged.toEpochMilliseconds(),
         deleted = this.deleted,
+        readers = this.readers.map { it.toReaderResponse() }
+    )
+}
+
+fun Reader.toReaderResponse() : ReaderResponse {
+    return ReaderResponse(
+        userId = this.userId.toHexString(),
+        readAt = this.readAt.toEpochMilliseconds()
     )
 }

@@ -12,5 +12,12 @@ data class MessageResponse(
     val sendDate: Long,
     val lastChanged: Long,
     val deleted: Boolean,
+    val readers: List<ReaderResponse>
 
+)
+
+
+data class ReaderResponse(
+    val userId: String,
+    val readAt: Long
 )

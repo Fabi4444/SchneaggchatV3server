@@ -4,13 +4,17 @@ import com.lerchenflo.schneaggchatv3server.message.messagemodel.MessageRequest
 import com.lerchenflo.schneaggchatv3server.message.messagemodel.MessageResponse
 import com.lerchenflo.schneaggchatv3server.message.messagemodel.toMessageResponse
 import com.lerchenflo.schneaggchatv3server.repository.MessageRepository
+import com.lerchenflo.schneaggchatv3server.user.UserController
 import jdk.internal.joptsimple.internal.Messages.message
 import org.bson.types.ObjectId
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 
@@ -51,5 +55,49 @@ class MessageController(
     @PostMapping("/send/image")
 
      */
+
+
+    @PostMapping("/sync")
+    fun messageSync(
+       @RequestParam(value = "page", defaultValue = "0") page: Int,
+       @RequestParam(value = "page_size", defaultValue = "400") pageSize: Int,
+       @RequestBody messageRequestList: List<UserController.IdTimeStamp>
+    ): MessageService.MessageSyncResponse {
+
+        val requestingUserId =
+            SecurityContextHolder.getContext().authentication?.principal as? String ?: throw ResponseStatusException(
+                /* status = */ HttpStatus.FORBIDDEN,
+                /* reason = */ "Not logged in"
+            )
+
+        return messageService.messageSync(
+            clientMessages = messageRequestList,
+            requestingUser = ObjectId(requestingUserId),
+            page = page,
+            pageSize = pageSize,
+        )
+
+    }
+
+    @PostMapping("/setread")
+    fun setMessagesRead(
+        @RequestParam(value = "userid") userId: String,
+        @RequestParam(value = "group") group: Boolean,
+        @RequestParam(value = "timestamp") timestamp: Long
+
+    ){
+        val requestingUserId =
+            SecurityContextHolder.getContext().authentication?.principal as? String ?: throw ResponseStatusException(
+                /* status = */ HttpStatus.FORBIDDEN,
+                /* reason = */ "Not logged in"
+            )
+
+        messageService.setMessagesRead(
+            ObjectId(requestingUserId), ObjectId(userId),
+            group = group,
+            timeStamp = timestamp,
+        )
+    }
+
 
 }
