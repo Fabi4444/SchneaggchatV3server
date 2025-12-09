@@ -3,6 +3,7 @@ package com.lerchenflo.schneaggchatv3server.core.security
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
+import org.bson.types.ObjectId
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatusCode
 import org.springframework.stereotype.Service
@@ -89,5 +90,41 @@ class JwtService(
             null
         }
     }
+
+
+    fun generateEmailToken(
+        userId: String,
+        email: String
+    ): String {
+
+        val now = Date()
+        val expiryDate = Date(now.time + refreshTokenValidityMs) //15 min valid
+
+        return Jwts.builder()
+            .subject(userId)
+            .claim("type", "emailverification")
+            .claim("email", email)
+            .issuedAt(now)
+            .expiration(expiryDate)
+            .signWith(secretKey, Jwts.SIG.HS256)
+            .compact()
+    }
+
+    /**
+     * Validate an email token. returns either null if not valid or the email which got validated and the userid
+     */
+    fun validateEmailToken(token: String): Pair<String, ObjectId>? {
+        val claims = parseAllClaims(token) ?: return null
+        val tokentype = claims["type"] as? String ?: return null
+        if (tokentype == "emailverification"
+            && claims["email"] is String){
+
+            val userid = ObjectId(getUserIdFromToken(token))
+            val email = claims["email"] as String
+            return Pair(email, userid)
+        }
+        return null
+    }
+
 
 }

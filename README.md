@@ -6,7 +6,7 @@ Schneaggchat server for v3
 There are two docker - setups included: The one in the main structure for Localhost execution, and one in the server_docker folder for executing on a remote server (this one pulls the github repository during build). Just clone the project and Use the Dockerfile and docker-compose.yaml to start the server. 
 
 ## Localhost
-* Install docker desktop
+* Install docker desktop (Windows), Install docker (linux) and sudo systemctl start docker
 * Open project in Intellij Idea Ultimate (Basic version does not support Docker execution)
 * Add run configuration
     * Top Right Center -> Current file dropdown -> Edit Configurations
