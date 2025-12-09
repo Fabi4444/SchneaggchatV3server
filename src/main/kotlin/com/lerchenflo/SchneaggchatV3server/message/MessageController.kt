@@ -1,14 +1,10 @@
-package com.lerchenflo.schneaggchatv3server.message
+package com.lerchenflo.SchneaggchatV3server.message
 
-import com.lerchenflo.schneaggchatv3server.message.messagemodel.MessageRequest
-import com.lerchenflo.schneaggchatv3server.message.messagemodel.MessageResponse
-import com.lerchenflo.schneaggchatv3server.message.messagemodel.toMessageResponse
-import com.lerchenflo.schneaggchatv3server.repository.MessageRepository
-import com.lerchenflo.schneaggchatv3server.user.UserController
-import jdk.internal.joptsimple.internal.Messages.message
+import com.lerchenflo.SchneaggchatV3server.message.messagemodel.MessageRequest
+import com.lerchenflo.SchneaggchatV3server.message.messagemodel.MessageResponse
+import com.lerchenflo.SchneaggchatV3server.message.messagemodel.toMessageResponse
+import com.lerchenflo.SchneaggchatV3server.user.UserController
 import org.bson.types.ObjectId
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.PostMapping

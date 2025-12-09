@@ -1,4 +1,4 @@
-package com.lerchenflo.schneaggchatv3server.core.config
+package com.lerchenflo.SchneaggchatV3server.core.config
 
 import com.mongodb.ConnectionString
 import com.mongodb.MongoClientSettings
@@ -17,10 +17,10 @@ import org.springframework.data.mongodb.config.AbstractMongoClientConfiguration
 @Configuration
 class MongoDBConfig : AbstractMongoClientConfiguration() {
 
-    @Value($$"${spring.data.mongodb.uri}")
+    @Value($$"${spring.mongodb.uri}")
     private lateinit var mongoUri: String
 
-    @Value("\${spring.data.mongodb.database}")
+    @Value("\${spring.mongodb.database}")
     private lateinit var databaseName: String
 
     override fun getDatabaseName(): String = databaseName

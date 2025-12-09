@@ -1,9 +1,8 @@
 @file:OptIn(ExperimentalTime::class)
 
-package com.lerchenflo.schneaggchatv3server.authentication.model
+package com.lerchenflo.SchneaggchatV3server.authentication.model
 
 import org.bson.types.ObjectId
-import org.springframework.data.mongodb.core.index.CompoundIndex
 import org.springframework.data.mongodb.core.index.Indexed
 import org.springframework.data.mongodb.core.mapping.Document
 import kotlin.time.Clock

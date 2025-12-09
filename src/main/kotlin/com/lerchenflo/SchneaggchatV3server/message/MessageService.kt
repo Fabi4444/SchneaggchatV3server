@@ -1,19 +1,18 @@
 @file:OptIn(ExperimentalTime::class)
 
-package com.lerchenflo.schneaggchatv3server.message
+package com.lerchenflo.SchneaggchatV3server.message
 
-import com.lerchenflo.schneaggchatv3server.group.GroupService
-import com.lerchenflo.schneaggchatv3server.message.messagemodel.Message
-import com.lerchenflo.schneaggchatv3server.message.messagemodel.MessageResponse
-import com.lerchenflo.schneaggchatv3server.message.messagemodel.MessageType
-import com.lerchenflo.schneaggchatv3server.message.messagemodel.Reader
-import com.lerchenflo.schneaggchatv3server.message.messagemodel.toMessageResponse
-import com.lerchenflo.schneaggchatv3server.repository.MessageRepository
-import com.lerchenflo.schneaggchatv3server.user.FriendsService
-import com.lerchenflo.schneaggchatv3server.user.UserController
-import com.lerchenflo.schneaggchatv3server.util.ImageManager
+import com.lerchenflo.SchneaggchatV3server.group.GroupService
+import com.lerchenflo.SchneaggchatV3server.message.messagemodel.Message
+import com.lerchenflo.SchneaggchatV3server.message.messagemodel.MessageResponse
+import com.lerchenflo.SchneaggchatV3server.message.messagemodel.MessageType
+import com.lerchenflo.SchneaggchatV3server.message.messagemodel.Reader
+import com.lerchenflo.SchneaggchatV3server.message.messagemodel.toMessageResponse
+import com.lerchenflo.SchneaggchatV3server.repository.MessageRepository
+import com.lerchenflo.SchneaggchatV3server.user.FriendsService
+import com.lerchenflo.SchneaggchatV3server.user.UserController
+import com.lerchenflo.SchneaggchatV3server.util.ImageManager
 import org.bson.types.ObjectId
-import org.springframework.data.domain.Page
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
@@ -22,6 +21,7 @@ import org.springframework.data.mongodb.core.query.Update
 import org.springframework.stereotype.Component
 import org.springframework.web.multipart.MultipartFile
 import kotlin.time.Clock
+import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
@@ -94,7 +94,7 @@ class MessageService(
         val clientInstant = Instant.fromEpochMilliseconds(timeStamp)
 
         // allowed difference: ±1 minute
-        val maxDiff = kotlin.time.Duration.parse("1m")
+        val maxDiff = Duration.parse("1m")
 
         val usedInstant =
             if ((serverInstant - clientInstant).absoluteValue <= maxDiff)

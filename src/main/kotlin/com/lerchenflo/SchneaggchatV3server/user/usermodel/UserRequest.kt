@@ -1,4 +1,4 @@
-package com.lerchenflo.schneaggchatv3server.user.usermodel
+package com.lerchenflo.SchneaggchatV3server.user.usermodel
 
 
 //TODO: Request when the user changes something about his profile

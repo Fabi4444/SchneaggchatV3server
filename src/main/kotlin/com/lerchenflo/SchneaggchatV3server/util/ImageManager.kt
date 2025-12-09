@@ -1,9 +1,8 @@
-package com.lerchenflo.schneaggchatv3server.util
+package com.lerchenflo.SchneaggchatV3server.util
 
 import org.springframework.stereotype.Component
 import org.springframework.web.multipart.MultipartFile
 import java.io.File
-import java.nio.file.FileSystem
 
 @Component
 class ImageManager {

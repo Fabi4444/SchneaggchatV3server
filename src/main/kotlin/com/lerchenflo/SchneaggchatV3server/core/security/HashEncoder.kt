@@ -1,4 +1,4 @@
-package com.lerchenflo.schneaggchatv3server.core.security
+package com.lerchenflo.SchneaggchatV3server.core.security
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Component

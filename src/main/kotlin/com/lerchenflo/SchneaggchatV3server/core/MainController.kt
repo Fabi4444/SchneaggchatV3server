@@ -1,10 +1,10 @@
 @file:OptIn(ExperimentalTime::class)
 
-package com.lerchenflo.schneaggchatv3server.core
+package com.lerchenflo.SchneaggchatV3server.core
 
-import com.lerchenflo.schneaggchatv3server.core.security.HashEncoder
-import com.lerchenflo.schneaggchatv3server.repository.UserRepository
-import com.lerchenflo.schneaggchatv3server.user.usermodel.User
+import com.lerchenflo.SchneaggchatV3server.core.security.HashEncoder
+import com.lerchenflo.SchneaggchatV3server.repository.UserRepository
+import com.lerchenflo.SchneaggchatV3server.user.usermodel.User
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.event.EventListener

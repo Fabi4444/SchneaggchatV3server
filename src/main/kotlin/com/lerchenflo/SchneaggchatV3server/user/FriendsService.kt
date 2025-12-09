@@ -1,15 +1,13 @@
 @file:OptIn(ExperimentalTime::class)
 
-package com.lerchenflo.schneaggchatv3server.user
+package com.lerchenflo.SchneaggchatV3server.user
 
-import com.lerchenflo.schneaggchatv3server.repository.FriendshipRepository
-import com.lerchenflo.schneaggchatv3server.repository.FriendshipSettingsRepository
-import com.lerchenflo.schneaggchatv3server.user.friendshipmodel.Friendship
-import com.lerchenflo.schneaggchatv3server.user.friendshipmodel.FriendshipStatus
+import com.lerchenflo.SchneaggchatV3server.repository.FriendshipRepository
+import com.lerchenflo.SchneaggchatV3server.user.friendshipmodel.Friendship
+import com.lerchenflo.SchneaggchatV3server.user.friendshipmodel.FriendshipStatus
 import org.bson.types.ObjectId
 import org.springframework.stereotype.Component
 import kotlin.time.Clock
-import kotlin.time.Duration.Companion.days
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 

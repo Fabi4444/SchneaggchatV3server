@@ -1,34 +1,34 @@
-package com.lerchenflo.SchneaggchatV3server.authentication.emailverification
+package com.lerchenflo.SchneaggchatV3server.authentication
 
-import com.lerchenflo.schneaggchatv3server.core.security.JwtService
-import com.lerchenflo.schneaggchatv3server.repository.UserRepository
+import com.lerchenflo.SchneaggchatV3server.core.security.JwtService
+import com.lerchenflo.SchneaggchatV3server.repository.UserRepository
 import org.bson.types.ObjectId
-import org.springframework.mail.MailSender
 import org.springframework.mail.SimpleMailMessage
-import org.springframework.stereotype.Component
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
+import org.springframework.mail.javamail.JavaMailSender
+import org.springframework.mail.javamail.JavaMailSenderImpl
+import org.springframework.stereotype.Service
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
 
 @OptIn(ExperimentalTime::class)
-@Component
+@Service
 class EmailService(
     private val jwtService: JwtService,
     private val userRepository: UserRepository,
-    private val mailSender: MailSender
+    private val mailSender: JavaMailSender
 ) {
+
+
     /**
      * Send a verification email to a client
      */
     fun sendVerificationEmail(userId: ObjectId, email: String) {
 
+
         val token = jwtService.generateEmailToken(userId.toHexString(), email)
         val verificationUrl = "https://schneaggchat.lerchenflo.eu/auth/verify_email?token=$token"
 
-
-        val mail: SimpleMailMessage = SimpleMailMessage()
+        val mail = SimpleMailMessage()
         mail.setTo(email)
         mail.subject = "Schneaggchat email verification"
         mail.text = "Click here to validate your email:\n$verificationUrl"
