@@ -1,6 +1,6 @@
-package com.lerchenflo.schneaggchatv3server.repository
+package com.lerchenflo.SchneaggchatV3server.repository
 
-import com.lerchenflo.schneaggchatv3server.authentication.model.RefreshToken
+import com.lerchenflo.SchneaggchatV3server.authentication.model.RefreshToken
 import org.bson.types.ObjectId
 import org.springframework.data.mongodb.repository.MongoRepository
 

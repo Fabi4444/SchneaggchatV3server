@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalTime::class)
 
-package com.lerchenflo.schneaggchatv3server.user.usermodel
+package com.lerchenflo.SchneaggchatV3server.user.usermodel
 
 import org.bson.types.ObjectId
 import org.springframework.data.annotation.Id

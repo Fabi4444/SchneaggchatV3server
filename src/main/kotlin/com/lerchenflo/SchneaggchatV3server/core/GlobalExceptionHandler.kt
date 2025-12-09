@@ -1,9 +1,10 @@
-package com.lerchenflo.schneaggchatv3server.core
+package com.lerchenflo.SchneaggchatV3server.core
 
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import org.springframework.web.server.ResponseStatusException
 
 @RestControllerAdvice
 class GlobalExceptionHandler{
@@ -24,6 +25,14 @@ class GlobalExceptionHandler{
         val error = e.message
         return ResponseEntity
             .status(400)
+            .body(error)
+    }
+
+    @ExceptionHandler(ResponseStatusException::class)
+    fun handleResponseStatusException(e: ResponseStatusException): ResponseEntity<String> {
+        val error = e.message
+        return ResponseEntity
+            .status(e.statusCode)
             .body(error)
     }
 }

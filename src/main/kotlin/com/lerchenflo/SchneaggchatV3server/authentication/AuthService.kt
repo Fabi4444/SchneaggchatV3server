@@ -1,14 +1,14 @@
 @file:OptIn(ExperimentalTime::class)
 
-package com.lerchenflo.schneaggchatv3server.authentication
+package com.lerchenflo.SchneaggchatV3server.authentication
 
-import com.lerchenflo.schneaggchatv3server.authentication.model.RefreshToken
-import com.lerchenflo.schneaggchatv3server.core.security.HashEncoder
-import com.lerchenflo.schneaggchatv3server.core.security.JwtService
-import com.lerchenflo.schneaggchatv3server.repository.RefreshTokenRepository
-import com.lerchenflo.schneaggchatv3server.repository.UserRepository
-import com.lerchenflo.schneaggchatv3server.user.usermodel.User
-import com.lerchenflo.schneaggchatv3server.util.ImageManager
+import com.lerchenflo.SchneaggchatV3server.authentication.model.RefreshToken
+import com.lerchenflo.SchneaggchatV3server.core.security.HashEncoder
+import com.lerchenflo.SchneaggchatV3server.core.security.JwtService
+import com.lerchenflo.SchneaggchatV3server.repository.RefreshTokenRepository
+import com.lerchenflo.SchneaggchatV3server.repository.UserRepository
+import com.lerchenflo.SchneaggchatV3server.user.usermodel.User
+import com.lerchenflo.SchneaggchatV3server.util.ImageManager
 import org.bson.types.ObjectId
 import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatusCode

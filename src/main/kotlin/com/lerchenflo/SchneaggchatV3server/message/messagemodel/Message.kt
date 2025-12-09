@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalTime::class)
 
-package com.lerchenflo.schneaggchatv3server.message.messagemodel
+package com.lerchenflo.SchneaggchatV3server.message.messagemodel
 
 import org.bson.types.ObjectId
 import org.springframework.data.mongodb.core.index.Indexed

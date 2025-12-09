@@ -1,8 +1,5 @@
-package com.lerchenflo.schneaggchatv3server.authentication
+package com.lerchenflo.SchneaggchatV3server.authentication
 
-import com.lerchenflo.SchneaggchatV3server.authentication.emailverification.EmailService
-import com.lerchenflo.schneaggchatv3server.util.ImageManager
-import jakarta.validation.Valid
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.Pattern
 import org.springframework.http.MediaType
@@ -13,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
-import java.awt.PageAttributes
 
 //https://schneaggchat.eu/auth
 
@@ -54,12 +50,17 @@ class AuthController(
         @RequestParam("birthDate") birthDate: String,
         @RequestParam("profilepic") profilePic: MultipartFile
     ) {
-        authService.register(
+        val user = authService.register(
             username = username,
             password = password,
             email = email,
             birthdate = birthDate,
             profilePic = profilePic
+        )
+
+        emailService.sendVerificationEmail(
+            userId = user.id,
+            email = user.email,
         )
     }
 
@@ -85,7 +86,7 @@ class AuthController(
     }
 
 
-    @GetMapping("/auth/verify_email")
+    @GetMapping("/verify_email")
     fun verifyEmail(
         @RequestParam("token") token: String,
     ) : String {
@@ -93,7 +94,7 @@ class AuthController(
 
         return if (emailService.verifyEmailRequest(token)){
             //Email verified
-            "Email verified"
+            "Your email has been verified."
         }else {
             //Email not verified
             "Your email could not be verified"

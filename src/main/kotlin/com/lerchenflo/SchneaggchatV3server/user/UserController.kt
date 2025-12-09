@@ -1,14 +1,14 @@
 @file:OptIn(ExperimentalTime::class)
 
-package com.lerchenflo.schneaggchatv3server.user
+package com.lerchenflo.SchneaggchatV3server.user
 
-import com.lerchenflo.schneaggchatv3server.repository.FriendshipRepository
-import com.lerchenflo.schneaggchatv3server.repository.UserRepository
-import com.lerchenflo.schneaggchatv3server.user.friendshipmodel.FriendshipStatus
-import com.lerchenflo.schneaggchatv3server.user.usermodel.NewFriendsUserResponse
-import com.lerchenflo.schneaggchatv3server.user.usermodel.User
-import com.lerchenflo.schneaggchatv3server.user.usermodel.UserResponse
-import com.lerchenflo.schneaggchatv3server.util.ImageManager
+import com.lerchenflo.SchneaggchatV3server.authentication.EmailService
+import com.lerchenflo.SchneaggchatV3server.repository.UserRepository
+import com.lerchenflo.SchneaggchatV3server.user.friendshipmodel.FriendshipStatus
+import com.lerchenflo.SchneaggchatV3server.user.usermodel.NewFriendsUserResponse
+import com.lerchenflo.SchneaggchatV3server.user.usermodel.User
+import com.lerchenflo.SchneaggchatV3server.user.usermodel.UserResponse
+import com.lerchenflo.SchneaggchatV3server.util.ImageManager
 import org.bson.types.ObjectId
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
 
 @RestController
 @RequestMapping("/users")
@@ -31,8 +30,27 @@ class UserController(
     private val userRepository: UserRepository,
     private val friendshipsService: FriendsService,
     //TODO: Friendsettingsservice
-    private val imageManager: ImageManager
+    private val imageManager: ImageManager,
+
+    private val emailService: EmailService
 ) {
+
+    @PostMapping("/verificationemail")
+    fun sendVerificationEmail(){
+        val requestingUserId =
+            SecurityContextHolder.getContext().authentication?.principal as? String ?: throw ResponseStatusException(
+                /* status = */ HttpStatus.FORBIDDEN,
+                /* reason = */ "Not logged in"
+            )
+        val user = userRepository.findById(ObjectId(requestingUserId))
+
+        emailService.sendVerificationEmail(
+            userId = ObjectId(requestingUserId),
+            email = user.get().email
+        )
+    }
+
+
 
     data class IdTimeStamp(val id: String, val timeStamp: String)
 

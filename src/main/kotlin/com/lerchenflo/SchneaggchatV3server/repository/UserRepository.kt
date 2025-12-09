@@ -1,6 +1,6 @@
-package com.lerchenflo.schneaggchatv3server.repository
+package com.lerchenflo.SchneaggchatV3server.repository
 
-import com.lerchenflo.schneaggchatv3server.user.usermodel.User
+import com.lerchenflo.SchneaggchatV3server.user.usermodel.User
 import org.bson.types.ObjectId
 import org.springframework.data.mongodb.repository.MongoRepository
 

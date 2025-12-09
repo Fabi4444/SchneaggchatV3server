@@ -1,13 +1,11 @@
 @file:OptIn(ExperimentalTime::class)
 
-package com.lerchenflo.schneaggchatv3server.user.usermodel
+package com.lerchenflo.SchneaggchatV3server.user.usermodel
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import com.lerchenflo.schneaggchatv3server.user.friendshipmodel.FriendshipStatus
-import org.bson.types.ObjectId
+import com.lerchenflo.SchneaggchatV3server.user.friendshipmodel.FriendshipStatus
 import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
 
 
 //TODO: Request when the user changes something about his profile

@@ -1,4 +1,4 @@
-package com.lerchenflo.schneaggchatv3server.group
+package com.lerchenflo.SchneaggchatV3server.group
 
 import org.bson.types.ObjectId
 import org.springframework.stereotype.Component

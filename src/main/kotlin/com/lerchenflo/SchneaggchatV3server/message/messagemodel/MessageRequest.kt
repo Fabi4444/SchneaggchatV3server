@@ -1,7 +1,4 @@
-package com.lerchenflo.schneaggchatv3server.message.messagemodel
-
-import org.bson.types.ObjectId
-import kotlin.time.Instant
+package com.lerchenflo.SchneaggchatV3server.message.messagemodel
 
 data class MessageRequest(
     val messageId: String?, //Objectid
