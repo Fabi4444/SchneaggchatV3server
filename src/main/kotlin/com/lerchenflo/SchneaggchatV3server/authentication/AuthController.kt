@@ -1,10 +1,12 @@
 package com.lerchenflo.schneaggchatv3server.authentication
 
+import com.lerchenflo.SchneaggchatV3server.authentication.emailverification.EmailService
 import com.lerchenflo.schneaggchatv3server.util.ImageManager
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.Pattern
 import org.springframework.http.MediaType
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -19,6 +21,7 @@ import java.awt.PageAttributes
 @RequestMapping("/auth")
 class AuthController(
     private val authService: AuthService,
+    private val emailService: EmailService
 ) {
 
     data class LoginRequest(
@@ -79,6 +82,22 @@ class AuthController(
         return authService.refresh(
             refreshRequest.refreshToken,
         )
+    }
+
+
+    @GetMapping("/auth/verify_email")
+    fun verifyEmail(
+        @RequestParam("token") token: String,
+    ) : String {
+        println("Verifying email for token $token")
+
+        return if (emailService.verifyEmailRequest(token)){
+            //Email verified
+            "Email verified"
+        }else {
+            //Email not verified
+            "Your email could not be verified"
+        }
     }
 
 
