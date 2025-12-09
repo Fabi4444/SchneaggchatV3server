@@ -108,7 +108,7 @@ class AuthService(
 
         val userId = jwtService.getUserIdFromToken(refreshToken)
         val user = userRepository.findById(ObjectId(userId)).orElseThrow{
-            throw ResponseStatusException(HttpStatusCode.valueOf(404) ,"Invalid refresh token")
+            throw ResponseStatusException(HttpStatusCode.valueOf(401) ,"Invalid refresh token")
         }
 
         val hashed = hashToken(refreshToken)
