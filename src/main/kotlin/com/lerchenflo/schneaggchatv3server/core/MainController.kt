@@ -3,8 +3,8 @@
 package com.lerchenflo.schneaggchatv3server.core
 
 import com.lerchenflo.schneaggchatv3server.core.security.HashEncoder
-import com.lerchenflo.schneaggchatv3server.repository.UserRepository
 import com.lerchenflo.schneaggchatv3server.user.usermodel.User
+import com.lerchenflo.schneaggchatv3server.user.usermodel.UserService
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.event.EventListener
@@ -19,17 +19,12 @@ import kotlin.time.ExperimentalTime
 
 @RestController
 class MainController(
-    private val userRepository: UserRepository,
+    private val userService: UserService,
     private val hashEncoder: HashEncoder,
     @Value($$"${defaultaccount.password}") private val defaultPassword: String
 ){
 
-    @GetMapping
-    fun index(): String {
-        return "Hello World!"
-    }
-
-    @GetMapping("/test")
+    @GetMapping("/public/test")
     fun test(): String {
         return "Up and running!"
     }
@@ -41,9 +36,9 @@ class MainController(
 
         //Create default Account for Google play / App Store
         val defaultUserUserName = "TestAccount"
-        val defaultUser = userRepository.findByUsername(defaultUserUserName)
+        val defaultUser = userService.findByUsername(defaultUserUserName)
         if(defaultUser == null){
-            userRepository.save(
+            userService.save(
                 User(
                     username = defaultUserUserName,
                     hashedPassword = hashEncoder.encode(defaultPassword),

@@ -1,0 +1,66 @@
+// Create header.html content as a string
+        const headerHTML = `
+            <header>
+                <div class="logo">
+                    <img src="/images/Icon.png" alt="Schneaggchat Icon" style="height:1em; vertical-align:middle;">
+                    <span>Schneaggchat</span>
+                </div>
+                <nav class="nav-links">
+                    <a href="/">Home</a>
+                    <a href="/privacypolicy.html">Datenschutz</a>
+                </nav>
+                <button class="mobile-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </header>
+        `;
+
+        // Create footer.html content as a string
+        const footerHTML = `
+            <footer>
+                <div class="footer-links">
+                    <a href="/">Home</a>
+                    <a href="/privacypolicy.html">Datenschutz</a>
+                    <a href="/delete_account.html">Account löschen</a>
+                </div>
+            </footer>
+        `;
+
+        // Inject header and footer into containers
+        document.getElementById('header-container').innerHTML = headerHTML;
+        document.getElementById('footer-container').innerHTML = footerHTML;
+
+        // Initialize functionality after components are injected
+// Initialize functionality
+function initPage() {
+    // Logo click handler
+    document.querySelector('.logo')?.addEventListener('click', () => {
+        window.location.href = '/';
+    });
+
+    // Mobile menu toggle - UNIVERSAL VERSION
+    const mobileToggle = document.querySelector('.mobile-toggle');
+    const navLinks = document.querySelector('.nav-links');
+
+    if (mobileToggle && navLinks) {
+        mobileToggle.addEventListener('click', function () {
+            // Use class toggle instead of display property
+            navLinks.classList.toggle('active');
+        });
+    }
+
+    // Universal scroll handler
+    window.addEventListener('scroll', function () {
+        const header = document.querySelector('header');
+        if (header) {
+            header.classList.toggle('scrolled', window.scrollY > 50);
+        }
+    });
+}
+
+// Initialize when elements are ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initPage);
+} else {
+    initPage(); // In case DOM is already ready
+}

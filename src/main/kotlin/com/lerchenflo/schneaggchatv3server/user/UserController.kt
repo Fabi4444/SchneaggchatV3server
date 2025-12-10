@@ -27,7 +27,7 @@ import kotlin.time.ExperimentalTime
 @RestController
 @RequestMapping("/users")
 class UserController(
-    private val userRepository: UserRepository,
+    private val userRepository: UserRepository, //TODO: Use userService instead
     private val friendshipsService: FriendsService,
     //TODO: Friendsettingsservice
     private val imageManager: ImageManager,

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account löschen - Schneaggchat V3</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+<!-- Header -->
+<div id="header-container"></div>
+
+<!-- Delete Account Section -->
+<section class="delete-account-section">
+    <div class="delete-account-container">
+
+        <!-- Show this when form hasn't been submitted yet -->
+        <div id="form-container">
+            <div class="delete-account-icon">
+                <i class="fas fa-user-times"></i>
+            </div>
+
+            <h1>Account löschen</h1>
+            <p class="subtitle">Gib deine E-Mail-Adresse ein und wir senden dir einen Link zum Löschen deines Accounts.</p>
+
+            <form id="delete-form" class="delete-form">
+                <div class="form-group">
+                    <label for="email">
+                        <i class="fas fa-envelope"></i>
+                        E-Mail-Adresse
+                    </label>
+                    <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            required
+                            placeholder="deine.email@beispiel.com"
+                            autocomplete="email"
+                    >
+                </div>
+
+                <button type="submit" class="delete-button">
+                    <i class="fas fa-paper-plane"></i>
+                    Lösch-Link anfordern
+                </button>
+            </form>
+
+            <div class="info-box">
+                <i class="fas fa-info-circle"></i>
+                <div class="info-content">
+                    <h3>Was passiert als nächstes?</h3>
+                    <ul>
+                        <li>Du erhältst eine E-Mail mit einem Bestätigungslink</li>
+                        <li>Klicke auf den Link, um dein Account zu löschen</li>
+                        <li>Alle deine Daten werden unwiderruflich gelöscht</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Back link only shown on form view -->
+            <div class="back-link">
+                <a href="/">
+                    <i class="fas fa-arrow-left"></i>
+                    Zurück zur Startseite
+                </a>
+            </div>
+        </div>
+
+        <!-- Show this after form submission -->
+        <div id="success-container" class="success-message-container hidden">
+            <div class="success-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+
+            <h1>Anfrage erhalten</h1>
+            <p class="success-text">
+                Falls ein Account mit dieser E-Mail-Adresse existiert, haben wir einen Lösch-Link versendet.
+                Bitte überprüfe dein Postfach.
+            </p>
+
+            <div class="success-info-box">
+                <i class="fas fa-info-circle"></i>
+                <div class="info-content">
+                    <h3>Hinweise:</h3>
+                    <ul>
+                        <li>Der Link ist 24 Stunden gültig</li>
+                        <li>Überprüfe auch deinen Spam-Ordner</li>
+                        <li>Keine E-Mail erhalten? Versuche es erneut</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button id="new-request-btn" class="secondary-button">
+                    <i class="fas fa-redo"></i>
+                    Neue Anfrage
+                </button>
+                <a href="/" class="primary-button">
+                    <i class="fas fa-home"></i>
+                    Zur Startseite
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<div id="footer-container"></div>
+
+<!-- Scripts -->
+<script src="/js/header_footer.js"></script>
+
+<script>
+    // Header scroll effect
+    window.addEventListener('scroll', function() {
+        const header = document.querySelector('header');
+        if (window.scrollY > 50) {
+            header.classList.add('scrolled');
+        } else {
+            header.classList.remove('scrolled');
+        }
+    });
+
+    // Check if form was previously submitted
+    document.addEventListener('DOMContentLoaded', function() {
+        const formContainer = document.getElementById('form-container');
+        const successContainer = document.getElementById('success-container');
+        const deleteForm = document.getElementById('delete-form');
+        const newRequestBtn = document.getElementById('new-request-btn');
+
+        // Check localStorage for submission status
+        const wasSubmitted = localStorage.getItem('accountDeletionRequested');
+
+        if (wasSubmitted === 'true') {
+            // Show success message
+            formContainer.classList.add('hidden');
+            successContainer.classList.remove('hidden');
+
+            // Clear the stored email if any
+            localStorage.removeItem('deletionRequestEmail');
+        } else {
+            // Show form
+            formContainer.classList.remove('hidden');
+            successContainer.classList.add('hidden');
+
+            // Load saved email if exists (optional feature)
+            const savedEmail = localStorage.getItem('deletionRequestEmail');
+            if (savedEmail) {
+                document.getElementById('email').value = savedEmail;
+            }
+        }
+
+        // Handle form submission
+        deleteForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value.trim();
+
+            if (email) {
+                // Store submission status and email in localStorage
+                localStorage.setItem('accountDeletionRequested', 'true');
+                localStorage.setItem('deletionRequestEmail', email);
+
+                // Show success message
+                formContainer.classList.add('hidden');
+                successContainer.classList.remove('hidden');
+
+                // Optional: Send the data to your server here
+                fetch('/auth/send_delete_email?email=' + email, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                })
+                    .then(response => response.json())
+                    .then(data => console.log('Success:', data))
+                    .catch(error => console.error('Error:', error));
+            }
+        });
+
+        // Handle new request button
+        newRequestBtn.addEventListener('click', function() {
+            // Clear submission status
+            localStorage.removeItem('accountDeletionRequested');
+
+            // Show form again
+            formContainer.classList.remove('hidden');
+            successContainer.classList.add('hidden');
+
+            // Keep the email in the input for convenience
+            const savedEmail = localStorage.getItem('deletionRequestEmail');
+            if (savedEmail) {
+                document.getElementById('email').value = savedEmail;
+            }
+        });
+
+        // Optional: Clear submission status when leaving the page
+        window.addEventListener('beforeunload', function() {
+            // You might want to keep this for the session only
+            // localStorage.removeItem('accountDeletionRequested');
+        });
+    });
+</script>
+</body>
+</html>

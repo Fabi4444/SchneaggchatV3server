@@ -1,7 +1,7 @@
 package com.lerchenflo.schneaggchatv3server.authentication
 
 import com.lerchenflo.schneaggchatv3server.core.security.JwtService
-import com.lerchenflo.schneaggchatv3server.repository.UserRepository
+import com.lerchenflo.schneaggchatv3server.user.usermodel.UserService
 import org.bson.types.ObjectId
 import org.springframework.mail.SimpleMailMessage
 import org.springframework.mail.javamail.JavaMailSender
@@ -13,7 +13,7 @@ import kotlin.time.ExperimentalTime
 @Service
 class EmailService(
     private val jwtService: JwtService,
-    private val userRepository: UserRepository,
+    private val userService: UserService,
     private val mailSender: JavaMailSender
 ) {
 
@@ -41,12 +41,12 @@ class EmailService(
         //TODO: Check if token still valid
         val (email, userId) = jwtService.validateEmailToken(token) ?: return false
 
-        val user = userRepository.findByEmail(email) ?: return false
+        val user = userService.findByEmail(email) ?: return false
 
         if (user.id != userId) return false
 
-        //TODO: Update user even if only the email got verified (All friends resync)
-        userRepository.save(user.copy(
+        //TODO: Update user even if only the email got verified (All friends resync)?
+        userService.save(user.copy(
             emailVerifiedAt = Clock.System.now(),
             updatedAt = Clock.System.now(),
         ))

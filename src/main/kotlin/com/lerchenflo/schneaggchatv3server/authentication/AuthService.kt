@@ -6,11 +6,10 @@ import com.lerchenflo.schneaggchatv3server.authentication.model.RefreshToken
 import com.lerchenflo.schneaggchatv3server.core.security.HashEncoder
 import com.lerchenflo.schneaggchatv3server.core.security.JwtService
 import com.lerchenflo.schneaggchatv3server.repository.RefreshTokenRepository
-import com.lerchenflo.schneaggchatv3server.repository.UserRepository
 import com.lerchenflo.schneaggchatv3server.user.usermodel.User
+import com.lerchenflo.schneaggchatv3server.user.usermodel.UserService
 import com.lerchenflo.schneaggchatv3server.util.ImageManager
 import org.bson.types.ObjectId
-import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatusCode
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.stereotype.Component
@@ -26,7 +25,7 @@ import kotlin.time.Instant
 @Component
 class AuthService(
     private val jwtService: JwtService,
-    private val userRepository: UserRepository,
+    private val userService: UserService,
     private val hashEncoder: HashEncoder,
     private val refreshTokenRepository: RefreshTokenRepository,
 
@@ -40,15 +39,7 @@ class AuthService(
 
     fun register(username: String, password: String, email: String, birthdate: String, profilePic: MultipartFile) : User {
 
-        val usernameexists = userRepository.findByUsername(username)
-        if (usernameexists != null) {
-            throw ResponseStatusException(HttpStatus.CONFLICT, "A user with this username already exists")
-        }
-
-        val emailexists = userRepository.findByEmail(email.trim())
-        if (emailexists != null) {
-            throw ResponseStatusException(HttpStatus.CONFLICT, "A user with this email already exists")
-        }
+        userService.checkExistingUser(username, email)
 
 
         val now = Clock.System.now()
@@ -72,12 +63,12 @@ class AuthService(
             group = false
         )
 
-        return userRepository.save(user)
+        return userService.save(user)
     }
 
     fun login(username: String, password: String) : TokenPair {
         //Does this user exist
-        val user = userRepository.findByUsername(username) ?: throw BadCredentialsException("Invalid credentials")
+        val user = userService.findByUsername(username) ?: throw BadCredentialsException("Invalid credentials")
 
         //Does the password match
         if (!hashEncoder.matches(password, user.hashedPassword)) {
@@ -107,9 +98,8 @@ class AuthService(
         }
 
         val userId = jwtService.getUserIdFromToken(refreshToken)
-        val user = userRepository.findById(ObjectId(userId)).orElseThrow{
-            throw ResponseStatusException(HttpStatusCode.valueOf(401) ,"Invalid refresh token")
-        }
+        val user = userService.findById(userId)
+            ?: throw ResponseStatusException(HttpStatusCode.valueOf(401) ,"Invalid refresh token")
 
         val hashed = hashToken(refreshToken)
         println("Hashed token: $hashed")

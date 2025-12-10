@@ -101,5 +101,13 @@ class AuthController(
         }
     }
 
+    @PostMapping("/send_delete_email")
+    fun sendDeleteAccEmail(
+        @RequestParam("email") email: String,
+    ){
+        println("Email delete request for $email")
+        //TODO: Send delete email with token
+    }
+
 
 }
