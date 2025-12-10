@@ -31,20 +31,55 @@ class SecurityConfig(
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { auth ->
                 auth
-                    .requestMatchers("/")
-                    .permitAll()
+                    //Allow auth endpoint (Login Register token refresh)
                     .requestMatchers("/auth/**")
                     .permitAll()
-                    .requestMatchers("/test")
+                    //Public endpoint for common stuff (Ping etc)
+                    .requestMatchers("/public/**")
                     .permitAll()
+
+
+
+                    /* Website (Auto served from static resources) */
+                    //Allow index
+                    .requestMatchers("/")
+                    .permitAll()
+
+                    //Privacy policy
+                    .requestMatchers("/privacypolicy.html")
+                    .permitAll()
+
+                    //Account löschen
+                    .requestMatchers("/delete_account.html")
+                    .permitAll()
+
+                    //Favicon
+                    .requestMatchers("/favicon.ico")
+                    .permitAll()
+                    //Style
+                    .requestMatchers("/css/**")
+                    .permitAll()
+                    //Javascript
+                    .requestMatchers("/js/**")
+                    .permitAll()
+                    //images
+                    .requestMatchers("/images/**")
+                    .permitAll()
+
+
+                    //Allow forward of all Errors
                     .dispatcherTypeMatchers(
                         DispatcherType.ERROR,
                         DispatcherType.FORWARD
                     )
                     .permitAll()
+
+                    //Any other request needs to be authenticated
                     .anyRequest()
                     .authenticated()
             }
+
+            //Default error is unauthorized (401)
             .exceptionHandling { configurer ->
                 configurer
                     .authenticationEntryPoint(HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))

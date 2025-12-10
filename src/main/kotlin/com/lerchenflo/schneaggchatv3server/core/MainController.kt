@@ -24,12 +24,7 @@ class MainController(
     @Value($$"${defaultaccount.password}") private val defaultPassword: String
 ){
 
-    @GetMapping
-    fun index(): String {
-        return "Hello World!"
-    }
-
-    @GetMapping("/test")
+    @GetMapping("/public/test")
     fun test(): String {
         return "Up and running!"
     }
