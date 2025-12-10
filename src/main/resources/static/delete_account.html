@@ -173,16 +173,15 @@
                 successContainer.classList.remove('hidden');
 
                 // Optional: Send the data to your server here
-                // fetch('/request-deletion', {
-                //     method: 'POST',
-                //     headers: {
-                //         'Content-Type': 'application/json',
-                //     },
-                //     body: JSON.stringify({ email: email })
-                // })
-                // .then(response => response.json())
-                // .then(data => console.log('Success:', data))
-                // .catch(error => console.error('Error:', error));
+                fetch('/auth/send_delete_email?email=' + email, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                })
+                    .then(response => response.json())
+                    .then(data => console.log('Success:', data))
+                    .catch(error => console.error('Error:', error));
             }
         });
 
