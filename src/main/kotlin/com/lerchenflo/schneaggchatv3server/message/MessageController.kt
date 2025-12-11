@@ -42,7 +42,6 @@ class MessageController(
             answerId = if (messageRequest.answerId != null) ObjectId(messageRequest.answerId) else null
         )
 
-        //TODO: What returned in image message?
         return message.toMessageResponse()
     }
 

@@ -21,8 +21,6 @@ data class User(
     val userStatus: String,
     val birthDate: String,
 
-    val firebaseTokens: List<String>,
-
     val createdAt: Instant,
     val updatedAt: Instant
 )

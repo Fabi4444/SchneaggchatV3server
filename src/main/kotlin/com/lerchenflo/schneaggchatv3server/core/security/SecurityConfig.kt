@@ -63,7 +63,7 @@ class SecurityConfig(
                     .requestMatchers("/js/**")
                     .permitAll()
                     //images
-                    .requestMatchers("/images/**")
+                    .requestMatchers("/web_images/**")
                     .permitAll()
 
 

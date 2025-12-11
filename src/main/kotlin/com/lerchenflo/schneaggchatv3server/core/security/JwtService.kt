@@ -19,6 +19,8 @@ class JwtService(
     private val secretKey = Keys.hmacShaKeyFor(jwtSecret.toByteArray())
     private val accessTokenValidityMs = 15L /*min*/ * 60L * 1000L    //How a user can use his access token
     val refreshTokenValidityMs = 30L /*days*/ * 24L * 60L * 60L * 1000L
+    private val emailTokenValidityMs = 24L * 60L * 60L * 1000L
+
 
     private fun generateToken(
         userId: String,
@@ -98,7 +100,7 @@ class JwtService(
     ): String {
 
         val now = Date()
-        val expiryDate = Date(now.time + refreshTokenValidityMs) //15 min valid
+        val expiryDate = Date(now.time + emailTokenValidityMs) //15 min valid
 
         return Jwts.builder()
             .subject(userId)
@@ -117,6 +119,43 @@ class JwtService(
         val claims = parseAllClaims(token) ?: return null
         val tokentype = claims["type"] as? String ?: return null
         if (tokentype == "emailverification"
+            && claims["email"] is String){
+
+            val userid = ObjectId(getUserIdFromToken(token))
+            val email = claims["email"] as String
+            return Pair(email, userid)
+        }
+        return null
+    }
+
+
+
+
+    fun generateDelAccEmailToken(
+        userId: String,
+        email: String
+    ): String {
+
+        val now = Date()
+        val expiryDate = Date(now.time + emailTokenValidityMs) //15 min valid
+
+        return Jwts.builder()
+            .subject(userId)
+            .claim("type", "accountdeletion")
+            .claim("email", email)
+            .issuedAt(now)
+            .expiration(expiryDate)
+            .signWith(secretKey, Jwts.SIG.HS256)
+            .compact()
+    }
+
+    /**
+     * Validate an email token. returns either null if not valid or the email which got validated and the userid
+     */
+    fun validateDelAccEmailToken(token: String): Pair<String, ObjectId>? {
+        val claims = parseAllClaims(token) ?: return null
+        val tokentype = claims["type"] as? String ?: return null
+        if (tokentype == "accountdeletion"
             && claims["email"] is String){
 
             val userid = ObjectId(getUserIdFromToken(token))
