@@ -17,29 +17,34 @@ class FirebaseService(
 ) {
 
     init {
-        val resourceName = "schneaggchatv3-firebase-admin.json"
+        run {
+            val resourceName = "schneaggchatv3-firebase-admin.json"
 
-        val credentialsStream = this::class.java.classLoader
-            .getResourceAsStream(resourceName)
-            ?: try {
-                // fallback to expected mounted path inside container
-                FileInputStream("/app/config/$resourceName")
-            } catch (e: Exception) {
-                null
+            val credentialsStream = this::class.java.classLoader
+                .getResourceAsStream(resourceName)
+                ?: try {
+                    // fallback to expected mounted path inside container
+                    FileInputStream("/app/config/$resourceName")
+                } catch (e: Exception) {
+                    println("Firebase token not found in path /app/config/$resourceName")
+
+                    return@run //Return to not crash the server docker
+                }
+
+
+
+            val options = FirebaseOptions.builder()
+                .setCredentials(GoogleCredentials.fromStream(credentialsStream))
+                .build()
+
+            if (FirebaseApp.getApps().isEmpty()) {
+                FirebaseApp.initializeApp(options)
+                println("Firebase initialized successfully")
+            } else {
+                println("Firebase already initialized")
             }
-            ?: throw IllegalStateException("Firebase credentials file not found in classpath or at /app/config/$resourceName")
-
-
-        val options = FirebaseOptions.builder()
-            .setCredentials(GoogleCredentials.fromStream(credentialsStream))
-            .build()
-
-        if (FirebaseApp.getApps().isEmpty()) {
-            FirebaseApp.initializeApp(options)
-            println("Firebase initialized successfully")
-        } else {
-            println("Firebase already initialized")
         }
+
     }
 
 
