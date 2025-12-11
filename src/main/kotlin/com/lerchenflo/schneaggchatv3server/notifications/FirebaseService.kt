@@ -24,7 +24,7 @@ class FirebaseService(
                 .getResourceAsStream(resourceName)
                 ?: try {
                     // fallback to expected mounted path inside container
-                    FileInputStream("/app/config/$resourceName")
+                    FileInputStream("/app/$resourceName")
                 } catch (e: Exception) {
                     println("Firebase token not found in path /app/config/$resourceName")
 
