@@ -9,6 +9,7 @@ import com.lerchenflo.schneaggchatv3server.notifications.model.FirebaseToken
 import com.lerchenflo.schneaggchatv3server.repository.FirebaseTokenRepository
 import org.bson.types.ObjectId
 import org.springframework.stereotype.Service
+import java.io.FileInputStream
 
 @Service
 class FirebaseService(
@@ -16,9 +17,18 @@ class FirebaseService(
 ) {
 
     init {
+        val resourceName = "schneaggchatv3-firebase-admin.json"
+
         val credentialsStream = this::class.java.classLoader
-            .getResourceAsStream("schneaggchatv3-firebase-admin.json")
-            ?: throw IllegalStateException("Firebase credentials file not found in classpath")
+            .getResourceAsStream(resourceName)
+            ?: try {
+                // fallback to expected mounted path inside container
+                FileInputStream("/app/config/$resourceName")
+            } catch (e: Exception) {
+                null
+            }
+            ?: throw IllegalStateException("Firebase credentials file not found in classpath or at /app/config/$resourceName")
+
 
         val options = FirebaseOptions.builder()
             .setCredentials(GoogleCredentials.fromStream(credentialsStream))
