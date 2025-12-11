@@ -1,7 +1,9 @@
 package com.lerchenflo.schneaggchatv3server.authentication
 
+import com.lerchenflo.schneaggchatv3server.user.usermodel.UserService
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.Pattern
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
+import org.springframework.web.server.ResponseStatusException
 
 //https://schneaggchat.eu/auth
 
@@ -17,7 +20,8 @@ import org.springframework.web.multipart.MultipartFile
 @RequestMapping("/auth")
 class AuthController(
     private val authService: AuthService,
-    private val emailService: EmailService
+    private val emailService: EmailService,
+    private val userService: UserService
 ) {
 
     data class LoginRequest(
@@ -105,8 +109,30 @@ class AuthController(
     fun sendDeleteAccEmail(
         @RequestParam("email") email: String,
     ){
+        val user = userService.findByEmail(email)
+        if (user == null){
+            println("No user to delete found with email $email")
+            return
+        }
+
         println("Email delete request for $email")
-        //TODO: Send delete email with token
+        emailService.sendDelAccEmail(user.id, email)
+    }
+
+
+    @GetMapping("/delete_account")
+    fun deleteAccount(
+        @RequestParam("token") token: String,
+    ) : String {
+        println("Delete account token: $token")
+
+        return if (emailService.verifyDelAccRequest(token)){
+            //Email verified
+            "Your account has been deleted"
+        }else {
+            //Email not verified
+            "Account deletion failed"
+        }
     }
 
 

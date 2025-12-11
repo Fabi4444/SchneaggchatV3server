@@ -48,4 +48,8 @@ class UserService(
         return optuser
     }
 
+    fun deleteUser(userId: ObjectId) {
+        userRepository.deleteById(userId)
+    }
+
 }

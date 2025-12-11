@@ -2,7 +2,7 @@
         const headerHTML = `
             <header>
                 <div class="logo">
-                    <img src="/images/Icon.png" alt="Schneaggchat Icon" style="height:1em; vertical-align:middle;">
+                    <img src="/web_images/Icon.png" alt="Schneaggchat Icon" style="height:1em; vertical-align:middle;">
                     <span>Schneaggchat</span>
                 </div>
                 <nav class="nav-links">

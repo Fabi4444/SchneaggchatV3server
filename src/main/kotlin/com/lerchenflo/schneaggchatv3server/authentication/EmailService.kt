@@ -54,4 +54,39 @@ class EmailService(
     }
 
 
+
+    /**
+     * Send a delete account email to a client
+     */
+    fun sendDelAccEmail(userId: ObjectId, email: String) {
+
+
+        val token = jwtService.generateDelAccEmailToken(userId.toHexString(), email)
+        val verificationUrl = "https://schneaggchat.lerchenflo.eu/auth/delete_account?token=$token"
+
+        val mail = SimpleMailMessage()
+        mail.setTo(email)
+        mail.subject = "Schneaggchat account deletion"
+        mail.text = "Someone requested to delete your account. If this was not you, please ignore this email.\nIf you really want to delete your account, click the link below.\nYOUR ACCOUNT WILL BE DELETED IMMEDIATELY!:\n$verificationUrl"
+        mailSender.send(mail)
+    }
+
+    /**
+     * Client pressed on the link, verify
+     */
+    fun verifyDelAccRequest(token: String) : Boolean {
+        //TODO: Check if token still valid
+        val (email, userId) = jwtService.validateDelAccEmailToken(token) ?: return false
+
+        val user = userService.findByEmail(email) ?: return false
+
+        if (user.id != userId) return false
+
+        //TODO: Delete messages from this user and leave all groups
+        println("Account with name ${user.username} has been deleted")
+        //userService.deleteUser(user.id)
+        return true
+    }
+
+
 }
