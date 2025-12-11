@@ -46,7 +46,6 @@ class MainController(
                     userDescription = "",
                     userStatus = "Default Test Account for Google Play / App store",
                     birthDate = "2000-01-01",
-                    firebaseTokens = emptyList(),
                     createdAt = Clock.System.now(),
                     updatedAt = Clock.System.now()
                 )

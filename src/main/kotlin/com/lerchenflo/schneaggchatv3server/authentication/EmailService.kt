@@ -38,7 +38,6 @@ class EmailService(
      * Client pressed on the link, verify
      */
     fun verifyEmailRequest(token: String) : Boolean {
-        //TODO: Check if token still valid
         val (email, userId) = jwtService.validateEmailToken(token) ?: return false
 
         val user = userService.findByEmail(email) ?: return false
@@ -75,7 +74,6 @@ class EmailService(
      * Client pressed on the link, verify
      */
     fun verifyDelAccRequest(token: String) : Boolean {
-        //TODO: Check if token still valid
         val (email, userId) = jwtService.validateDelAccEmailToken(token) ?: return false
 
         val user = userService.findByEmail(email) ?: return false

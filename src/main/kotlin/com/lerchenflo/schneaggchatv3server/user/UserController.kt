@@ -3,6 +3,7 @@
 package com.lerchenflo.schneaggchatv3server.user
 
 import com.lerchenflo.schneaggchatv3server.authentication.EmailService
+import com.lerchenflo.schneaggchatv3server.notifications.FirebaseService
 import com.lerchenflo.schneaggchatv3server.repository.UserRepository
 import com.lerchenflo.schneaggchatv3server.user.friendshipmodel.FriendshipStatus
 import com.lerchenflo.schneaggchatv3server.user.usermodel.NewFriendsUserResponse
@@ -32,7 +33,9 @@ class UserController(
     //TODO: Friendsettingsservice
     private val imageManager: ImageManager,
 
-    private val emailService: EmailService
+    private val emailService: EmailService,
+
+    private val firebaseService: FirebaseService
 ) {
 
     @PostMapping("/verificationemail")
@@ -48,6 +51,20 @@ class UserController(
             userId = ObjectId(requestingUserId),
             email = user.get().email
         )
+    }
+
+    @PostMapping("/setfirebasetoken")
+    fun setFirebaseToken(
+        @RequestParam token: String,
+    ){
+        val requestingUserId =
+            SecurityContextHolder.getContext().authentication?.principal as? String ?: throw ResponseStatusException(
+                /* status = */ HttpStatus.FORBIDDEN,
+                /* reason = */ "Not logged in"
+            )
+
+        firebaseService.saveToken(userId = ObjectId(requestingUserId), token = token)
+
     }
 
 

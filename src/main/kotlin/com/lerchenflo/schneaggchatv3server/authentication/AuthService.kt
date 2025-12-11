@@ -51,7 +51,6 @@ class AuthService(
             userDescription = "",
             userStatus = "",
             birthDate = birthdate,
-            firebaseTokens = emptyList(),
             createdAt = now,
             updatedAt = now
         )

@@ -8,6 +8,8 @@ import com.lerchenflo.schneaggchatv3server.message.messagemodel.MessageResponse
 import com.lerchenflo.schneaggchatv3server.message.messagemodel.MessageType
 import com.lerchenflo.schneaggchatv3server.message.messagemodel.Reader
 import com.lerchenflo.schneaggchatv3server.message.messagemodel.toMessageResponse
+import com.lerchenflo.schneaggchatv3server.notifications.FirebaseService
+import com.lerchenflo.schneaggchatv3server.repository.FirebaseTokenRepository
 import com.lerchenflo.schneaggchatv3server.repository.MessageRepository
 import com.lerchenflo.schneaggchatv3server.user.FriendsService
 import com.lerchenflo.schneaggchatv3server.user.UserController
@@ -32,6 +34,7 @@ class MessageService(
     private val friendsService: FriendsService,
     private val groupService: GroupService,
     private val imageManager: ImageManager,
+    private val firebaseService: FirebaseService
 ) {
 
 
@@ -63,7 +66,13 @@ class MessageService(
             }
         }
 
-        //TODO: Firebase notification
+
+        if (groupMessage) {
+            //TODO: Group notifiation
+        }else {
+            firebaseService.sendMessageToUser(userId = receiver, "testtest")
+        }
+
 
         val sendDate = Clock.System.now()
 
