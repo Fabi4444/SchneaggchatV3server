@@ -26,7 +26,7 @@ class FirebaseService(
                     // fallback to expected mounted path inside container
                     FileInputStream("/app/$resourceName")
                 } catch (e: Exception) {
-                    println("Firebase token not found in path /app/config/$resourceName")
+                    println("Firebase json not found in path /app/$resourceName")
 
                     return@run //Return to not crash the server docker
                 }
