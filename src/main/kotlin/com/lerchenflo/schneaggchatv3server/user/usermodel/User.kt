@@ -4,6 +4,7 @@ package com.lerchenflo.schneaggchatv3server.user.usermodel
 
 import org.bson.types.ObjectId
 import org.springframework.data.annotation.Id
+import org.springframework.data.mongodb.core.index.Indexed
 import org.springframework.data.mongodb.core.mapping.Document
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
@@ -14,6 +15,7 @@ data class User(
     val username: String,
     val hashedPassword: String,
 
+    @Indexed
     val email: String,
     val emailVerifiedAt: Instant? = null,
 

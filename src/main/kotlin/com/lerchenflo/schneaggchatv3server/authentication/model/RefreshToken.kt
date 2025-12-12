@@ -12,6 +12,7 @@ import kotlin.time.Instant
 @Document("refreshTokens")
 data class RefreshToken(
     val userId: ObjectId,
+    @Indexed(unique = true)
     val hashedToken: String,
 
     @Indexed(expireAfter = "0s")
