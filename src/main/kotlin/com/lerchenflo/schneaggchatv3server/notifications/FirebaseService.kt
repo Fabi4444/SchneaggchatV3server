@@ -7,6 +7,8 @@ import com.google.firebase.messaging.*
 import com.google.firebase.messaging.AndroidConfig.Priority
 import com.lerchenflo.schneaggchatv3server.notifications.model.FirebaseToken
 import com.lerchenflo.schneaggchatv3server.repository.FirebaseTokenRepository
+import com.lerchenflo.schneaggchatv3server.util.LogType
+import com.lerchenflo.schneaggchatv3server.util.LoggingService
 import org.bson.types.ObjectId
 import org.springframework.stereotype.Service
 import java.io.FileInputStream
@@ -14,6 +16,7 @@ import java.io.FileInputStream
 @Service
 class FirebaseService(
     private val tokenRepository: FirebaseTokenRepository,
+    private val loggingService: LoggingService
 ) {
 
     init {
@@ -56,6 +59,11 @@ class FirebaseService(
             if (existingToken != null) {
                 return
             }
+
+            loggingService.log(
+                userId = userId,
+                logType = LogType.FIREBASE_TOKEN_REGISTERED,
+            )
 
             // Save new token
             tokenRepository.save(

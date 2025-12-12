@@ -13,7 +13,7 @@ import org.springframework.data.mongodb.config.AbstractMongoClientConfiguration
  * Configuration for MongoDB because it somehow doesn't work with the values in application.properties out of the box
  */
 
-
+/*
 @Configuration
 class MongoDBConfig : AbstractMongoClientConfiguration() {
 
@@ -39,3 +39,5 @@ class MongoDBConfig : AbstractMongoClientConfiguration() {
         return MongoClients.create(mongoClientSettings)
     }
 }
+
+ */
