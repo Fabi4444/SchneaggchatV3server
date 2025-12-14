@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatusCode
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
 import java.util.*
+import kotlin.time.Instant
 
 @Service
 class JwtService(
@@ -50,6 +51,10 @@ class JwtService(
     }
 
     fun generateRefreshToken(userId: String): String {
+
+        val expiryDate = Date(System.currentTimeMillis() + refreshTokenValidityMs)
+        println("Refresh token created for user $userId - Expires at: $expiryDate")
+
         return generateToken(
             userId = userId,
             type = "refresh_token",
