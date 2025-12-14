@@ -62,6 +62,7 @@ class MessageService(
         //Only for single message
         require(friendsService.areFriends(sender, receiver)) { "You can not send messages to users who are not your friends" }
 
+        println("Sendmessage: Group validation logic todo")
         //TODO: Group validation logic
         if (groupMessage) {
 
@@ -79,7 +80,10 @@ class MessageService(
         }
 
 
+        println("Sendmessage: Firebase sending")
+
         if (groupMessage) {
+            println("Group message notification not implemented")
             //TODO: Group notifiation
         }else {
             println("Firebase message send start")
