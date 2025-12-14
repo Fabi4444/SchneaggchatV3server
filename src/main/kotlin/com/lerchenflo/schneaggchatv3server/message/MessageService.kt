@@ -82,14 +82,12 @@ class MessageService(
         if (groupMessage) {
             //TODO: Group notifiation
         }else {
-            when (messageType) {
-                MessageType.TEXT -> firebaseService.sendNewMessageNotificationToUser(
-                    receiver, content.asString(),
-                    senderName = userService.getUsername(sender),
-                    msgId = savedObjectId.toString(),
-                )
-                MessageType.IMAGE -> TODO()
-            }
+            println("Firebase message send start")
+            firebaseService.sendNewMessageNotificationToUser(
+                receiver, content.asString(),
+                senderName = userService.getUsername(sender),
+                msgId = savedObjectId.toString(),
+            )
         }
 
 
