@@ -34,13 +34,13 @@ class AuthService(
 
     data class TokenPair(
         val accessToken: String,
-        val refreshToken: String
+        val refreshToken: String,
+        val encryptionKey: String? = null
     )
 
     fun register(username: String, password: String, email: String, birthdate: String, profilePic: MultipartFile) : User {
 
         userService.checkExistingUser(username, email)
-
 
         val now = Clock.System.now()
 
@@ -85,7 +85,8 @@ class AuthService(
 
         return TokenPair(
             accessToken = newAccessToken,
-            refreshToken = newRefreshToken
+            refreshToken = newRefreshToken,
+            encryptionKey = jwtService.getEncryptionKey()
         )
     }
 

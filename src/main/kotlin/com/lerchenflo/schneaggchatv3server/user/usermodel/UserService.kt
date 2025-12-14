@@ -52,4 +52,8 @@ class UserService(
         userRepository.deleteById(userId)
     }
 
+    fun getUsername(userId: ObjectId): String {
+        return userRepository.findById(userId).get().username
+    }
+
 }

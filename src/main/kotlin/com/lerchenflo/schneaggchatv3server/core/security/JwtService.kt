@@ -16,6 +16,9 @@ class JwtService(
     //Inject jwt secret from .env -> docker-compose.yaml -> application.properties -> here
     @Value($$"${jwt.secret}") private val jwtSecret: String
 ) {
+    fun getEncryptionKey() : String {
+        return jwtSecret.take(10)
+    }
 
     private val secretKey = Keys.hmacShaKeyFor(jwtSecret.toByteArray())
     private val accessTokenValidityMs = 15L /*min*/ * 60L * 1000L    //How a user can use his access token

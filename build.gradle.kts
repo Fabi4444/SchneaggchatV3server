@@ -53,6 +53,9 @@ dependencies {
 
     //firebase
     implementation("com.google.firebase:firebase-admin:9.7.0")
+
+    implementation("dev.whyoleg.cryptography:cryptography-core:0.5.0")
+
 }
 
 kotlin {

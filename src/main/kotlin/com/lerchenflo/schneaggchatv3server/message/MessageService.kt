@@ -3,6 +3,8 @@
 package com.lerchenflo.schneaggchatv3server.message
 
 import com.lerchenflo.schneaggchatv3server.group.GroupService
+import com.lerchenflo.schneaggchatv3server.message.MessageService.MessageContent.Image
+import com.lerchenflo.schneaggchatv3server.message.MessageService.MessageContent.Text
 import com.lerchenflo.schneaggchatv3server.message.messagemodel.Message
 import com.lerchenflo.schneaggchatv3server.message.messagemodel.MessageResponse
 import com.lerchenflo.schneaggchatv3server.message.messagemodel.MessageType
@@ -13,6 +15,7 @@ import com.lerchenflo.schneaggchatv3server.repository.FirebaseTokenRepository
 import com.lerchenflo.schneaggchatv3server.repository.MessageRepository
 import com.lerchenflo.schneaggchatv3server.user.FriendsService
 import com.lerchenflo.schneaggchatv3server.user.UserController
+import com.lerchenflo.schneaggchatv3server.user.usermodel.UserService
 import com.lerchenflo.schneaggchatv3server.util.ImageManager
 import org.bson.types.ObjectId
 import org.springframework.data.domain.Sort
@@ -34,11 +37,20 @@ class MessageService(
     private val friendsService: FriendsService,
     private val groupService: GroupService,
     private val imageManager: ImageManager,
-    private val firebaseService: FirebaseService
+    private val firebaseService: FirebaseService,
+    private val userService: UserService,
 ) {
 
-
+    fun MessageContent.asString() : String {
+        return when (this) {
+            is Image -> "image"
+            is Text -> message.take(300)
+        }
+    }
     public sealed class MessageContent {
+
+
+
         data class Text(val message: String) : MessageContent()
         data class Image(val image: MultipartFile) : MessageContent()
     }
@@ -58,10 +70,10 @@ class MessageService(
         val savedObjectId = ObjectId()
 
         val storedContent = when(content) {
-            is MessageContent.Image -> {
+            is Image -> {
                 imageManager.saveImageMessage(content.image, savedObjectId.toHexString())
             }
-            is MessageContent.Text -> {
+            is Text -> {
                 content.message
             }
         }
@@ -70,7 +82,14 @@ class MessageService(
         if (groupMessage) {
             //TODO: Group notifiation
         }else {
-            firebaseService.sendMessageToUser(userId = receiver, "testtest")
+            when (messageType) {
+                MessageType.TEXT -> firebaseService.sendNewMessageNotificationToUser(
+                    receiver, content.asString(),
+                    senderName = userService.getUsername(sender),
+                    msgId = savedObjectId.toString(),
+                )
+                MessageType.IMAGE -> TODO()
+            }
         }
 
 
