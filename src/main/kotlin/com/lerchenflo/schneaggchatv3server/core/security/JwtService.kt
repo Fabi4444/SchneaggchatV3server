@@ -9,12 +9,16 @@ import org.springframework.http.HttpStatusCode
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
 import java.util.*
+import kotlin.time.Instant
 
 @Service
 class JwtService(
     //Inject jwt secret from .env -> docker-compose.yaml -> application.properties -> here
     @Value($$"${jwt.secret}") private val jwtSecret: String
 ) {
+    fun getEncryptionKey() : String {
+        return jwtSecret.take(10)
+    }
 
     private val secretKey = Keys.hmacShaKeyFor(jwtSecret.toByteArray())
     private val accessTokenValidityMs = 15L /*min*/ * 60L * 1000L    //How a user can use his access token
@@ -50,6 +54,10 @@ class JwtService(
     }
 
     fun generateRefreshToken(userId: String): String {
+
+        val expiryDate = Date(System.currentTimeMillis() + refreshTokenValidityMs)
+        println("Refresh token created for user $userId - Expires at: $expiryDate")
+
         return generateToken(
             userId = userId,
             type = "refresh_token",
