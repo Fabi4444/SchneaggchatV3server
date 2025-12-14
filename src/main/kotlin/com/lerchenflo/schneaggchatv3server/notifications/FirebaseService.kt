@@ -116,15 +116,17 @@ class FirebaseService(
     }
 
 
-    fun sendNewMessageNotificationToUser(userId: ObjectId, message: String, senderName: String, msgId: String) {
+    fun sendNewMessageNotificationToUser(userId: ObjectId, messagecontent: String, senderName: String, msgId: String) {
         val tokens = getTokensForUser(userId)
 
         if (tokens.isEmpty()) {
-            println("No tokens for user $userId found")
+            println("Firebase: no tokens for user $userId found")
             return
         }
 
-        val encodedContent = runBlocking {CryptoUtil.encrypt(message, jwtService.getEncryptionKey()) }
+        val encodedContent = runBlocking {CryptoUtil.encrypt(messagecontent, jwtService.getEncryptionKey()) }
+
+        println("Content encoding finished: $encodedContent")
 
         tokens.forEach { firebaseToken ->
             val message = constructMessage(
@@ -139,6 +141,8 @@ class FirebaseService(
                 message = message,
                 token = firebaseToken.token
             )
+
+            println("Firebase message to user $userId sent: $messagecontent")
         }
 
     }
@@ -154,6 +158,7 @@ class FirebaseService(
     private fun safeSend(message: Message, token : String) : Boolean {
         try {
             val response = FirebaseMessaging.getInstance().send(message)
+            println("Firebase send response: $response")
             return true
 
         } catch (e: Exception) {

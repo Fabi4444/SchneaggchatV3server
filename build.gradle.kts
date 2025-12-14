@@ -29,6 +29,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
     implementation("org.testng:testng:7.7.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
 
     //Email sending
     implementation("org.springframework.boot:spring-boot-starter-mail")
@@ -54,7 +55,9 @@ dependencies {
     //firebase
     implementation("com.google.firebase:firebase-admin:9.7.0")
 
+    //cryptography
     implementation("dev.whyoleg.cryptography:cryptography-core:0.5.0")
+    implementation("dev.whyoleg.cryptography:cryptography-provider-jdk:0.5.0")
 
 }
 
