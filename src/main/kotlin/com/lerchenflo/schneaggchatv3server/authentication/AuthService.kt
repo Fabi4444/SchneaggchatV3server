@@ -9,6 +9,7 @@ import com.lerchenflo.schneaggchatv3server.repository.RefreshTokenRepository
 import com.lerchenflo.schneaggchatv3server.user.usermodel.User
 import com.lerchenflo.schneaggchatv3server.user.usermodel.UserService
 import com.lerchenflo.schneaggchatv3server.util.ImageManager
+import com.mongodb.DuplicateKeyException
 import com.mongodb.MongoWriteException
 import org.bson.types.ObjectId
 import org.springframework.http.HttpStatusCode
@@ -100,15 +101,20 @@ class AuthService(
         if (!jwtService.validateRefreshToken(refreshToken)) {
             throw ResponseStatusException(HttpStatusCode.valueOf(401) ,"Invalid refresh token")
         }
+        println("Refresh token validation: Token is valid")
 
         val userId = jwtService.getUserIdFromToken(refreshToken)
         val user = userService.findById(userId)
             ?: throw ResponseStatusException(HttpStatusCode.valueOf(401) ,"Invalid refresh token")
 
+        println("Refresh token validation: User from token found")
+
         val hashed = hashToken(refreshToken)
         //println("Hashed token: $hashed")
         refreshTokenRepository.findByUserIdAndHashedToken(user.id, hashed)
             ?: throw ResponseStatusException(HttpStatusCode.valueOf(401),"Refreshtoken not recognized (maybe used or expired)")
+
+        println("Refresh token validation: User with corresponding token found, token is valid")
 
         //println("Deleted refreshtokens: ${refreshTokenRepository.deleteByUserIdAndHashedToken(user.id, hashed)}")
 
@@ -139,7 +145,7 @@ class AuthService(
                     expiresAt = Instant.fromEpochMilliseconds(expiresAt),
                 )
             )
-        } catch (e: MongoWriteException) {
+        } catch (e: DuplicateKeyException) {
             println("Error storing refresh token: duplicate")
         }
     }

@@ -73,8 +73,16 @@ class JwtService(
     }
 
     fun validateRefreshToken(refreshToken: String): Boolean {
-        val claims = parseAllClaims(refreshToken) ?: return false
-        val tokentype = claims["type"] as? String ?: return false
+        println("REFRESHTOKENVALIDATION START  for token $refreshToken")
+        val claims = parseAllClaims(refreshToken) ?: run {
+            println("REFRESHTOKENVALIDATION Claims parsing failed, invalidated")
+            return false
+        }
+        val tokentype = claims["type"] as? String ?: run {
+            println("REFRESHTOKENVALIDATION Type parsing failed, invalidated")
+            return false
+        }
+        println("REFRESHTOKENVALIDATION Tokentype: $tokentype")
         return tokentype == "refresh_token"
     }
 
@@ -97,6 +105,7 @@ class JwtService(
                 .parseSignedClaims(rawToken)
                 .payload
         } catch (e: Exception){
+            e.printStackTrace()
             null
         }
     }

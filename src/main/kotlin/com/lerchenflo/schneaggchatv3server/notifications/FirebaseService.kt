@@ -11,6 +11,7 @@ import com.lerchenflo.schneaggchatv3server.repository.FirebaseTokenRepository
 import com.lerchenflo.schneaggchatv3server.repository.RefreshTokenRepository
 import com.lerchenflo.schneaggchatv3server.util.LogType
 import com.lerchenflo.schneaggchatv3server.util.LoggingService
+import com.mongodb.DuplicateKeyException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -64,6 +65,7 @@ class FirebaseService(
             val existingToken = tokenRepository.findByUserIdAndToken(userId, token)
 
             if (existingToken != null) {
+                println("Firebase token exists, not updating")
                 return
             }
 
@@ -79,8 +81,9 @@ class FirebaseService(
                     token = token
                 )
             )
-        } catch (e: Exception) {
-            e.printStackTrace()
+            println("Firebasetoken saved successfully")
+        } catch (e: DuplicateKeyException) {
+            println("Duplicate key already exists")
         }
     }
 
@@ -119,7 +122,7 @@ class FirebaseService(
     }
 
 
-    fun sendNewMessageNotificationToUser(userId: ObjectId, messagecontent: String, senderName: String, msgId: String) {
+    fun sendNewMessageNotificationToUser(userId: ObjectId, messagecontent: String, senderName: String, msgId: String, groupMessage: Boolean, groupName: String? = null) {
         val tokens = getTokensForUser(userId)
 
         if (tokens.isEmpty()) {
@@ -127,10 +130,10 @@ class FirebaseService(
             return
         }
 
-        println("Firebase: Coroutinescope is starting...")
+        //println("Firebase: Coroutinescope is starting...")
         CoroutineScope(Dispatchers.IO).launch {
             val encodedContent = CryptoUtil.encrypt(messagecontent, jwtService.getEncryptionKey())
-            println("Firebase: encoding finished: $encodedContent")
+            //println("Firebase: encoding finished: $encodedContent")
 
             tokens.forEach { firebaseToken ->
                 val message = constructMessage(
@@ -138,6 +141,8 @@ class FirebaseService(
                     data = mapOf(
                         "encodedContent" to encodedContent,
                         "senderName" to senderName,
+                        "groupMessage" to groupMessage.toString(),
+                        "groupName" to (groupName ?: ""),
                         "msgId" to msgId)
                 )
 
@@ -146,7 +151,7 @@ class FirebaseService(
                     token = firebaseToken.token
                 )
 
-                println("Firebase message to user $userId sent: $messagecontent")
+                //println("Firebase message to user $userId sent: $messagecontent")
             }
         }
 
@@ -155,7 +160,8 @@ class FirebaseService(
     data class NotificationObject(
         val msgId: String,
         val senderName: String,
-        val encodedcontent: String
+        val groupMessage: Boolean,
+        val encodedContent: String
     )
 
      */
