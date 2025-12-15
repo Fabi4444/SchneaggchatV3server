@@ -8,4 +8,5 @@ data class MessageRequest(
     val msgType: MessageType,
     val content: String,
     val answerId: String?,
-)
+    val encrypted: Boolean,
+    )
