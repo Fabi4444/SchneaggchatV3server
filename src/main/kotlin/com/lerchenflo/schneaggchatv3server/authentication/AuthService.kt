@@ -14,6 +14,7 @@ import org.bson.types.ObjectId
 import org.springframework.http.HttpStatusCode
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.stereotype.Component
+import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
@@ -23,7 +24,7 @@ import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
-@Component
+@Service
 class AuthService(
     private val jwtService: JwtService,
     private val userService: UserService,
@@ -40,6 +41,8 @@ class AuthService(
     )
 
     fun register(username: String, password: String, email: String, birthdate: String, profilePic: MultipartFile) : User {
+
+        //TODO: Check username
 
         userService.checkExistingUser(username, email)
 
