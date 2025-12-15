@@ -8,15 +8,13 @@ import com.google.firebase.messaging.AndroidConfig.Priority
 import com.lerchenflo.schneaggchatv3server.core.security.JwtService
 import com.lerchenflo.schneaggchatv3server.notifications.model.FirebaseToken
 import com.lerchenflo.schneaggchatv3server.repository.FirebaseTokenRepository
-import com.lerchenflo.schneaggchatv3server.repository.RefreshTokenRepository
 import com.lerchenflo.schneaggchatv3server.util.LogType
 import com.lerchenflo.schneaggchatv3server.util.LoggingService
-import com.mongodb.DuplicateKeyException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.bson.types.ObjectId
+import org.springframework.dao.DuplicateKeyException
 import org.springframework.stereotype.Service
 import java.io.FileInputStream
 
