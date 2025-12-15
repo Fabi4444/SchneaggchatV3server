@@ -127,10 +127,10 @@ class FirebaseService(
             return
         }
 
-        println("Firebase: Coroutinescope is starting...")
+        //println("Firebase: Coroutinescope is starting...")
         CoroutineScope(Dispatchers.IO).launch {
             val encodedContent = CryptoUtil.encrypt(messagecontent, jwtService.getEncryptionKey())
-            println("Firebase: encoding finished: $encodedContent")
+            //println("Firebase: encoding finished: $encodedContent")
 
             tokens.forEach { firebaseToken ->
                 val message = constructMessage(
@@ -146,7 +146,7 @@ class FirebaseService(
                     token = firebaseToken.token
                 )
 
-                println("Firebase message to user $userId sent: $messagecontent")
+                //println("Firebase message to user $userId sent: $messagecontent")
             }
         }
 
