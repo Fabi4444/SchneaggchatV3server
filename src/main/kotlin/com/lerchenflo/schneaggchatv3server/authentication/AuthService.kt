@@ -9,12 +9,10 @@ import com.lerchenflo.schneaggchatv3server.repository.RefreshTokenRepository
 import com.lerchenflo.schneaggchatv3server.user.usermodel.User
 import com.lerchenflo.schneaggchatv3server.user.usermodel.UserService
 import com.lerchenflo.schneaggchatv3server.util.ImageManager
-import com.mongodb.DuplicateKeyException
-import com.mongodb.MongoWriteException
 import org.bson.types.ObjectId
+import org.springframework.dao.DuplicateKeyException
 import org.springframework.http.HttpStatusCode
 import org.springframework.security.authentication.BadCredentialsException
-import org.springframework.stereotype.Component
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
