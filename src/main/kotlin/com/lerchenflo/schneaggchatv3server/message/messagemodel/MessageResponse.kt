@@ -8,7 +8,6 @@ data class MessageResponse(
     val msgType: MessageType,
     val content: String,
     val answerId: String?,
-    val encrypted: Boolean = false,
 
     val sendDate: Long,
     val lastChanged: Long,

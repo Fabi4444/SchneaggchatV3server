@@ -7,6 +7,5 @@ data class MessageRequest(
     val groupMessage: Boolean,
     val msgType: MessageType,
     val content: String,
-    val answerId: String?,
-    val encrypted: Boolean,
-    )
+    val answerId: String?
+)
