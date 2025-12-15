@@ -20,7 +20,6 @@ data class Message(
     val msgType: MessageType,
     val content: String,
     val answerId: ObjectId?,
-    val encrypted: Boolean = false,
 
     val sendDate: Instant,
     val lastChanged: Instant,

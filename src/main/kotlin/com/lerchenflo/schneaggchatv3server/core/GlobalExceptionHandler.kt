@@ -1,15 +1,17 @@
 package com.lerchenflo.schneaggchatv3server.core
 
+import com.google.gson.stream.MalformedJsonException
 import com.lerchenflo.schneaggchatv3server.util.LogType
 import com.lerchenflo.schneaggchatv3server.util.LoggingService
 import org.bson.types.ObjectId
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.validation.FieldError
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.server.ResponseStatusException
+import java.util.function.Consumer
 
 @RestControllerAdvice
 class GlobalExceptionHandler(
@@ -48,6 +50,7 @@ class GlobalExceptionHandler(
             .status(e.statusCode)
             .body(error)
     }
+
 
     private fun logError(e : Exception) {
         val requestingUserId =
