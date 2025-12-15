@@ -19,6 +19,7 @@ class GlobalExceptionHandler(
     //Exception handling for annotations (For example Registerrequest: Email)
     @ExceptionHandler(MethodArgumentNotValidException::class)
     fun handleValidationError(e: MethodArgumentNotValidException): ResponseEntity<Map<String, Any>> {
+        println("Validation Error happened: ${e.message}")
         val errors = e.bindingResult.allErrors.map {
             it.defaultMessage ?: "Invalid value"
         }
@@ -30,6 +31,7 @@ class GlobalExceptionHandler(
 
     @ExceptionHandler(IllegalArgumentException::class)
     fun handleIllegalArgumentException(e: IllegalArgumentException): ResponseEntity<String> {
+        println("Illegal argument Error happened: ${e.message}")
         val error = e.message
         logError(e)
         return ResponseEntity
@@ -39,6 +41,7 @@ class GlobalExceptionHandler(
 
     @ExceptionHandler(ResponseStatusException::class)
     fun handleResponseStatusException(e: ResponseStatusException): ResponseEntity<String> {
+        println("ResponseStatus Error happened: ${e.message}")
         val error = e.message
         logError(e)
         return ResponseEntity

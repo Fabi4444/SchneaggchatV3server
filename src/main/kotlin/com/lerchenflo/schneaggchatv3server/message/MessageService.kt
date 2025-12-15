@@ -91,6 +91,7 @@ class MessageService(
                 receiver, content.asString(),
                 senderName = userService.getUsername(sender),
                 msgId = savedObjectId.toString(),
+                groupMessage = false
             )
         }
 

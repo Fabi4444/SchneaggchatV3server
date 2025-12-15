@@ -4,6 +4,10 @@ WORKDIR /app
 # Install git
 RUN apk add --no-cache git
 
+RUN apk add --no-cache git tzdata && \
+    ln -sf /usr/share/zoneinfo/$TZ /etc/localtime && \
+    echo "$TZ" > /etc/timezone
+
 # Clone the repository
 ARG GIT_REPO_URL="https://github.com/lerchenflo/SchneaggchatV3server.git"
 ARG GIT_BRANCH=main
@@ -19,8 +23,12 @@ RUN ./gradlew clean build -x test --no-daemon
 
 # Production runtime stage
 FROM eclipse-temurin:17-jre-alpine
+ARG TZ=Europe/Vienna
 WORKDIR /app
 
+RUN apk add --no-cache tzdata && \
+    ln -sf /usr/share/zoneinfo/$TZ /etc/localtime && \
+    echo "$TZ" > /etc/timezone
 # Create non-root user for security
 RUN addgroup -S spring && adduser -S spring -G spring
 
