@@ -41,5 +41,6 @@ out/
 ### Kotlin ###
 .kotlin
 
-**/firebase-admin.json
+schneaggchatv3-firebase-admin.json
+
 

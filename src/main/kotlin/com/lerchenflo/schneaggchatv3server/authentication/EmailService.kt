@@ -31,7 +31,11 @@ class EmailService(
         mail.setTo(email)
         mail.subject = "Schneaggchat email verification"
         mail.text = "Click here to validate your email:\n$verificationUrl"
-        mailSender.send(mail)
+        try {
+            mailSender.send(mail)
+        } catch (e: Exception) {
+            println("Mail not sent, error")
+        }
     }
 
     /**
@@ -67,7 +71,11 @@ class EmailService(
         mail.setTo(email)
         mail.subject = "Schneaggchat account deletion"
         mail.text = "Someone requested to delete your account. If this was not you, please ignore this email.\nIf you really want to delete your account, click the link below.\nYOUR ACCOUNT WILL BE DELETED IMMEDIATELY!:\n$verificationUrl"
-        mailSender.send(mail)
+        try {
+            mailSender.send(mail)
+        } catch (e: Exception) {
+            println("Mail not sent, error")
+        }
     }
 
     /**

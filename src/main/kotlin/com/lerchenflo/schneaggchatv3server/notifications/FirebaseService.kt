@@ -11,6 +11,9 @@ import com.lerchenflo.schneaggchatv3server.repository.FirebaseTokenRepository
 import com.lerchenflo.schneaggchatv3server.repository.RefreshTokenRepository
 import com.lerchenflo.schneaggchatv3server.util.LogType
 import com.lerchenflo.schneaggchatv3server.util.LoggingService
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.bson.types.ObjectId
 import org.springframework.stereotype.Service
@@ -124,25 +127,27 @@ class FirebaseService(
             return
         }
 
-        val encodedContent = runBlocking {CryptoUtil.encrypt(messagecontent, jwtService.getEncryptionKey()) }
+        println("Firebase: Coroutinescope is starting...")
+        CoroutineScope(Dispatchers.IO).launch {
+            val encodedContent = CryptoUtil.encrypt(messagecontent, jwtService.getEncryptionKey())
+            println("Firebase: encoding finished: $encodedContent")
 
-        println("Content encoding finished: $encodedContent")
+            tokens.forEach { firebaseToken ->
+                val message = constructMessage(
+                    firebaseToken = firebaseToken.token,
+                    data = mapOf(
+                        "encodedContent" to encodedContent,
+                        "senderName" to senderName,
+                        "msgId" to msgId)
+                )
 
-        tokens.forEach { firebaseToken ->
-            val message = constructMessage(
-                firebaseToken = firebaseToken.token,
-                data = mapOf(
-                    "encodedContent" to encodedContent,
-                    "senderName" to senderName,
-                    "msgId" to msgId)
-            )
+                safeSend(
+                    message = message,
+                    token = firebaseToken.token
+                )
 
-            safeSend(
-                message = message,
-                token = firebaseToken.token
-            )
-
-            println("Firebase message to user $userId sent: $messagecontent")
+                println("Firebase message to user $userId sent: $messagecontent")
+            }
         }
 
     }
