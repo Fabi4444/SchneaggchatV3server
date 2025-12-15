@@ -35,7 +35,7 @@ class MainController(
     @EventListener(ApplicationReadyEvent::class)
     fun onStartup() {
         //Code to execute on app start finished
-        listMongoIndexes()
+        //listMongoIndexes()
 
         //Create default Account for Google play / App Store
         val defaultUserUserName = "TestAccount"

@@ -9,6 +9,7 @@ import com.lerchenflo.schneaggchatv3server.repository.RefreshTokenRepository
 import com.lerchenflo.schneaggchatv3server.user.usermodel.User
 import com.lerchenflo.schneaggchatv3server.user.usermodel.UserService
 import com.lerchenflo.schneaggchatv3server.util.ImageManager
+import com.mongodb.MongoWriteException
 import org.bson.types.ObjectId
 import org.springframework.http.HttpStatusCode
 import org.springframework.security.authentication.BadCredentialsException
@@ -127,13 +128,17 @@ class AuthService(
         val expiryMs = jwtService.refreshTokenValidityMs
         val expiresAt = Clock.System.now().toEpochMilliseconds() + expiryMs
 
-        refreshTokenRepository.save(
-            RefreshToken(
-                userId = userId,
-                hashedToken = hashed,
-                expiresAt = Instant.fromEpochMilliseconds(expiresAt),
+        try {
+            refreshTokenRepository.save(
+                RefreshToken(
+                    userId = userId,
+                    hashedToken = hashed,
+                    expiresAt = Instant.fromEpochMilliseconds(expiresAt),
+                )
             )
-        )
+        } catch (e: MongoWriteException) {
+            println("Error storing refresh token: duplicate")
+        }
     }
 
     private fun hashToken(token: String) : String {
