@@ -56,6 +56,9 @@ class SecurityConfig(
                     .requestMatchers("/stats.html")
                     .permitAll()
 
+                    .requestMatchers("/donations.html")
+                    .permitAll()
+
                     //Favicon
                     .requestMatchers("/favicon.ico")
                     .permitAll()
