@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schneaggchat V3 - Stats</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<!-- Header -->
+<div id="header-container"></div>
+
+<!-- Stats Section -->
+<section class="stats-page">
+    <div class="stats-container">
+        <!--
+        <div class="stats-header">
+            <div class="stats-icon">
+                <i class="fa-solid fa-chart-line"></i>
+            </div>
+            <h1>System Stats</h1>
+            <p class="subtitle">Live Stats vom Schneaggchat Server</p>
+        </div>
+        -->
+
+        <!-- Total Stats Card -->
+        <div class="total-stats-card">
+            <div class="total-icon">
+                <i class="fa-solid fa-database"></i>
+            </div>
+            <h2>Gesammtevents</h2>
+            <div class="total-number" th:text="${total}">0</div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-details-grid">
+
+            <!-- Server Start -->
+            <div class="stat-detail-card">
+                <div class="stat-detail-icon" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
+                    <i class="fa-solid fa-power-off"></i>
+                </div>
+                <div class="stat-detail-content">
+                    <h3>Serverstarts</h3>
+                    <div class="stat-detail-number" th:text="${stats['SERVER_START']}">0</div>
+                </div>
+            </div>
+
+            <!-- Messages -->
+            <div class="stat-detail-card">
+                <div class="stat-detail-icon" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
+                    <i class="fa-solid fa-envelope"></i>
+                </div>
+                <div class="stat-detail-content">
+                    <h3>Gesendete Nachrichten</h3>
+                    <div class="stat-detail-number" th:text="${stats['MESSAGE_SENT']}">0</div>
+                </div>
+            </div>
+
+
+            <!-- User Login -->
+            <div class="stat-detail-card">
+                <div class="stat-detail-icon" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                    <i class="fa-solid fa-right-to-bracket"></i>
+                </div>
+                <div class="stat-detail-content">
+                    <h3>User Logins</h3>
+                    <div class="stat-detail-number" th:text="${stats['USER_LOGIN']}">0</div>
+                </div>
+            </div>
+
+            <!-- Friend Requests -->
+            <div class="stat-detail-card">
+                <div class="stat-detail-icon" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
+                    <i class="fa-solid fa-user-plus"></i>
+                </div>
+                <div class="stat-detail-content">
+                    <h3>Gesendete Freundschaftsanfragen</h3>
+                    <div class="stat-detail-number" th:text="${stats['FRIEND_REQUEST_SENT']}">0</div>
+                </div>
+            </div>
+
+
+            <!-- Message Deleted -->
+            <div class="stat-detail-card">
+                <div class="stat-detail-icon" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+                    <i class="fa-solid fa-trash"></i>
+                </div>
+                <div class="stat-detail-content">
+                    <h3>Nachrichten gelöscht</h3>
+                    <div class="stat-detail-number" th:text="${stats['MESSAGE_DELETED']}">0</div>
+                </div>
+            </div>
+
+            <!-- Group Created -->
+            <div class="stat-detail-card">
+                <div class="stat-detail-icon" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
+                    <i class="fa-solid fa-users-rectangle"></i>
+                </div>
+                <div class="stat-detail-content">
+                    <h3>Gruppen erstellt</h3>
+                    <div class="stat-detail-number" th:text="${stats['GROUP_CREATED']}">0</div>
+                </div>
+            </div>
+
+            <!-- Group Deleted -->
+            <div class="stat-detail-card">
+                <div class="stat-detail-icon" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                    <i class="fa-solid fa-user-slash"></i>
+                </div>
+                <div class="stat-detail-content">
+                    <h3>Gelöschte Gruppen</h3>
+                    <div class="stat-detail-number" th:text="${stats['GROUP_DELETED']}">0</div>
+                </div>
+            </div>
+
+            <!-- Firebase Token -->
+            <div class="stat-detail-card">
+                <div class="stat-detail-icon" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);">
+                    <i class="fa-solid fa-bell"></i>
+                </div>
+                <div class="stat-detail-content">
+                    <h3>Neue Firebasetokens registriert</h3>
+                    <div class="stat-detail-number" th:text="${stats['FIREBASE_TOKEN_REGISTERED']}">0</div>
+                </div>
+            </div>
+
+            <!-- Exceptions -->
+            <div class="stat-detail-card">
+                <div class="stat-detail-icon" style="background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div class="stat-detail-content">
+                    <h3>Serverfehler</h3>
+                    <div class="stat-detail-number" th:text="${stats['EXCEPTION_THROWN']}">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Box -->
+        <div class="stats-info-box">
+            <i class="fa-solid fa-circle-info"></i>
+            <div class="info-content">
+                <h3>Über die Stats</h3>
+                <p>Die Stats werden in Echtzeit vom Server geholt und zeigen alle vom Server geloggten Events.</p>
+            </div>
+        </div>
+
+        <!-- Back Link -->
+        <div class="back-link">
+            <a href="/">
+                <i class="fa-solid fa-arrow-left"></i>
+                Zur Startseite
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<div id="footer-container"></div>
+
+<script src="/js/header_footer.js"></script>
+
+<script>
+    // Header scroll effect
+    window.addEventListener('scroll', function() {
+        const header = document.querySelector('header');
+        if (window.scrollY > 50) {
+            header.classList.add('scrolled');
+        } else {
+            header.classList.remove('scrolled');
+        }
+    });
+
+    // Animate numbers on load
+    document.addEventListener('DOMContentLoaded', function() {
+        const numbers = document.querySelectorAll('.stat-detail-number, .total-number');
+        numbers.forEach(num => {
+            const target = parseInt(num.textContent);
+            let current = 0;
+            const increment = target / 50;
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    num.textContent = target;
+                    clearInterval(timer);
+                } else {
+                    num.textContent = Math.floor(current);
+                }
+            }, 20);
+        });
+    });
+</script>
+</body>
+</html>

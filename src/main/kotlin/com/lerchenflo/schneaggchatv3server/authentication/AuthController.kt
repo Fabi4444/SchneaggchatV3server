@@ -1,6 +1,7 @@
 package com.lerchenflo.schneaggchatv3server.authentication
 
 import com.lerchenflo.schneaggchatv3server.user.usermodel.UserService
+import com.lerchenflo.schneaggchatv3server.util.LoggingService
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.Pattern
 import org.springframework.http.HttpStatus
@@ -73,6 +74,7 @@ class AuthController(
     fun login(
         @RequestBody loginRequest: LoginRequest
     ): AuthService.TokenPair {
+
         return authService.login(
             username = loginRequest.username,
             password = loginRequest.password,

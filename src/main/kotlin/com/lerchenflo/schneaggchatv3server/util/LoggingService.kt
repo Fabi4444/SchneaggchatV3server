@@ -3,6 +3,7 @@
 package com.lerchenflo.schneaggchatv3server.util
 
 import com.lerchenflo.schneaggchatv3server.repository.LogRepository
+import com.lerchenflo.schneaggchatv3server.repository.MessageRepository
 import org.bson.types.ObjectId
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
@@ -18,7 +19,8 @@ enum class LogType {
     GROUP_CREATED,
     GROUP_DELETED,
     FIREBASE_TOKEN_REGISTERED,
-
+    FRIEND_REQUEST_SENT,
+    MESSAGE_SENT,
     EXCEPTION_THROWN
 }
 
@@ -34,6 +36,7 @@ data class Log(
 @Service
 class LoggingService(
     private val logRepository: LogRepository,
+    private val messageRepository: MessageRepository,
 ) {
 
     init {
@@ -52,5 +55,17 @@ class LoggingService(
                 message = message,
             )
         )
+    }
+
+    fun getStats() : Map<String, Long> {
+        val stats = LogType.entries.associate { logType ->
+            if (logType == LogType.MESSAGE_SENT){
+                logType.name to messageRepository.count()
+            }else {
+                logType.name to logRepository.countByLogType(logType)
+            }
+        }
+
+        return stats
     }
 }

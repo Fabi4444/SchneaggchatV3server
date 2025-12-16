@@ -7,6 +7,7 @@
                 </div>
                 <nav class="nav-links">
                     <a href="/">Home</a>
+                    <a href="/stats.html">Stats</a>
                     <a href="/privacypolicy.html">Datenschutz</a>
                 </nav>
                 <button class="mobile-toggle">
@@ -22,6 +23,7 @@
                     <a href="/">Home</a>
                     <a href="/privacypolicy.html">Datenschutz</a>
                     <a href="/delete_account.html">Account löschen</a>
+                    <a href="/stats.html">Stats</a>
                 </div>
             </footer>
         `;

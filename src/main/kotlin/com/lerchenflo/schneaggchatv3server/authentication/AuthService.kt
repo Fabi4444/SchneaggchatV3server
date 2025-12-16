@@ -9,6 +9,8 @@ import com.lerchenflo.schneaggchatv3server.repository.RefreshTokenRepository
 import com.lerchenflo.schneaggchatv3server.user.usermodel.User
 import com.lerchenflo.schneaggchatv3server.user.usermodel.UserService
 import com.lerchenflo.schneaggchatv3server.util.ImageManager
+import com.lerchenflo.schneaggchatv3server.util.LogType
+import com.lerchenflo.schneaggchatv3server.util.LoggingService
 import org.bson.types.ObjectId
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.http.HttpStatusCode
@@ -29,7 +31,7 @@ class AuthService(
     private val userService: UserService,
     private val hashEncoder: HashEncoder,
     private val refreshTokenRepository: RefreshTokenRepository,
-
+    private val loggingService: LoggingService,
     private val imageManager: ImageManager
 ) {
 
@@ -71,6 +73,11 @@ class AuthService(
     fun login(username: String, password: String) : TokenPair {
         //Does this user exist
         val user = userService.findByUsername(username) ?: throw BadCredentialsException("Invalid credentials")
+
+        loggingService.log(
+            userId = user.id,
+            logType = LogType.USER_LOGIN
+        )
 
         //Does the password match
         if (!hashEncoder.matches(password, user.hashedPassword)) {
