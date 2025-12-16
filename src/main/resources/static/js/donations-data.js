@@ -4,7 +4,8 @@
 // {
 //     name: "Donor Name",
 //     amount: 25.00,
-//     date: "15. Dezember 2025"
+//     date: "15. Dezember 2025",
+//     message: "Optional message from the donor" // Optional field
 // }
 // Note: Icons are randomly selected automatically!
 
@@ -34,7 +35,8 @@ const donationsConfig = {
         {
             name: "Flo",
             amount: 125.00,
-            date: "15. Dezember 2025"
+            date: "15. Dezember 2025",
+            message: "Playstore & Appstore Lizenz"
         },
 
     ]
@@ -73,6 +75,7 @@ function renderDonations() {
             <h4 class="donation-name">${donation.name}</h4>
             <p class="donation-amount">€${donation.amount.toFixed(2)}</p>
             <p class="donation-date">${donation.date}</p>
+            ${donation.message ? `<p class="donation-message">"${donation.message}"</p>` : ''}
         `;
 
         donationsGrid.appendChild(donationCard);

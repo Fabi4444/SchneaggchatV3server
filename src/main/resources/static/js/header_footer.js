@@ -8,8 +8,8 @@ const headerHTML = `
                 <nav class="nav-links">
                     <a href="/">Home</a>
                     <a href="/stats.html">Stats</a>
-                    <a href="/donations.html">Spenden</a>
                     <a href="/privacypolicy.html">Datenschutz</a>
+                    <a href="/donations.html">Spenden</a>
                 </nav>
                 <button class="mobile-toggle">
                     <i class="fas fa-bars"></i>
