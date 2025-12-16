@@ -53,6 +53,9 @@ class SecurityConfig(
                     .requestMatchers("/delete_account.html")
                     .permitAll()
 
+                    .requestMatchers("/stats.html")
+                    .permitAll()
+
                     //Favicon
                     .requestMatchers("/favicon.ico")
                     .permitAll()

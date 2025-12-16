@@ -98,6 +98,10 @@ class JwtService(
     private fun parseAllClaims(token: String): Claims? {
         val rawToken = token.replace("Bearer ", "")
 
+        if (rawToken.isBlank()) {
+            return null
+        }
+
         return try {
             Jwts.parser()
                 .verifyWith(secretKey)

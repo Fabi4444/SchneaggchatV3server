@@ -1112,3 +1112,245 @@ header.scrolled {
     align-items: center;
     gap: 5px;
 }
+
+/* Stats Page Styles - Add this to your existing style.css */
+
+.stats-page {
+    min-height: 100vh;
+    padding: 120px 5% 60px;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+}
+
+.stats-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.stats-header {
+    text-align: center;
+    margin-bottom: 4rem;
+}
+
+.stats-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    border-radius: 50%;
+    font-size: 3rem;
+    color: white;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 30px rgba(67, 97, 238, 0.4);
+}
+
+.stats-header h1 {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    background: linear-gradient(to right, #fff 0%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.stats-header .subtitle {
+    color: #94a3b8;
+    font-size: 1.2rem;
+}
+
+/* Total Stats Card */
+.total-stats-card {
+    background: rgba(30, 41, 59, 0.7);
+    border-radius: 20px;
+    padding: 3rem;
+    text-align: center;
+    margin-bottom: 3rem;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6);
+}
+
+.total-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--success) 100%);
+    border-radius: 50%;
+    font-size: 2.5rem;
+    color: white;
+    margin-bottom: 1.5rem;
+}
+
+.total-stats-card h2 {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+    color: var(--accent);
+}
+
+.total-number {
+    font-size: 4.5rem;
+    font-weight: 700;
+    background: linear-gradient(to right, var(--accent) 0%, var(--success) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1;
+}
+
+/* Stats Details Grid */
+.stats-details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.stat-detail-card {
+    background: rgba(30, 41, 59, 0.6);
+    border-radius: 15px;
+    padding: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    transition: var(--transition);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.stat-detail-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+    border-color: rgba(72, 149, 239, 0.3);
+}
+
+.stat-detail-icon {
+    width: 70px;
+    height: 70px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: white;
+    flex-shrink: 0;
+}
+
+.stat-detail-content {
+    flex: 1;
+}
+
+.stat-detail-content h3 {
+    font-size: 1rem;
+    color: #94a3b8;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.stat-detail-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: white;
+    line-height: 1;
+}
+
+/* Stats Info Box */
+.stats-info-box {
+    background: rgba(72, 149, 239, 0.1);
+    border-radius: 15px;
+    padding: 2rem;
+    margin: 3rem 0;
+    border: 1px solid rgba(72, 149, 239, 0.2);
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+}
+
+.stats-info-box i {
+    color: var(--accent);
+    font-size: 2rem;
+    flex-shrink: 0;
+    margin-top: 0.25rem;
+}
+
+.stats-info-box .info-content h3 {
+    font-size: 1.3rem;
+    margin-bottom: 0.75rem;
+    color: var(--accent);
+}
+
+.stats-info-box .info-content p {
+    color: #cbd5e1;
+    line-height: 1.6;
+}
+
+/* Responsive Styles for Stats */
+@media (max-width: 768px) {
+    .stats-page {
+        padding: 100px 20px 40px;
+    }
+
+    .stats-header h1 {
+        font-size: 2.2rem;
+    }
+
+    .stats-icon {
+        width: 80px;
+        height: 80px;
+        font-size: 2.5rem;
+    }
+
+    .total-stats-card {
+        padding: 2rem;
+    }
+
+    .total-number {
+        font-size: 3.5rem;
+    }
+
+    .stats-details-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .stat-detail-card {
+        padding: 1.5rem;
+    }
+
+    .stat-detail-number {
+        font-size: 2rem;
+    }
+
+    .stats-info-box {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .stats-info-box i {
+        align-self: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-header h1 {
+        font-size: 1.8rem;
+    }
+
+    .total-stats-card h2 {
+        font-size: 1.5rem;
+    }
+
+    .total-number {
+        font-size: 3rem;
+    }
+
+    .stat-detail-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+    }
+
+    .stat-detail-number {
+        font-size: 1.8rem;
+    }
+}

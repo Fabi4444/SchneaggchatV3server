@@ -67,11 +67,6 @@ class FirebaseService(
                 return
             }
 
-            loggingService.log(
-                userId = userId,
-                logType = LogType.FIREBASE_TOKEN_REGISTERED,
-            )
-
             // Save new token
             tokenRepository.save(
                 FirebaseToken(
@@ -79,6 +74,13 @@ class FirebaseService(
                     token = token
                 )
             )
+
+            //Save here if duplicate key exception occurs
+            loggingService.log(
+                userId = userId,
+                logType = LogType.FIREBASE_TOKEN_REGISTERED,
+            )
+
             println("Firebasetoken saved successfully")
         } catch (e: DuplicateKeyException) {
             println("Duplicate key already exists")

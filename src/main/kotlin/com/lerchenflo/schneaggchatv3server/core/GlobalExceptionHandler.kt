@@ -56,13 +56,11 @@ class GlobalExceptionHandler(
         val requestingUserId =
             SecurityContextHolder.getContext().authentication?.principal as? String
 
-        if (requestingUserId != null) {
-            loggingService.log(
-                userId = ObjectId(requestingUserId),
-                logType = LogType.EXCEPTION_THROWN,
-                message = e.message,
-            )
-        }
+        loggingService.log(
+            userId = if (requestingUserId != null) ObjectId(requestingUserId) else null ,
+            logType = LogType.EXCEPTION_THROWN,
+            message = e.message,
+        )
     }
 
 }

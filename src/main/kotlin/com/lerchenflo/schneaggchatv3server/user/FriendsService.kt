@@ -5,6 +5,8 @@ package com.lerchenflo.schneaggchatv3server.user
 import com.lerchenflo.schneaggchatv3server.repository.FriendshipRepository
 import com.lerchenflo.schneaggchatv3server.user.friendshipmodel.Friendship
 import com.lerchenflo.schneaggchatv3server.user.friendshipmodel.FriendshipStatus
+import com.lerchenflo.schneaggchatv3server.util.LogType
+import com.lerchenflo.schneaggchatv3server.util.LoggingService
 import org.bson.types.ObjectId
 import org.springframework.stereotype.Component
 import kotlin.time.Clock
@@ -14,6 +16,7 @@ import kotlin.time.Instant
 @Component
 class FriendsService(
     private val friendshipRepository: FriendshipRepository,
+    private val loggingService: LoggingService
     ) {
 
     /**
@@ -26,6 +29,11 @@ class FriendsService(
 
         // Check if friendship already exists (in any direction)
         val existing = findFriendship(fromUserId, toUserId)
+
+        loggingService.log(
+            userId = fromUserId,
+            logType = LogType.FRIEND_REQUEST_SENT,
+        )
 
         if (existing != null) {
             return when (existing.status) {
