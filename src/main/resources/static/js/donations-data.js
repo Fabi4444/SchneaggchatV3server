@@ -32,7 +32,7 @@ const donationsConfig = {
     // No need to specify icons - they're assigned randomly!
     donations: [
         {
-            name: "FLo",
+            name: "Flo",
             amount: 125.00,
             date: "15. Dezember 2025"
         },
