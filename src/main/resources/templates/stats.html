@@ -37,14 +37,14 @@
         <!-- Stats Grid -->
         <div class="stats-details-grid">
 
-            <!-- Server Start -->
+            <!-- Accounts created -->
             <div class="stat-detail-card">
-                <div class="stat-detail-icon" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
-                    <i class="fa-solid fa-power-off"></i>
+                <div class="stat-detail-icon" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);">
+                    <i class="fa-solid fa-user-plus"></i>
                 </div>
                 <div class="stat-detail-content">
-                    <h3>Serverstarts</h3>
-                    <div class="stat-detail-number" th:text="${stats['SERVER_START']}">0</div>
+                    <h3>Useraccounts</h3>
+                    <div class="stat-detail-number" th:text="${stats['ACCOUNT_CREATED']}">0</div>
                 </div>
             </div>
 
@@ -59,6 +59,16 @@
                 </div>
             </div>
 
+            <!-- Server Start -->
+            <div class="stat-detail-card">
+                <div class="stat-detail-icon" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
+                    <i class="fa-solid fa-power-off"></i>
+                </div>
+                <div class="stat-detail-content">
+                    <h3>Serverstarts</h3>
+                    <div class="stat-detail-number" th:text="${stats['SERVER_START']}">0</div>
+                </div>
+            </div>
 
             <!-- User Login -->
             <div class="stat-detail-card">
