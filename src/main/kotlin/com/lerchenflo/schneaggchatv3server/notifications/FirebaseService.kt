@@ -137,6 +137,8 @@ class FirebaseService(
                 //println("Firebase: encoding finished: $encodedContent")
 
                 tokens.forEach { firebaseToken ->
+                    if (firebaseToken.token.isEmpty()) return@forEach
+
                    try {
                        val message = constructMessage(
                            firebaseToken = firebaseToken.token,
@@ -181,22 +183,57 @@ class FirebaseService(
 
      */
 
-    private fun safeSend(message: Message, token : String) : Boolean {
+    private fun safeSend(message: Message, token: String): Boolean {
         try {
             val response = FirebaseMessaging.getInstance().send(message)
             println("Firebase send response: $response")
             return true
 
-        } catch (e: Exception) {
+        } catch (e: FirebaseMessagingException) {
+            // Use error codes instead of string comparison
+            val errorCode = e.messagingErrorCode
 
-            // If token is invalid, delete it
-            if (e.message?.contains("invalid-registration-token") == true ||
-                e.message?.contains("registration-token-not-registered") == true) {
-                deleteToken(token)
-                return false
+            println(
+                "[Firebase] Exception: Code=${errorCode}, Message=${e.message}"
+            )
+
+            // Remove tokens only for permanent failures
+            when (errorCode) {
+                MessagingErrorCode.UNREGISTERED,
+                MessagingErrorCode.INVALID_ARGUMENT,
+                MessagingErrorCode.SENDER_ID_MISMATCH -> {
+                    println("[Firebase] Removing invalid token: $token (Code: $errorCode)")
+                    deleteToken(token)
+                    return false
+                }
+
+                // Transient errors - don't remove token
+                MessagingErrorCode.UNAVAILABLE,
+                MessagingErrorCode.INTERNAL,
+                MessagingErrorCode.QUOTA_EXCEEDED -> {
+                    println("[Firebase] Transient error for token: $token (Code: $errorCode)")
+                    return false
+                }
+
+                // Other errors - log but don't remove token
+                else -> {
+                    println("[Firebase] Error sending to token: $token (Code: $errorCode)")
+                    return false
+                }
             }
+
+        } catch (e: Exception) {
+            // Catch-all for network, JSON, etc.
+            println(
+                "[Firebase] Unexpected exception: ${e.javaClass.simpleName}: ${e.message}"
+            )
+            e.printStackTrace()
+            loggingService.log(
+                userId = null,
+                logType = LogType.EXCEPTION_THROWN
+            )
+            return false
         }
-        return false
     }
 
     private fun constructMessage(firebaseToken: String, data: Map<String, String>) : Message {
