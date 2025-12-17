@@ -153,7 +153,7 @@ class FirebaseService(
                            token = firebaseToken.token
                        )
 
-                       //println("Firebase message to user $userId sent: $messagecontent")
+                       println("Firebase message to user $userId sent: $messagecontent")
                    } catch (e: Exception) {
                        println("Error sending to token ${firebaseToken.token}: ${e.message}")
                        e.printStackTrace()
