@@ -25,7 +25,7 @@ class EmailService(
 
 
         val token = jwtService.generateEmailToken(userId.toHexString(), email)
-        val verificationUrl = "https://schneaggchat.lerchenflo.eu/auth/verify_email?token=$token"
+        val verificationUrl = "https://schneaggchatv3.lerchenflo.eu/auth/verify_email?token=$token"
 
         val mail = SimpleMailMessage()
         mail.setTo(email)
@@ -65,7 +65,7 @@ class EmailService(
 
 
         val token = jwtService.generateDelAccEmailToken(userId.toHexString(), email)
-        val verificationUrl = "https://schneaggchat.lerchenflo.eu/auth/delete_account?token=$token"
+        val verificationUrl = "https://schneaggchatv3.lerchenflo.eu/auth/delete_account?token=$token"
 
         val mail = SimpleMailMessage()
         mail.setTo(email)
