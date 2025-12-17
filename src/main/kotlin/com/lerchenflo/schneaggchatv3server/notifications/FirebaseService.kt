@@ -132,26 +132,41 @@ class FirebaseService(
 
         //println("Firebase: Coroutinescope is starting...")
         CoroutineScope(Dispatchers.IO).launch {
-            val encodedContent = CryptoUtil.encrypt(messagecontent, jwtService.getEncryptionKey())
-            //println("Firebase: encoding finished: $encodedContent")
+            try {
+                val encodedContent = CryptoUtil.encrypt(messagecontent, jwtService.getEncryptionKey())
+                //println("Firebase: encoding finished: $encodedContent")
 
-            tokens.forEach { firebaseToken ->
-                val message = constructMessage(
-                    firebaseToken = firebaseToken.token,
-                    data = mapOf(
-                        "encodedContent" to encodedContent,
-                        "senderName" to senderName,
-                        "groupMessage" to groupMessage.toString(),
-                        "groupName" to (groupName ?: ""),
-                        "msgId" to msgId)
+                tokens.forEach { firebaseToken ->
+                   try {
+                       val message = constructMessage(
+                           firebaseToken = firebaseToken.token,
+                           data = mapOf(
+                               "encodedContent" to encodedContent,
+                               "senderName" to senderName,
+                               "groupMessage" to groupMessage.toString(),
+                               "groupName" to (groupName ?: ""),
+                               "msgId" to msgId)
+                       )
+
+                       safeSend(
+                           message = message,
+                           token = firebaseToken.token
+                       )
+
+                       //println("Firebase message to user $userId sent: $messagecontent")
+                   } catch (e: Exception) {
+                       println("Error sending to token ${firebaseToken.token}: ${e.message}")
+                       e.printStackTrace()
+                   }
+                }
+            } catch (e: Exception) {
+                println("Error in Firebase notification coroutine: ${e.message}")
+                e.printStackTrace()
+                loggingService.log(
+                    userId = userId,
+                    logType = LogType.EXCEPTION_THROWN,
+                    message = "Firebase notification error: ${e.message}"
                 )
-
-                safeSend(
-                    message = message,
-                    token = firebaseToken.token
-                )
-
-                //println("Firebase message to user $userId sent: $messagecontent")
             }
         }
 

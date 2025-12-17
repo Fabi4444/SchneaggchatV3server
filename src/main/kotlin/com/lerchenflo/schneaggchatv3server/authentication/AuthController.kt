@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
 
-//https://schneaggchat.eu/auth
+//https://schneaggchatv3.eu/auth
 
 @RestController
 @RequestMapping("/auth")
