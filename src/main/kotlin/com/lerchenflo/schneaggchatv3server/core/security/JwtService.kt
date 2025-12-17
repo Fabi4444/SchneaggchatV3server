@@ -109,7 +109,7 @@ class JwtService(
                 .parseSignedClaims(rawToken)
                 .payload
         } catch (e: Exception){
-            e.printStackTrace()
+            //e.printStackTrace()
             null
         }
     }
