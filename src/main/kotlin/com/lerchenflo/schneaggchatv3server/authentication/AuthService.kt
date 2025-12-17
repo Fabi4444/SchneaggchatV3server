@@ -43,8 +43,6 @@ class AuthService(
 
     fun register(username: String, password: String, email: String, birthdate: String, profilePic: MultipartFile) : User {
 
-        //TODO: Check username
-
         userService.checkExistingUser(username, email)
 
         val now = Clock.System.now()
@@ -106,25 +104,27 @@ class AuthService(
         if (!jwtService.validateRefreshToken(refreshToken)) {
             throw ResponseStatusException(HttpStatusCode.valueOf(401) ,"Invalid refresh token")
         }
-        println("Refresh token validation: Token is valid")
+        //println("Refresh token validation: Token is valid")
 
         val userId = jwtService.getUserIdFromToken(refreshToken)
         val user = userService.findById(userId)
             ?: throw ResponseStatusException(HttpStatusCode.valueOf(401) ,"Invalid refresh token")
 
-        println("Refresh token validation: User from token found")
+        //println("Refresh token validation: User from token found")
 
         val hashed = hashToken(refreshToken)
         //println("Hashed token: $hashed")
         refreshTokenRepository.findByUserIdAndHashedToken(user.id, hashed)
             ?: throw ResponseStatusException(HttpStatusCode.valueOf(401),"Refreshtoken not recognized (maybe used or expired)")
 
-        println("Refresh token validation: User with corresponding token found, token is valid")
+        //println("Refresh token validation: User with corresponding token found, token is valid")
 
-        //println("Deleted refreshtokens: ${refreshTokenRepository.deleteByUserIdAndHashedToken(user.id, hashed)}")
 
         val newAccessToken = jwtService.generateAccessToken(userId)
         val newRefreshToken = jwtService.generateRefreshToken(userId)
+
+        //Delete old tokens and save new ones
+        println("Deleted refreshtokens: ${refreshTokenRepository.deleteByUserIdAndHashedToken(user.id, hashed)}")
 
         storeRefreshToken(user.id, newRefreshToken)
         //println("New refreshtoken saved")
@@ -151,7 +151,7 @@ class AuthService(
                 )
             )
         } catch (e: DuplicateKeyException) {
-            println("Error storing refresh token: duplicate")
+            //println("Error storing refresh token: duplicate")
         }
     }
 

@@ -56,7 +56,7 @@ class AuthController(
         @RequestParam("profilepic") profilePic: MultipartFile
     ) {
         val user = authService.register(
-            username = username,
+            username = username.trim(),
             password = password,
             email = email,
             birthdate = birthDate,
@@ -96,7 +96,7 @@ class AuthController(
     fun verifyEmail(
         @RequestParam("token") token: String,
     ) : String {
-        println("Verifying email for token $token")
+        //println("Verifying email for token $token")
 
         return if (emailService.verifyEmailRequest(token)){
             //Email verified
@@ -126,7 +126,7 @@ class AuthController(
     fun deleteAccount(
         @RequestParam("token") token: String,
     ) : String {
-        println("Delete account token: $token")
+        //println("Delete account token: $token")
 
         return if (emailService.verifyDelAccRequest(token)){
             //Email verified

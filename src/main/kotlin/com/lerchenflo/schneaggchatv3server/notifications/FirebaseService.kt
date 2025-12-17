@@ -228,6 +228,10 @@ class FirebaseService(
                 "[Firebase] Unexpected exception: ${e.javaClass.simpleName}: ${e.message}"
             )
             e.printStackTrace()
+            loggingService.log(
+                userId = null,
+                logType = LogType.EXCEPTION_THROWN
+            )
             return false
         }
     }
