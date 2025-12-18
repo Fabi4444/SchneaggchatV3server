@@ -114,24 +114,32 @@ class AuthService(
 
         val hashed = hashToken(refreshToken)
         //println("Hashed token: $hashed")
-        refreshTokenRepository.findByUserIdAndHashedToken(user.id, hashed)
-            ?: throw ResponseStatusException(HttpStatusCode.valueOf(401),"Refreshtoken not recognized (maybe used or expired)")
 
-        //println("Refresh token validation: User with corresponding token found, token is valid")
+        val existingToken = refreshTokenRepository.findByUserIdAndHashedTokenAndDeletedAtIsNull(user.id, hashed)
 
+        if (existingToken == null) {
+            // Check if it was previously deleted
+            val deletedToken = refreshTokenRepository.findByUserIdAndHashedToken(user.id, hashed)
+            if (deletedToken?.deletedAt != null) {
+                println("Attempted to reuse refresh token that was deleted at ${deletedToken.deletedAt} for user $userId")
+            }
+            throw ResponseStatusException(HttpStatusCode.valueOf(401),"Refreshtoken not recognized (maybe used or expired)")
+        }
 
         val newAccessToken = jwtService.generateAccessToken(userId)
         val newRefreshToken = jwtService.generateRefreshToken(userId)
 
-        //Delete old tokens and save new ones
-        println("Deleted refreshtokens: ${refreshTokenRepository.deleteByUserIdAndHashedToken(user.id, hashed)}")
+        // Soft delete old token
+        existingToken.deletedAt = Clock.System.now()
+        refreshTokenRepository.save(existingToken)
+        println("Refresh token for user $userId deleted at ${existingToken.deletedAt}")
 
         storeRefreshToken(user.id, newRefreshToken)
-        //println("New refreshtoken saved")
 
         return TokenPair(
             accessToken = newAccessToken,
-            refreshToken = newRefreshToken
+            refreshToken = newRefreshToken,
+            encryptionKey = jwtService.getEncryptionKey()
         )
 
     }
