@@ -16,7 +16,7 @@ class JwtService(
     @Value($$"${jwt.secret}") private val jwtSecret: String
 ) {
     fun getEncryptionKey() : String {
-        return jwtSecret.take(10)
+        return jwtSecret.take(20)
     }
 
     private val secretKey = Keys.hmacShaKeyFor(jwtSecret.toByteArray())

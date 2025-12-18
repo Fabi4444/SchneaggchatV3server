@@ -17,5 +17,7 @@ data class RefreshToken(
 
     @Indexed(expireAfter = "0s")
     val expiresAt: Instant,
-    val createdAt: Instant = Clock.System.now()
+    val createdAt: Instant = Clock.System.now(),
+
+    var deletedAt: Instant? = null
     )
