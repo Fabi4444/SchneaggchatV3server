@@ -4,6 +4,7 @@ import com.google.gson.stream.MalformedJsonException
 import com.lerchenflo.schneaggchatv3server.util.LogType
 import com.lerchenflo.schneaggchatv3server.util.LoggingService
 import org.bson.types.ObjectId
+import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.validation.FieldError
@@ -17,6 +18,7 @@ import java.util.function.Consumer
 class GlobalExceptionHandler(
     private val loggingService: LoggingService
 ) {
+    private val logger = LoggerFactory.getLogger(GlobalExceptionHandler::class.java)
 
     //Exception handling for annotations (For example Registerrequest: Email)
     @ExceptionHandler(MethodArgumentNotValidException::class)
@@ -45,12 +47,30 @@ class GlobalExceptionHandler(
     fun handleResponseStatusException(e: ResponseStatusException): ResponseEntity<String> {
         println("ResponseStatus Error happened: ${e.message}")
         val error = e.message
+
+        // Log 500 errors with full stack trace
+        if (e.statusCode.value() >= 500) {
+            logger.error("Server error (${e.statusCode.value()}): ${e.message}", e)
+        }
+
         logError(e)
         return ResponseEntity
             .status(e.statusCode)
             .body(error)
     }
 
+    // Catch-all handler for any unhandled exceptions
+    @ExceptionHandler(Exception::class)
+    fun handleGeneralException(e: Exception): ResponseEntity<String> {
+        logger.error("Unhandled server error: ${e.javaClass.simpleName} - ${e.message}", e)
+        println("Unhandled server error: ${e.javaClass.simpleName} - ${e.message}")
+
+        logError(e)
+
+        return ResponseEntity
+            .status(500)
+            .body("An unexpected error occurred. Please try again later.")
+    }
 
     private fun logError(e : Exception) {
         val requestingUserId =
