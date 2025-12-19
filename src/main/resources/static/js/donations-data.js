@@ -52,6 +52,21 @@ function calculateTotal() {
     return donationsConfig.donations.reduce((sum, donation) => sum + donation.amount, 0);
 }
 
+// Animate value function (copied/adapted from stats.html logic)
+function animateValue(element, target) {
+    let current = 0;
+    const increment = target / 50; // 50 steps
+    const timer = setInterval(() => {
+        current += increment;
+        if (current >= target) {
+            element.textContent = `€${target.toFixed(2)}`;
+            clearInterval(timer);
+        } else {
+            element.textContent = `€${current.toFixed(2)}`;
+        }
+    }, 20); // 20ms interval -> ~1 second total duration
+}
+
 // Render donations to the page
 function renderDonations() {
     const donationsGrid = document.querySelector('.donations-grid');
@@ -73,17 +88,21 @@ function renderDonations() {
                 <i class="${randomIcon}"></i>
             </div>
             <h4 class="donation-name">${donation.name}</h4>
-            <p class="donation-amount">€${donation.amount.toFixed(2)}</p>
+            <p class="donation-amount">€0.00</p>
             <p class="donation-date">${donation.date}</p>
             ${donation.message ? `<p class="donation-message">"${donation.message}"</p>` : ''}
         `;
 
         donationsGrid.appendChild(donationCard);
+
+        // Animate the individual donation amount
+        const amountElement = donationCard.querySelector('.donation-amount');
+        animateValue(amountElement, donation.amount);
     });
 
-    // Update total
+    // Update and animate total
     const total = calculateTotal();
-    totalAmountElement.textContent = `€${total.toFixed(2)}`;
+    animateValue(totalAmountElement, total);
 }
 
 // Initialize when DOM is ready

@@ -56,9 +56,16 @@ function initPage() {
     const navLinks = document.querySelector('.nav-links');
 
     if (mobileToggle && navLinks) {
-        mobileToggle.addEventListener('click', function () {
-            // Use class toggle instead of display property
+        mobileToggle.addEventListener('click', function (e) {
+            e.stopPropagation(); // Prevent click from bubbling to document
             navLinks.classList.toggle('active');
+        });
+
+        // Close menu when clicking outside
+        document.addEventListener('click', function (e) {
+            if (navLinks.classList.contains('active') && !navLinks.contains(e.target)) {
+                navLinks.classList.remove('active');
+            }
         });
     }
 
