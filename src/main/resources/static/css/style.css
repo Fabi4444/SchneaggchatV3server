@@ -147,6 +147,12 @@ header {
     color: #cbd5e1;
 }
 
+.download-buttons {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
 .cta-button {
     display: inline-block;
     background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
@@ -338,6 +344,10 @@ footer {
 
     .hero h1 {
         font-size: 2.8rem;
+    }
+
+    .download-buttons {
+        justify-content: center;
     }
 }
 
