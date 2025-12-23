@@ -57,14 +57,13 @@ class MessageService(
 
     fun sendMessage(sender: ObjectId, receiver: ObjectId, groupMessage: Boolean, messageType: MessageType, content: MessageContent, answerId: ObjectId?) : Message {
 
-        require(sender != receiver) { "You can not send messages to yourself" }
-
-        //Only for single message
-        require(friendsService.areFriends(sender, receiver)) { "You can not send messages to users who are not your friends" }
-
-        //println("Sendmessage: Group validation logic todo")
-        //TODO: Group validation logic
+        
         if (groupMessage) {
+            //TODO: Group validation??
+        }else {
+            //Single message
+            require(sender != receiver) { "You can not send messages to yourself" }
+            require(friendsService.areFriends(sender, receiver)) { "You can not send messages to users who are not your friends" }
 
         }
 
@@ -83,8 +82,21 @@ class MessageService(
         println("Sendmessage: Firebase sending")
 
         if (groupMessage) {
-            println("Group message notification not implemented")
-            //TODO: Group notifiation
+            val members = groupService.getGroupMembers(receiver)
+            val group = groupService.getGroupById(receiver)
+
+            members.forEach { member ->
+                firebaseService.sendNewMessageNotificationToUser(
+                    userId = member.userid,
+                    messagecontent = content.asString(),
+                    senderName = userService.getUsername(sender),
+                    msgId = savedObjectId.toHexString(),
+                    groupMessage = true,
+                    groupName = group.name,
+                )
+            }
+
+
         }else {
             println("Firebase message send start")
             firebaseService.sendNewMessageNotificationToUser(
