@@ -43,6 +43,8 @@ class AuthService(
 
     fun register(username: String, password: String, email: String, birthdate: String, profilePic: MultipartFile) : User {
 
+        require(username.length < 25) { "Username too long" }
+
         userService.checkExistingUser(username, email)
 
         val now = Clock.System.now()

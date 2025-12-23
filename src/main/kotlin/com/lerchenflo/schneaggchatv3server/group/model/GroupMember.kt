@@ -21,3 +21,11 @@ data class GroupMember(
     val joinedAt: Instant,
     val isAdmin: Boolean
 )
+
+fun GroupMember.toGroupMemberResponse(): GroupMemberResponse {
+    return GroupMemberResponse(
+        userid = userid.toHexString(),
+        joinedAt = joinedAt.toEpochMilliseconds().toString(),
+        isAdmin = isAdmin
+    )
+}
