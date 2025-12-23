@@ -1,5 +1,6 @@
 package com.lerchenflo.schneaggchatv3server.group
 
+import com.lerchenflo.schneaggchatv3server.group.model.GroupResponse
 import com.lerchenflo.schneaggchatv3server.user.UserController.IdTimeStamp
 import com.lerchenflo.schneaggchatv3server.user.usermodel.UserService
 import org.bson.types.ObjectId
@@ -26,7 +27,7 @@ class GroupController(
         @RequestParam("memberlist") members: List<String>,
         @RequestParam("description") description: String,
         @RequestParam("profilepic") profilePic: MultipartFile
-    ) {
+    ) : GroupResponse {
         val requestingUserId =
             SecurityContextHolder.getContext().authentication?.principal as? String ?: throw ResponseStatusException(
                 /* status = */ HttpStatus.FORBIDDEN,
@@ -40,6 +41,8 @@ class GroupController(
             profilePic = profilePic,
             description = description
         )
+
+        return groupService.getGroupAsGroupResponse(group.id)
     }
 
     @PostMapping("/sync")
