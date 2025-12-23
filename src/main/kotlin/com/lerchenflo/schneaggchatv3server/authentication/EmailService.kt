@@ -23,6 +23,9 @@ class EmailService(
      */
     fun sendVerificationEmail(userId: ObjectId, email: String) {
 
+        if (userService.findByObjectId(userId)?.emailVerifiedAt != null) {
+            return //Email already verified
+        }
 
         val token = jwtService.generateEmailToken(userId.toHexString(), email)
         val verificationUrl = "https://schneaggchatv3.lerchenflo.eu/auth/verify_email?token=$token"
