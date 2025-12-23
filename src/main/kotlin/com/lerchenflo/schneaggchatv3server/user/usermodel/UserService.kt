@@ -29,7 +29,12 @@ class UserService(
     fun findById(id: String): User? {
         val objid = ObjectId(id)
 
-        val optuser = userRepository.findById(objid)
+        return findByObjectId(objid)
+    }
+
+    fun findByObjectId(id: ObjectId): User? {
+
+        val optuser = userRepository.findById(id)
 
         return if (optuser.isPresent) {
             optuser.get()
