@@ -195,6 +195,12 @@ class UserController(
     //TODO: Check user profilepic settings (implement first)
     @GetMapping("/profilepic/{id}")
     fun getProfilePic(@PathVariable("id") userId: String): ResponseEntity<ByteArray> {
+        val requestingUserId =
+            SecurityContextHolder.getContext().authentication?.principal as? String ?: throw ResponseStatusException(
+                /* status = */ HttpStatus.FORBIDDEN,
+                /* reason = */ "Not logged in"
+            )
+
         return try {
             val imageName = imageManager.getProfilePicFileName(userId, false)
             val imageBytes = imageManager.loadImageFromFile(imageName)

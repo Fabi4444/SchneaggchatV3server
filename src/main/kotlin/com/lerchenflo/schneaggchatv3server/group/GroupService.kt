@@ -9,8 +9,12 @@ import com.lerchenflo.schneaggchatv3server.group.model.toGroupMemberResponse
 import com.lerchenflo.schneaggchatv3server.group.model.toGroupResponse
 import com.lerchenflo.schneaggchatv3server.repository.GroupMemberRepository
 import com.lerchenflo.schneaggchatv3server.repository.GroupRepository
+import com.lerchenflo.schneaggchatv3server.user.FriendsService
 import com.lerchenflo.schneaggchatv3server.user.UserController
+import com.lerchenflo.schneaggchatv3server.util.ImageManager
 import org.bson.types.ObjectId
+import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
 import org.springframework.web.multipart.MultipartFile
 import kotlin.time.Clock
@@ -19,28 +23,45 @@ import kotlin.time.ExperimentalTime
 @Component
 class GroupService(
     private val groupRepository: GroupRepository,
-    private val groupMemberRepository: GroupMemberRepository
+    private val groupMemberRepository: GroupMemberRepository,
+    private val imageManager: ImageManager,
+    private val friendsService: FriendsService
 ) {
 
     fun createGroup(groupName: String, members: List<ObjectId>, creatorId: ObjectId, description: String, profilePic: MultipartFile) : Group {
 
-        //TODO: Friendships check
-        require(members.size > 2) { "A group must have at least 3 members" }
+        //Try to add creator (Set prevents duplicate members)
+        val membersInternal: Set<ObjectId> = members.toSet() + creatorId
+
+        require(membersInternal.size > 2) { "A group must have at least 3 members" }
         require(groupName.length < 25) { "Groupname too long"}
+        require(groupName.length > 2) { "Group name too short" }
+
+        //Creator needs to be friends with everyone
+        members.forEach { member ->
+            if (member == creatorId) return@forEach //Exclude self
+            require(friendsService.areFriends(creatorId, member)){ "You need to be friends with everyone in the group"}
+        }
 
         val currentTime = Clock.System.now()
         val group = groupRepository.save(
             Group(
                 name = groupName.trim(),
-                description = "",
+                description = description,
                 updatedAt = currentTime,
                 createdAt = currentTime,
                 creatorId = creatorId
             )
         )
 
-        //Try to add creator (Set prevents duplicate members)
-        val membersInternal: Set<ObjectId> = members.toSet() + creatorId
+        imageManager.saveProfilePic(
+            image = profilePic,
+            userId = group.id.toHexString(),
+            group = true
+        )
+
+
+
 
         groupMemberRepository.saveAll(
             membersInternal.map { userId ->
@@ -48,7 +69,7 @@ class GroupService(
                     userid = userId,
                     groupId = group.id,
                     joinedAt = currentTime,
-                    isAdmin = (userId == creatorId)
+                    admin = (userId == creatorId)
                 )
             }
         )
@@ -93,6 +114,10 @@ class GroupService(
         return groupMemberRepository.findAllByGroupId(groupId)
     }
 
+    fun getGroupById(groupId: ObjectId): Group {
+        return groupRepository.findById(groupId).get()
+    }
+
     data class GroupSyncResponse(
         val updatedGroups: List<GroupResponse>,
         val deletedGroups: List<String>
@@ -125,6 +150,19 @@ class GroupService(
             },
             deletedGroups = deletedGroups
         )
+    }
+
+
+    fun getGroupProfilePic(groupId: ObjectId): ResponseEntity<ByteArray> {
+        return try {
+            val imageName = imageManager.getProfilePicFileName(groupId.toHexString(), true)
+            val imageBytes = imageManager.loadImageFromFile(imageName)
+            ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_JPEG)
+                .body(imageBytes)
+        } catch (e: IllegalArgumentException) {
+            ResponseEntity.notFound().build()
+        }
     }
 
 }

@@ -19,13 +19,13 @@ data class GroupMember(
     @Indexed //Index for query on all members for a group
     val groupId: ObjectId,
     val joinedAt: Instant,
-    val isAdmin: Boolean
+    val admin: Boolean
 )
 
 fun GroupMember.toGroupMemberResponse(): GroupMemberResponse {
     return GroupMemberResponse(
         userid = userid.toHexString(),
         joinedAt = joinedAt.toEpochMilliseconds().toString(),
-        isAdmin = isAdmin
+        admin = admin
     )
 }
