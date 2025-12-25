@@ -114,6 +114,11 @@ class GroupService(
         return groupMemberRepository.findAllByGroupId(groupId)
     }
 
+    fun isUserInGroup(userId: ObjectId, groupId: ObjectId): Boolean {
+        return groupMemberRepository.findByuserid(userId)
+            .any { it.groupId == groupId }
+    }
+
     fun getGroupById(groupId: ObjectId): Group {
         return groupRepository.findById(groupId).get()
     }

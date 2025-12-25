@@ -57,7 +57,7 @@ class MessageService(
 
     fun sendMessage(sender: ObjectId, receiver: ObjectId, groupMessage: Boolean, messageType: MessageType, content: MessageContent, answerId: ObjectId?) : Message {
 
-        
+
         if (groupMessage) {
             //TODO: Group validation??
         }else {
@@ -138,31 +138,44 @@ class MessageService(
 
         // allowed difference: ±1 minute
         val maxDiff = Duration.parse("1m")
-
         val usedInstant =
             if ((serverInstant - clientInstant).absoluteValue <= maxDiff)
                 clientInstant
             else
                 serverInstant
 
-
-        val conversationCriteria = Criteria().orOperator(
-            Criteria().andOperator(
-                Criteria.where("senderId").`is`(readingUser),
+        val query = if (group) {
+            // For group messages: find all messages sent to this group
+            // that the user hasn't read yet
+            if (!groupService.isUserInGroup(readingUser, chat)) {
+                println("User $readingUser is not a member of group $chat")
+                return
+            }
+            
+            Query().addCriteria(
                 Criteria.where("receiverId").`is`(chat)
-            ),
-            Criteria().andOperator(
-                Criteria.where("senderId").`is`(chat),
-                Criteria.where("receiverId").`is`(readingUser)
+                    .and("groupMessage").`is`(true)
+                    .and("readers.userId").ne(readingUser)
             )
-        )
-
-        val query = Query().addCriteria(
-            conversationCriteria
-                .and("groupMessage").`is`(group)
-                // ensures we only touch docs that do NOT already have a readers entry for userA
-                .and("readers.userId").ne(readingUser)
-        )
+        } else {
+            // For direct messages: find messages between the two users
+            val conversationCriteria = Criteria().orOperator(
+                Criteria().andOperator(
+                    Criteria.where("senderId").`is`(readingUser),
+                    Criteria.where("receiverId").`is`(chat)
+                ),
+                Criteria().andOperator(
+                    Criteria.where("senderId").`is`(chat),
+                    Criteria.where("receiverId").`is`(readingUser)
+                )
+            )
+            
+            Query().addCriteria(
+                conversationCriteria
+                    .and("groupMessage").`is`(false)
+                    .and("readers.userId").ne(readingUser)
+            )
+        }
 
         // Build reader object to push into the readers array
         val readerDoc = mapOf(
