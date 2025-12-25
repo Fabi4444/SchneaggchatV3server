@@ -106,7 +106,8 @@ class FriendsService(
             "Cannot decline - friendship status is ${friendship.status}"
         }
 
-        require(friendship.requesterId == requesterId) {
+        //You can only deny friend requests from the other user, or cancel your own
+        require(friendship.requesterId == requesterId || decliningUserId == requesterId) {
             "Only the recipient can decline a friend request"
         }
 
