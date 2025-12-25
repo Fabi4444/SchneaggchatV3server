@@ -97,6 +97,8 @@ class FriendsService(
     /**
      * Decline a pending friend request
      * Sets expiration to 30 days from now
+     * @param decliningUserId the user which declines the request
+     * @param requesterId the chat for which the friend request is declined (the one who sent the request)
      */
     fun declineFriendRequest(decliningUserId: ObjectId, requesterId: ObjectId) {
         val friendship = findFriendship(decliningUserId, requesterId)
@@ -107,7 +109,8 @@ class FriendsService(
         }
 
         //You can only deny friend requests from the other user, or cancel your own
-        require(friendship.requesterId == requesterId || decliningUserId == requesterId) {
+        require(friendship.requesterId == requesterId /* Decline request from others*/
+                || friendship.requesterId == decliningUserId /* Decline your own request (you requested and you decline)*/) {
             "Only the recipient can decline a friend request"
         }
 
