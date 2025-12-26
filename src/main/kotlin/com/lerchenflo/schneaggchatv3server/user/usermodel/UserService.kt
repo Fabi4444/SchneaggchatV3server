@@ -11,7 +11,7 @@ class UserService(
     private val userRepository: UserRepository
 ) {
     fun checkExistingUser(username: String, email: String) {
-        val usernameexists = userRepository.findByUsername(username)
+        val usernameexists = userRepository.findByUsernameIgnoreCase(username)
         if (usernameexists != null) {
             throw ResponseStatusException(HttpStatus.CONFLICT, "A user with this username already exists")
         }
@@ -42,7 +42,7 @@ class UserService(
     }
 
     fun findByUsername(username: String): User? {
-        val optuser = userRepository.findByUsername(username)
+        val optuser = userRepository.findByUsernameIgnoreCase(username)
 
         return optuser
     }
