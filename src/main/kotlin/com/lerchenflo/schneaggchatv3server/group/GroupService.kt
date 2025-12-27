@@ -11,9 +11,8 @@ import com.lerchenflo.schneaggchatv3server.repository.GroupMemberRepository
 import com.lerchenflo.schneaggchatv3server.repository.GroupRepository
 import com.lerchenflo.schneaggchatv3server.user.FriendsService
 import com.lerchenflo.schneaggchatv3server.user.UserController
+import com.lerchenflo.schneaggchatv3server.util.ColorGenerator
 import com.lerchenflo.schneaggchatv3server.util.ImageManager
-import com.lerchenflo.schneaggchatv3server.util.LogType
-import com.lerchenflo.schneaggchatv3server.util.LoggingService
 import org.bson.types.ObjectId
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -27,8 +26,7 @@ class GroupService(
     private val groupRepository: GroupRepository,
     private val groupMemberRepository: GroupMemberRepository,
     private val imageManager: ImageManager,
-    private val friendsService: FriendsService,
-    private val loggingService: LoggingService
+    private val friendsService: FriendsService
 ) {
 
     fun createGroup(groupName: String, members: List<ObjectId>, creatorId: ObjectId, description: String, profilePic: MultipartFile) : Group {
@@ -63,22 +61,22 @@ class GroupService(
             group = true
         )
 
+        // Generate unique colors for group members (per-group uniqueness)
+        val existingColors = emptySet<Int>() // New group has no existing colors
+        val memberColors = ColorGenerator.generateUniqueColorsForGroup(existingColors, membersInternal.size)
+        val memberColorMap = membersInternal.zip(memberColors).toMap()
+
         groupMemberRepository.saveAll(
-            membersInternal.map { userId ->
+            membersInternal.mapIndexed { index, userId ->
                 GroupMember(
                     userid = userId,
                     groupId = group.id,
                     joinedAt = currentTime,
-                    admin = (userId == creatorId)
+                    admin = (userId == creatorId),
+                    color = memberColorMap[userId]!!
                 )
             }
         )
-
-        loggingService.log(
-            userId = creatorId,
-            logType = LogType.GROUP_CREATED,
-        )
-
 
         return group
     }

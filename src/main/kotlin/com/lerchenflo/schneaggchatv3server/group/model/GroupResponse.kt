@@ -17,5 +17,6 @@ data class GroupResponse(
 data class GroupMemberResponse(
     val userid: String,
     val joinedAt: String,
-    val admin: Boolean
+    val admin: Boolean,
+    val color: Int
 )
