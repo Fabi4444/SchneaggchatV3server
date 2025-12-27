@@ -85,7 +85,9 @@ class MessageService(
             val members = groupService.getGroupMembers(receiver)
             val group = groupService.getGroupById(receiver)
 
-            members.forEach { member ->
+            members
+                .filter { it.userid != sender } //Do not send notification to sender
+                .forEach { member ->
                 firebaseService.sendNewMessageNotificationToUser(
                     userId = member.userid,
                     messagecontent = content.asString(),
