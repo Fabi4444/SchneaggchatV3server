@@ -25,7 +25,10 @@ enum class LogType {
 
     //From other repos
     MESSAGE_SENT,
-    ACCOUNT_CREATED
+    ACCOUNT_CREATED,
+
+    ACCOUNT_DELETION_EMAIL_SENT,
+    EMAIL_VERIFICATION_EMAIL_SENT
 }
 
 @Document("logs")
@@ -74,5 +77,9 @@ class LoggingService(
         }
 
         return stats
+    }
+
+    fun getLastLogByLogtype(logType: LogType, userId: ObjectId?): Log? {
+        return logRepository.findFirstByLogTypeAndUserIdOrderByTimestampDesc(logType, userId)
     }
 }

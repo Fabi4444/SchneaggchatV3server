@@ -8,4 +8,5 @@ import org.springframework.data.mongodb.repository.MongoRepository
 interface LogRepository : MongoRepository<Log, ObjectId> {
     fun countByLogType(logType: LogType): Long
 
+    fun findFirstByLogTypeAndUserIdOrderByTimestampDesc(logType: LogType, userId: ObjectId?): Log?
 }
