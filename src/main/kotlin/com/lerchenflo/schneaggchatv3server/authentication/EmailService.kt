@@ -2,19 +2,26 @@ package com.lerchenflo.schneaggchatv3server.authentication
 
 import com.lerchenflo.schneaggchatv3server.core.security.JwtService
 import com.lerchenflo.schneaggchatv3server.user.usermodel.UserService
+import com.lerchenflo.schneaggchatv3server.util.LogType
+import com.lerchenflo.schneaggchatv3server.util.LoggingService
 import org.bson.types.ObjectId
+import org.springframework.http.HttpStatus
 import org.springframework.mail.SimpleMailMessage
 import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.stereotype.Service
+import org.springframework.web.server.ResponseStatusException
 import kotlin.time.Clock
+import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 @OptIn(ExperimentalTime::class)
 @Service
 class EmailService(
     private val jwtService: JwtService,
     private val userService: UserService,
-    private val mailSender: JavaMailSender
+    private val mailSender: JavaMailSender,
+    private val loggingService: LoggingService
 ) {
 
 
@@ -27,6 +34,12 @@ class EmailService(
             return //Email already verified
         }
 
+        val lastemailsenttimestamp = getLastEmailTimestamp(userId, LogType.EMAIL_VERIFICATION_EMAIL_SENT)
+        if (lastemailsenttimestamp != null &&
+            (lastemailsenttimestamp.plus(Duration.parse("5m")) > Clock.System.now())) {
+            throw ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "You need to wait 5 minutes before sending the next mail")
+        }
+
         val token = jwtService.generateEmailToken(userId.toHexString(), email)
         val verificationUrl = "https://schneaggchatv3.lerchenflo.eu/auth/verify_email?token=$token"
 
@@ -36,6 +49,7 @@ class EmailService(
         mail.text = "Click here to validate your email:\n$verificationUrl"
         try {
             mailSender.send(mail)
+            loggingService.log(userId, LogType.EMAIL_VERIFICATION_EMAIL_SENT)
         } catch (e: Exception) {
             println("Mail not sent, error")
         }
@@ -66,6 +80,11 @@ class EmailService(
      */
     fun sendDelAccEmail(userId: ObjectId, email: String) {
 
+        val lastemailsenttimestamp = getLastEmailTimestamp(userId, LogType.ACCOUNT_DELETION_EMAIL_SENT)
+        if (lastemailsenttimestamp != null &&
+            (lastemailsenttimestamp.plus(Duration.parse("15m")) > Clock.System.now())) {
+            throw ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "You need to wait 15 minutes before sending the next mail")
+        }
 
         val token = jwtService.generateDelAccEmailToken(userId.toHexString(), email)
         val verificationUrl = "https://schneaggchatv3.lerchenflo.eu/auth/delete_account?token=$token"
@@ -76,6 +95,7 @@ class EmailService(
         mail.text = "Someone requested to delete your account. If this was not you, please ignore this email.\nIf you really want to delete your account, click the link below.\nYOUR ACCOUNT WILL BE DELETED IMMEDIATELY!:\n$verificationUrl"
         try {
             mailSender.send(mail)
+            loggingService.log(userId, LogType.ACCOUNT_DELETION_EMAIL_SENT)
         } catch (e: Exception) {
             println("Mail not sent, error")
         }
@@ -97,5 +117,9 @@ class EmailService(
         return true
     }
 
+
+    fun getLastEmailTimestamp(userId: ObjectId, logType: LogType) : Instant? {
+        return loggingService.getLastLogByLogtype(logType = logType, userId = userId)?.timestamp
+    }
 
 }
