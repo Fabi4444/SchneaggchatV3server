@@ -11,6 +11,7 @@ import com.lerchenflo.schneaggchatv3server.repository.GroupMemberRepository
 import com.lerchenflo.schneaggchatv3server.repository.GroupRepository
 import com.lerchenflo.schneaggchatv3server.user.FriendsService
 import com.lerchenflo.schneaggchatv3server.user.UserController
+import com.lerchenflo.schneaggchatv3server.util.ColorGenerator
 import com.lerchenflo.schneaggchatv3server.util.ImageManager
 import org.bson.types.ObjectId
 import org.springframework.http.MediaType
@@ -60,16 +61,19 @@ class GroupService(
             group = true
         )
 
-
-
+        // Generate unique colors for group members (per-group uniqueness)
+        val existingColors = emptySet<Int>() // New group has no existing colors
+        val memberColors = ColorGenerator.generateUniqueColorsForGroup(existingColors, membersInternal.size)
+        val memberColorMap = membersInternal.zip(memberColors).toMap()
 
         groupMemberRepository.saveAll(
-            membersInternal.map { userId ->
+            membersInternal.mapIndexed { index, userId ->
                 GroupMember(
                     userid = userId,
                     groupId = group.id,
                     joinedAt = currentTime,
-                    admin = (userId == creatorId)
+                    admin = (userId == creatorId),
+                    color = memberColorMap[userId]!!
                 )
             }
         )
