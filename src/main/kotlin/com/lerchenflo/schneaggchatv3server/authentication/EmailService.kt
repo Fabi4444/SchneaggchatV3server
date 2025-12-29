@@ -28,9 +28,11 @@ class EmailService(
     /**
      * Send a verification email to a client
      */
-    fun sendVerificationEmail(userId: ObjectId, email: String) {
+    fun sendVerificationEmail(userId: ObjectId) {
 
-        if (userService.findByObjectId(userId)?.emailVerifiedAt != null) {
+        val user = userService.findByObjectId(userId) ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "User $userId not found")
+
+        if (user.emailVerifiedAt != null) {
             return //Email already verified
         }
 
@@ -40,11 +42,11 @@ class EmailService(
             throw ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "You need to wait 5 minutes before sending the next mail")
         }
 
-        val token = jwtService.generateEmailToken(userId.toHexString(), email)
+        val token = jwtService.generateEmailToken(userId.toHexString(), user.email)
         val verificationUrl = "https://schneaggchatv3.lerchenflo.eu/auth/verify_email?token=$token"
 
         val mail = SimpleMailMessage()
-        mail.setTo(email)
+        mail.setTo(user.email)
         mail.subject = "Schneaggchat email verification"
         mail.text = "Click here to validate your email:\n$verificationUrl"
         try {
