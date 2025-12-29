@@ -4,6 +4,7 @@ import com.lerchenflo.schneaggchatv3server.message.messagemodel.MessageRequest
 import com.lerchenflo.schneaggchatv3server.message.messagemodel.MessageResponse
 import com.lerchenflo.schneaggchatv3server.message.messagemodel.toMessageResponse
 import com.lerchenflo.schneaggchatv3server.user.UserController
+import com.lerchenflo.schneaggchatv3server.user.usermodel.UserService
 import org.bson.types.ObjectId
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.context.SecurityContextHolder
@@ -56,7 +57,7 @@ class MessageController(
     fun messageSync(
        @RequestParam(value = "page", defaultValue = "0") page: Int,
        @RequestParam(value = "page_size", defaultValue = "400") pageSize: Int,
-       @RequestBody messageRequestList: List<UserController.IdTimeStamp>
+       @RequestBody messageRequestList: List<UserService.IdTimeStamp>
     ): MessageService.MessageSyncResponse {
 
         val requestingUserId =
