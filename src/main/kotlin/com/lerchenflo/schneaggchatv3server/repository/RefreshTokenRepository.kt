@@ -12,4 +12,6 @@ interface RefreshTokenRepository: MongoRepository<RefreshToken, ObjectId> {
     fun findByUserIdAndHashedTokenAndDeletedAtIsNull(userId: ObjectId, hashedToken: String): RefreshToken?
 
 
+    fun deleteByUserId(userId: ObjectId)
+
 }

@@ -2,26 +2,16 @@
 
 package com.lerchenflo.schneaggchatv3server.user
 
-import com.lerchenflo.schneaggchatv3server.authentication.EmailService
 import com.lerchenflo.schneaggchatv3server.notifications.FirebaseService
-import com.lerchenflo.schneaggchatv3server.repository.UserRepository
-import com.lerchenflo.schneaggchatv3server.user.friendshipmodel.FriendshipStatus
 import com.lerchenflo.schneaggchatv3server.user.usermodel.NewFriendsUserResponse
-import com.lerchenflo.schneaggchatv3server.user.usermodel.User
-import com.lerchenflo.schneaggchatv3server.user.usermodel.UserResponse
+import com.lerchenflo.schneaggchatv3server.user.usermodel.UserService
 import com.lerchenflo.schneaggchatv3server.util.ImageManager
 import org.bson.types.ObjectId
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import kotlin.time.ExperimentalTime
 
@@ -58,8 +48,37 @@ class UserController(
             )
 
         firebaseService.saveToken(userId = ObjectId(requestingUserId), token = token)
-
     }
+
+
+    @PostMapping("/changeusername")
+    fun changeUsername(
+        @RequestBody(required = true) newUsername: String,
+    ){
+        val requestingUserId =
+            SecurityContextHolder.getContext().authentication?.principal as? String ?: throw ResponseStatusException(
+                /* status = */ HttpStatus.FORBIDDEN,
+                /* reason = */ "Not logged in")
+
+        userService.changeUsername(requestingUserId, newUsername)
+    }
+
+    @PostMapping("/changepassword")
+    fun changePassword(
+        @RequestBody(required = true) changeRequest: UserService.PasswordChangeRequest,
+    ){
+        val requestingUserId =
+            SecurityContextHolder.getContext().authentication?.principal as? String ?: throw ResponseStatusException(
+                /* status = */ HttpStatus.FORBIDDEN,
+                /* reason = */ "Not logged in")
+
+        userService.changePassword(
+            requestingUserId = requestingUserId,
+            passwordChangeRequest = changeRequest
+        )
+    }
+
+
 
 
 

@@ -11,6 +11,7 @@ import com.lerchenflo.schneaggchatv3server.repository.GroupMemberRepository
 import com.lerchenflo.schneaggchatv3server.repository.GroupRepository
 import com.lerchenflo.schneaggchatv3server.user.FriendsService
 import com.lerchenflo.schneaggchatv3server.user.UserController
+import com.lerchenflo.schneaggchatv3server.user.usermodel.UserService
 import com.lerchenflo.schneaggchatv3server.util.ColorGenerator
 import com.lerchenflo.schneaggchatv3server.util.ImageManager
 import com.lerchenflo.schneaggchatv3server.util.LogType
@@ -95,11 +96,11 @@ class GroupService(
             .map { it.groupId }
     }
 
-    fun getUserGroupIdsLastchanged(userId: ObjectId): List<UserController.IdTimeStamp> {
+    fun getUserGroupIdsLastchanged(userId: ObjectId): List<UserService.IdTimeStamp> {
         val usergroups = getUserGroupIds(userId)
 
         return groupRepository.findAllById(usergroups).map { group ->
-            UserController.IdTimeStamp(
+            UserService.IdTimeStamp(
                 id = group.id.toHexString(),
                 timeStamp = group.updatedAt.toEpochMilliseconds().toString()
             )
@@ -140,7 +141,7 @@ class GroupService(
         val deletedGroups: List<String>
     )
 
-    fun syncGroups(userId: String, ids: List<UserController.IdTimeStamp>): GroupSyncResponse {
+    fun syncGroups(userId: String, ids: List<UserService.IdTimeStamp>): GroupSyncResponse {
         // Groups which the client has on their device
         val clientGroups = ids.associate {
             it.id to it.timeStamp

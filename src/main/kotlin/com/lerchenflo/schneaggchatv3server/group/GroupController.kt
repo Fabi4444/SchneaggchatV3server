@@ -1,7 +1,6 @@
 package com.lerchenflo.schneaggchatv3server.group
 
 import com.lerchenflo.schneaggchatv3server.group.model.GroupResponse
-import com.lerchenflo.schneaggchatv3server.user.UserController.IdTimeStamp
 import com.lerchenflo.schneaggchatv3server.user.usermodel.UserService
 import org.bson.types.ObjectId
 import org.springframework.http.HttpStatus
@@ -51,7 +50,7 @@ class GroupController(
 
     @PostMapping("/sync")
     fun syncGroups(
-        @RequestBody requestBody: List<IdTimeStamp>
+        @RequestBody requestBody: List<UserService.IdTimeStamp>
     ) : GroupService.GroupSyncResponse {
         val requestingUserId =
             SecurityContextHolder.getContext().authentication?.principal as? String ?: throw ResponseStatusException(

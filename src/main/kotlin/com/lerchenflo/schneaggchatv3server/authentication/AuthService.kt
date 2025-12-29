@@ -43,7 +43,9 @@ class AuthService(
 
     fun register(username: String, password: String, email: String, birthdate: String, profilePic: MultipartFile) : User {
 
-        require(username.length < 25) { "Username too long" }
+        //TODO: Check password, email and birthdate format and profilepic size
+
+        require(username.length in 4..25) { "Username has a wrong length" }
 
         userService.checkExistingUser(username, email)
 
@@ -172,6 +174,7 @@ class AuthService(
         val hashedBytes = digest.digest(token.encodeToByteArray())
         return Base64.getEncoder().encodeToString(hashedBytes)
     }
+
 
 
 }
