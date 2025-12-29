@@ -53,7 +53,7 @@ class MessageService(
 
 
         if (groupMessage) {
-            //TODO: Group validation??
+            require(groupService.isUserInGroup(sender, receiver)) { "You are not a member of this group" }
         }else {
             //Single message
             require(sender != receiver) { "You can not send messages to yourself" }
@@ -94,7 +94,7 @@ class MessageService(
 
 
         }else {
-            println("Firebase message send start")
+            //println("Firebase message send start")
             firebaseService.sendNewMessageNotificationToUser(
                 receiver, content.asString(),
                 senderName = userService.getUsername(sender),

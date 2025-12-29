@@ -72,6 +72,9 @@ class GroupController(
                 /* status = */ HttpStatus.FORBIDDEN,
                 /* reason = */ "Not logged in"
             )
+
+        require(groupService.isUserInGroup(ObjectId(requestingUserId), ObjectId(groupId)))
+
         return groupService.getGroupProfilePic(ObjectId(groupId))
     }
 
