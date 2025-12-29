@@ -41,25 +41,19 @@ class MessageService(
             is Text -> message.take(300)
         }
     }
-    public sealed class MessageContent {
-
-
-
+    sealed class MessageContent {
         data class Text(val message: String) : MessageContent()
         data class Image(val image: MultipartFile) : MessageContent()
     }
 
     fun sendMessage(sender: ObjectId, receiver: ObjectId, groupMessage: Boolean, messageType: MessageType, content: MessageContent, answerId: ObjectId?) : Message {
 
+        canUserAccessMessage(
+            sender = sender,
+            receiver = receiver,
+            groupMessage = groupMessage,
+        )
 
-        if (groupMessage) {
-            require(groupService.isUserInGroup(sender, receiver)) { "You are not a member of this group" }
-        }else {
-            //Single message
-            require(sender != receiver) { "You can not send messages to yourself" }
-            require(friendsService.areFriends(sender, receiver)) { "You can not send messages to users who are not your friends" }
-
-        }
 
         val savedObjectId = ObjectId()
 
@@ -124,9 +118,33 @@ class MessageService(
         ))
     }
 
-    fun updateMessage(messageId: ObjectId, content: Any, answerId: ObjectId?, deleted: Boolean){
-        //TODO: Change message
+    fun editMessage(messageId: ObjectId, editingUserId: ObjectId, newContent: String) : MessageResponse {
+
+        //TODO: Text validation
+
+        val message = canUserAccessMessage(messageId, editingUserId)
+
+        //User can access message, change content
+        val now = Clock.System.now()
+
+        val newmessage = messageRepository.save(message.copy(
+            lastChanged = now,
+            content = newContent,
+            edited = true
+        ))
+
+        return newmessage.toMessageResponse()
     }
+
+    fun deleteMessage(messageId: ObjectId, deletingUserId: ObjectId) {
+        val message = canUserAccessMessage(messageId, deletingUserId)
+
+        require(message.senderId == deletingUserId) { "Only the sender can delete a message" }
+
+        messageRepository.save(message.copy(deleted = true))
+    }
+
+
 
     fun setMessagesRead(readingUser: ObjectId, chat: ObjectId, group: Boolean, timeStamp: Long) {
         val serverInstant = Instant.fromEpochMilliseconds(System.currentTimeMillis())
@@ -260,6 +278,45 @@ class MessageService(
 
 
         return mongoTemplate.find(query, Message::class.java)
+    }
+
+
+    private fun canUserAccessMessage(
+        messageId: ObjectId,
+        userId: ObjectId,
+    ) : Message {
+        val message = messageRepository.findById(messageId).get()
+
+        if (message.groupMessage) {
+            canUserAccessMessage(userId, message.receiverId, true)
+        } else {
+            // For direct messages, user must be either sender or receiver
+            require(message.senderId == userId || message.receiverId == userId) {
+                "You do not have access to this message"
+            }
+        }
+
+        return message
+    }
+
+
+    /**
+     * Check if a user can access a message. throws if not
+     */
+    private fun canUserAccessMessage(sender: ObjectId, receiver: ObjectId, groupMessage: Boolean) {
+        if (groupMessage) {
+            require(groupService.isUserInGroup(sender, receiver)) {
+                "You are not a member of this group"
+            }
+        } else {
+            //Single message
+            require(sender != receiver) {
+                "You can not send messages to yourself"
+            }
+            require(friendsService.areFriends(sender, receiver)) {
+                "You can not send messages to users who are not your friends"
+            }
+        }
     }
 
 }
