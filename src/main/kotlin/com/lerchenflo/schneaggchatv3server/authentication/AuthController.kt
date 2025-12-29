@@ -65,7 +65,6 @@ class AuthController(
 
         emailService.sendVerificationEmail(
             userId = user.id,
-            email = user.email,
         )
     }
 

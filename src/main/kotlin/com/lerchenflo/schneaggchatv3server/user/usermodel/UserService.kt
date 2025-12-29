@@ -14,7 +14,6 @@ import org.springframework.web.server.ResponseStatusException
 @Service
 class UserService(
     private val userRepository: UserRepository,
-    private val emailService: EmailService,
     private val friendshipsService : FriendsService,
     private val hashEncoder: HashEncoder,
     private val refreshTokenRepository: RefreshTokenRepository
@@ -185,15 +184,6 @@ class UserService(
         }
     }
 
-
-    fun sendVerificationEmail(requestingUserId: String) {
-        val user = userRepository.findById(ObjectId(requestingUserId))
-
-        emailService.sendVerificationEmail(
-            userId = ObjectId(requestingUserId),
-            email = user.get().email
-        )
-    }
 
     fun changeUsername(requestingUserId: String, newName: String) {
         userRepository.findByUsernameIgnoreCase(newName)
