@@ -28,12 +28,11 @@ import kotlin.time.ExperimentalTime
 @RestController
 @RequestMapping("/users")
 class UserController(
-    private val userRepository: UserRepository, //TODO: Use userService instead
+    private val userService: UserService,
     private val friendshipsService: FriendsService,
     //TODO: Friendsettingsservice
     private val imageManager: ImageManager,
 
-    private val emailService: EmailService,
 
     private val firebaseService: FirebaseService
 ) {
@@ -45,12 +44,7 @@ class UserController(
                 /* status = */ HttpStatus.FORBIDDEN,
                 /* reason = */ "Not logged in"
             )
-        val user = userRepository.findById(ObjectId(requestingUserId))
-
-        emailService.sendVerificationEmail(
-            userId = ObjectId(requestingUserId),
-            email = user.get().email
-        )
+        userService.sendVerificationEmail(requestingUserId)
     }
 
     @PostMapping("/setfirebasetoken")
@@ -69,126 +63,25 @@ class UserController(
 
 
 
-    data class IdTimeStamp(val id: String, val timeStamp: String)
 
-    data class UserSyncResponse(val updatedUsers: List<UserResponse>, val deletedUsers: List<String>)
 
     @PostMapping("/sync")
     fun syncUsers(
-        @RequestBody requestBody: List<IdTimeStamp>
-    ) : UserSyncResponse {
+        @RequestBody requestBody: List<UserService.IdTimeStamp>
+    ) : UserService.UserSyncResponse {
         val requestingUserId =
             SecurityContextHolder.getContext().authentication?.principal as? String ?: throw ResponseStatusException(
                 /* status = */ HttpStatus.FORBIDDEN,
                 /* reason = */ "Not logged in"
             )
 
-        //Users which the client has on his device
-        val clientUsers = requestBody.associate {
-            it.id to it.timeStamp
-        }
-
-        //All users this current client has interacted with (Friends, requested, blocked etc)
-        var allFriendInteractions = friendshipsService.getAllInteractions(ObjectId(requestingUserId))
-
-        //Add own user (also needs to be synced)
-        allFriendInteractions = allFriendInteractions + FriendsService.UserInteraction(
-            userId = ObjectId(requestingUserId),
-            status = FriendshipStatus.ACCEPTED,
+        return userService.userIdSync(
+            idTimeStamps = requestBody,
             requesterId = ObjectId(requestingUserId),
         )
-
-        // Create a map for easy lookup
-        val interactionMap = allFriendInteractions.associateBy { it.userId }
-
-        //Find all friend objects from interactions
-        val currentFriends = userRepository.findAllById(allFriendInteractions.map { interaction ->
-            interaction.userId
-        })
-
-        val usersToAdd = currentFriends
-            .filter { it.id.toHexString() !in clientUsers.keys }
-
-        val usersToUpdate = currentFriends
-            .filter { user ->
-                clientUsers[user.id.toHexString()]?.toLong()?.let { clientTimestamp ->
-                    user.updatedAt.toEpochMilliseconds() > clientTimestamp ||
-                            (interactionMap[user.id]?.lastChanged?.toEpochMilliseconds() ?: 0) > clientTimestamp
-                } ?: false
-            }
-
-        val currentFriendIdStrings = allFriendInteractions.map { it.userId.toHexString() }.toSet()
-        val usersToRemove = clientUsers.keys.filter { it !in currentFriendIdStrings && it != requestingUserId } //do not remove own user
-
-        val finalExistingToUpdate = usersToUpdate + usersToAdd
-
-        val addusers = finalExistingToUpdate.map { user ->
-
-            //Calculate newest lastchanged timestamp
-            val userTimestamp = user.updatedAt.toEpochMilliseconds()
-            val friendshipTimestamp = interactionMap[user.id]?.lastChanged?.toEpochMilliseconds() ?: 0
-            val newestTimestamp = maxOf(userTimestamp, friendshipTimestamp)
-
-            serializeSyncUser(
-                user = user,
-                requestingUserId = ObjectId(requestingUserId),
-                friendshipStatus = interactionMap[user.id]?.status,
-                requesterId = interactionMap[user.id]?.requesterId,
-                lastChangedAt = newestTimestamp,
-            )
-        }
-
-        return UserSyncResponse(
-            updatedUsers = addusers,
-            deletedUsers = usersToRemove
-        )
     }
 
-    /**
-     * Serialize a user into a specific response according to the friendship status
-     * @param User the user to be serialized
-     * @param requestingUserId the user which requested the serialisation
-     */
-    private fun serializeSyncUser(user: User, requestingUserId : ObjectId, friendshipStatus: FriendshipStatus?, requesterId: ObjectId?, lastChangedAt: Long? = null): UserResponse {
-        //User requests his own data
-        if (requestingUserId == user.id) {
-            return UserResponse.SelfUserResponse(
-                id = user.id.toString(),
-                username = user.username,
-                userDescription = user.userDescription,
-                userStatus = user.userStatus,
-                updatedAt = lastChangedAt ?: user.updatedAt.toEpochMilliseconds(),
-                birthDate = user.birthDate,
-                email = user.email,
-                createdAt = user.createdAt.toEpochMilliseconds(),
-                emailVerifiedAt = user.emailVerifiedAt?.toEpochMilliseconds(),
-            )
-        }
 
-        //User requests friends data
-        else if (friendshipStatus == FriendshipStatus.ACCEPTED) {
-            return UserResponse.FriendUserResponse(
-                id = user.id.toString(),
-                username = user.username,
-                userDescription = user.userDescription,
-                userStatus = user.userStatus,
-                updatedAt = lastChangedAt ?: user.updatedAt.toEpochMilliseconds(),
-                birthDate = user.birthDate,
-                requesterId = requesterId?.toHexString(),
-            )
-        }
-
-        //User requests random other users data
-        else {
-            return UserResponse.SimpleUserResponse(
-                id = user.id.toString(),
-                username = user.username,
-                updatedAt = lastChangedAt ?: user.updatedAt.toEpochMilliseconds(),
-                friendShipStatus = friendshipStatus,
-                requesterId = requesterId?.toHexString(),
-            )
-        }
-    }
 
 
 
@@ -222,50 +115,11 @@ class UserController(
                 /* reason = */ "Not logged in"
             )
 
-        //TODO: Very heavy db operation, fix??
 
-        //Is user searching?
-        if (searchTerm.isNullOrBlank()) {
-
-            //User is not searching, return all users with common friends
-            val alluserIds = userRepository.findAll().map { it.id }
-            val newusers = friendshipsService.getUsersWithNoInteraction(
-                userId = ObjectId(requestingUserId),
-                allUserIds = alluserIds
-            )
-
-            return userRepository.findAllById(newusers).map { user ->
-                NewFriendsUserResponse(
-                    id = user.id.toHexString(),
-                    username = user.username,
-                    commonFriendCount = friendshipsService.getCommonFriendCount(ObjectId(requestingUserId), user.id),
-                )
-            }
-        }else {
-            //return users searched by searchterm
-            val searchResults = userRepository.findByUsernameContainingIgnoreCase(searchTerm)
-
-            val interactedUserIds = friendshipsService.getAllInteractions(ObjectId(requestingUserId))
-                .map { it.userId }
-                .toSet()
-
-            return searchResults
-                .filter { user ->
-                    user.id != ObjectId(requestingUserId) && // Exclude self
-                            user.id !in interactedUserIds // Exclude already interacted users
-                }
-                .map { user ->
-                    NewFriendsUserResponse(
-                        id = user.id.toHexString(),
-                        username = user.username,
-                        commonFriendCount = friendshipsService.getCommonFriendCount(
-                            ObjectId(requestingUserId),
-                            user.id
-                        )
-                    )
-                }
-                .sortedByDescending { it.commonFriendCount }
-        }
+        return userService.getAvailableUsers(
+            searchTerm = searchTerm,
+            requestingUserId = requestingUserId
+        )
 
     }
 
