@@ -8,6 +8,7 @@ import com.lerchenflo.schneaggchatv3server.user.usermodel.UserService
 import org.bson.types.ObjectId
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -95,5 +96,42 @@ class MessageController(
         )
     }
 
+
+    data class EditMessageRequest(
+        val messageId: String,
+        val newContent: String,
+    )
+
+    @PostMapping("/edit")
+    fun editMessage(editMessageRequest: EditMessageRequest) : MessageResponse {
+
+        val requestingUserId =
+            SecurityContextHolder.getContext().authentication?.principal as? String ?: throw ResponseStatusException(
+                /* status = */ HttpStatus.FORBIDDEN,
+                /* reason = */ "Not logged in"
+            )
+        
+        return messageService.editMessage(
+            messageId = ObjectId(editMessageRequest.messageId),
+            editingUserId = ObjectId(requestingUserId),
+            newContent = editMessageRequest.newContent
+        )
+    }
+
+    @DeleteMapping("/delete")
+    fun deleteMessage(
+        @RequestParam(value = "messageid") messageId: String
+    ) {
+        val requestingUserId =
+            SecurityContextHolder.getContext().authentication?.principal as? String ?: throw ResponseStatusException(
+                /* status = */ HttpStatus.FORBIDDEN,
+                /* reason = */ "Not logged in"
+            )
+
+        messageService.deleteMessage(
+            messageId = ObjectId(messageId),
+            deletingUserId = ObjectId(requestingUserId),
+        )
+    }
 
 }

@@ -27,6 +27,8 @@ data class Message(
     @Indexed
     val deleted: Boolean,
 
+    val edited: Boolean = false,
+
     val readers: List<Reader>,
 )
 
