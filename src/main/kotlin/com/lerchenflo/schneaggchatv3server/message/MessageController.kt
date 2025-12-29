@@ -103,7 +103,9 @@ class MessageController(
     )
 
     @PostMapping("/edit")
-    fun editMessage(editMessageRequest: EditMessageRequest) : MessageResponse {
+    fun editMessage(
+        @RequestBody() editMessageRequest: EditMessageRequest
+    ) : MessageResponse {
 
         val requestingUserId =
             SecurityContextHolder.getContext().authentication?.principal as? String ?: throw ResponseStatusException(
