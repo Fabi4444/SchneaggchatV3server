@@ -13,6 +13,8 @@ import com.lerchenflo.schneaggchatv3server.user.FriendsService
 import com.lerchenflo.schneaggchatv3server.user.UserController
 import com.lerchenflo.schneaggchatv3server.util.ColorGenerator
 import com.lerchenflo.schneaggchatv3server.util.ImageManager
+import com.lerchenflo.schneaggchatv3server.util.LogType
+import com.lerchenflo.schneaggchatv3server.util.LoggingService
 import org.bson.types.ObjectId
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -26,7 +28,8 @@ class GroupService(
     private val groupRepository: GroupRepository,
     private val groupMemberRepository: GroupMemberRepository,
     private val imageManager: ImageManager,
-    private val friendsService: FriendsService
+    private val friendsService: FriendsService,
+    private val loggingService: LoggingService,
 ) {
 
     fun createGroup(groupName: String, members: List<ObjectId>, creatorId: ObjectId, description: String, profilePic: MultipartFile) : Group {
@@ -76,6 +79,11 @@ class GroupService(
                     color = memberColorMap[userId]!!
                 )
             }
+        )
+
+        loggingService.log(
+            userId = creatorId,
+            logType = LogType.GROUP_CREATED,
         )
 
         return group
