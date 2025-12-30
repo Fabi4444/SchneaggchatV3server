@@ -186,23 +186,21 @@ class FirebaseService(
     private fun safeSend(message: Message, token: String): Boolean {
         try {
             val response = FirebaseMessaging.getInstance().send(message)
-            println("Firebase send response: $response")
+            //println("Firebase send response: $response")
             return true
 
         } catch (e: FirebaseMessagingException) {
             // Use error codes instead of string comparison
             val errorCode = e.messagingErrorCode
 
-            println(
-                "[Firebase] Exception: Code=${errorCode}, Message=${e.message}"
-            )
+            //println("[Firebase] Exception: Code=${errorCode}, Message=${e.message}")
 
             // Remove tokens only for permanent failures
             when (errorCode) {
                 MessagingErrorCode.UNREGISTERED,
                 MessagingErrorCode.INVALID_ARGUMENT,
                 MessagingErrorCode.SENDER_ID_MISMATCH -> {
-                    println("[Firebase] Removing invalid token: $token (Code: $errorCode)")
+                    //println("[Firebase] Removing invalid token: $token (Code: $errorCode)")
                     deleteToken(token)
                     return false
                 }

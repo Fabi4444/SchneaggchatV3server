@@ -34,7 +34,7 @@ class MessageController(
                 /* reason = */ "Not logged in"
             )
 
-        println("Message received: $messageRequest")
+        //println("Message received: $messageRequest")
         val message = messageService.sendMessage(
             sender = ObjectId(requestingUserId),
             receiver = ObjectId(messageRequest.receiverId),

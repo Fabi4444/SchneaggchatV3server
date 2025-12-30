@@ -33,13 +33,6 @@ const donationsConfig = {
     // No need to specify icons - they're assigned randomly!
     donations: [
         {
-            name: "Flo",
-            amount: 23.06,
-            date: "24. November 2025",
-            message: "Playstorelizenz"
-        },
-
-        {
             name: "Daffith",
             amount: 10.00,
             date: "24. Dezember 2025",

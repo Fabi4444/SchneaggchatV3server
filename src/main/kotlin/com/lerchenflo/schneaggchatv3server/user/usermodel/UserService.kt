@@ -7,6 +7,7 @@ import com.lerchenflo.schneaggchatv3server.repository.UserRepository
 import com.lerchenflo.schneaggchatv3server.user.FriendsService
 import com.lerchenflo.schneaggchatv3server.user.friendshipmodel.FriendshipStatus
 import com.lerchenflo.schneaggchatv3server.util.ImageManager
+import com.lerchenflo.schneaggchatv3server.util.ValidationUtils
 import org.bson.types.ObjectId
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
@@ -206,7 +207,9 @@ class UserService(
     fun changeProfilepic(requestingUserId: String, newPic: MultipartFile){
         val user = userRepository.findById(ObjectId(requestingUserId)).get()
 
-        //TODO: Picture validation
+        require(ValidationUtils.validatePicture(newPic)) { "New picture is invalid" }
+
+
         imageManager.saveProfilePic(
             image = newPic,
             userId = requestingUserId,

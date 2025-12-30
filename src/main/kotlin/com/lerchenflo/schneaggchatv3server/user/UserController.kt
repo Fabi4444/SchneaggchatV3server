@@ -6,7 +6,6 @@ import com.lerchenflo.schneaggchatv3server.authentication.EmailService
 import com.lerchenflo.schneaggchatv3server.notifications.FirebaseService
 import com.lerchenflo.schneaggchatv3server.user.usermodel.NewFriendsUserResponse
 import com.lerchenflo.schneaggchatv3server.user.usermodel.UserRequest
-import com.lerchenflo.schneaggchatv3server.user.usermodel.UserResponse
 import com.lerchenflo.schneaggchatv3server.user.usermodel.UserService
 import com.lerchenflo.schneaggchatv3server.util.ImageManager
 import org.bson.types.ObjectId
@@ -39,6 +38,7 @@ class UserController(
                 /* status = */ HttpStatus.FORBIDDEN,
                 /* reason = */ "Not logged in"
             )
+
         emailService.sendVerificationEmail(ObjectId(requestingUserId))
     }
 
