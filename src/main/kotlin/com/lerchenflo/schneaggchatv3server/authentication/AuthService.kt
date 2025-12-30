@@ -11,6 +11,7 @@ import com.lerchenflo.schneaggchatv3server.user.usermodel.UserService
 import com.lerchenflo.schneaggchatv3server.util.ImageManager
 import com.lerchenflo.schneaggchatv3server.util.LogType
 import com.lerchenflo.schneaggchatv3server.util.LoggingService
+import com.lerchenflo.schneaggchatv3server.util.ValidationUtils
 import org.bson.types.ObjectId
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.http.HttpStatusCode
@@ -43,9 +44,10 @@ class AuthService(
 
     fun register(username: String, password: String, email: String, birthdate: String, profilePic: MultipartFile) : User {
 
-        //TODO: Check password, email and birthdate format and profilepic size
-
-        require(username.length in 4..25) { "Username has a wrong length" }
+        require(ValidationUtils.validateUsername(username)) { "Username invalid" }
+        require(ValidationUtils.validatePassword(password)) { "Password invalid" }
+        require(ValidationUtils.validateEmail(email)) { "Email invalid" }
+        require(ValidationUtils.validatePicture(profilePic)) { "Picture invalid" }
 
         userService.checkExistingUser(username, email)
 

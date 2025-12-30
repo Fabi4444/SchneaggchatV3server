@@ -11,6 +11,7 @@ import com.lerchenflo.schneaggchatv3server.repository.MessageRepository
 import com.lerchenflo.schneaggchatv3server.user.FriendsService
 import com.lerchenflo.schneaggchatv3server.user.usermodel.UserService
 import com.lerchenflo.schneaggchatv3server.util.ImageManager
+import com.lerchenflo.schneaggchatv3server.util.ValidationUtils
 import org.bson.types.ObjectId
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.MongoTemplate
@@ -69,7 +70,7 @@ class MessageService(
         }
 
 
-        println("Sendmessage: Firebase sending")
+        //println("Sendmessage: Firebase sending")
 
         if (groupMessage) {
             val members = groupService.getGroupMembers(receiver)
@@ -123,7 +124,7 @@ class MessageService(
 
     fun editMessage(messageId: ObjectId, editingUserId: ObjectId, newContent: String) : MessageResponse {
 
-        //TODO: Text validation
+        require(ValidationUtils.validateString(newContent)) { "Invalid new content"}
 
         val message = canUserAccessMessage(messageId, editingUserId)
 

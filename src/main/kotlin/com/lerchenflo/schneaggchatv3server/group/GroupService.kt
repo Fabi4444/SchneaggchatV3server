@@ -16,6 +16,8 @@ import com.lerchenflo.schneaggchatv3server.util.ColorGenerator
 import com.lerchenflo.schneaggchatv3server.util.ImageManager
 import com.lerchenflo.schneaggchatv3server.util.LogType
 import com.lerchenflo.schneaggchatv3server.util.LoggingService
+import com.lerchenflo.schneaggchatv3server.util.ValidationUtils
+import io.jsonwebtoken.security.Keys.password
 import org.bson.types.ObjectId
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -41,10 +43,8 @@ class GroupService(
         val membersInternal: Set<ObjectId> = members.toSet() + creatorId
 
         require(membersInternal.size > 2) { "A group must have at least 3 members" }
-        require(groupName.length < 25) { "Groupname too long"}
-        require(groupName.length > 2) { "Group name too short" }
-
-        //TODO: Image validation
+        require(ValidationUtils.validateUsername(groupName)) { "Group name invalid" }
+        require(ValidationUtils.validatePicture(profilePic)) { "Profilepic invalid" }
 
         //Creator needs to be friends with everyone
         members.forEach { member ->
@@ -194,7 +194,7 @@ class GroupService(
     fun changeGroupProfilePic(userId: ObjectId, groupId: ObjectId, image: MultipartFile) {
 
         require(isUserInGroup(userId, groupId))
-        //TODO: Image validation
+        require(ValidationUtils.validatePicture(image)) { "Image invalid" }
 
         val group = getGroupById(groupId)
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Group not found")
@@ -214,7 +214,7 @@ class GroupService(
     fun changeGroupDescription(userId: ObjectId, groupId: ObjectId, newDescription: String) {
 
         require(isUserInGroup(userId, groupId))
-        //TODO: string validation?
+        require(ValidationUtils.validateString(newDescription)) { "Invalid string" }
 
         val group = getGroupById(groupId)
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Group not found")
