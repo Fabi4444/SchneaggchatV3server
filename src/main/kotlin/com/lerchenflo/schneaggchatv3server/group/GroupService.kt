@@ -17,10 +17,12 @@ import com.lerchenflo.schneaggchatv3server.util.ImageManager
 import com.lerchenflo.schneaggchatv3server.util.LogType
 import com.lerchenflo.schneaggchatv3server.util.LoggingService
 import org.bson.types.ObjectId
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
 import org.springframework.web.multipart.MultipartFile
+import org.springframework.web.server.ResponseStatusException
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
@@ -41,6 +43,8 @@ class GroupService(
         require(membersInternal.size > 2) { "A group must have at least 3 members" }
         require(groupName.length < 25) { "Groupname too long"}
         require(groupName.length > 2) { "Group name too short" }
+
+        //TODO: Image validation
 
         //Creator needs to be friends with everyone
         members.forEach { member ->
@@ -132,8 +136,11 @@ class GroupService(
             .any { it.groupId == groupId }
     }
 
-    fun getGroupById(groupId: ObjectId): Group {
-        return groupRepository.findById(groupId).get()
+    fun getGroupById(groupId: ObjectId): Group? {
+        val group = groupRepository.findById(groupId)
+        return if (group.isPresent) {
+            group.get()
+        } else null
     }
 
     data class GroupSyncResponse(
@@ -181,6 +188,42 @@ class GroupService(
         } catch (e: IllegalArgumentException) {
             ResponseEntity.notFound().build()
         }
+    }
+
+
+    fun changeGroupProfilePic(userId: ObjectId, groupId: ObjectId, image: MultipartFile) {
+
+        require(isUserInGroup(userId, groupId))
+        //TODO: Image validation
+
+        val group = getGroupById(groupId)
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Group not found")
+
+        imageManager.saveProfilePic(
+            image = image,
+            userId = groupId.toHexString(),
+            group = true
+        )
+
+        groupRepository.save(group.copy(
+            updatedAt = Clock.System.now()
+        ))
+
+    }
+
+    fun changeGroupDescription(userId: ObjectId, groupId: ObjectId, newDescription: String) {
+
+        require(isUserInGroup(userId, groupId))
+        //TODO: string validation?
+
+        val group = getGroupById(groupId)
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Group not found")
+
+        groupRepository.save(group.copy(
+            updatedAt = Clock.System.now(),
+            description = newDescription
+        ))
+
     }
 
 }

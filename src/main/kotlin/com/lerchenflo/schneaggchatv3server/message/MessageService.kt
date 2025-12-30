@@ -17,8 +17,10 @@ import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.Update
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.multipart.MultipartFile
+import org.springframework.web.server.ResponseStatusException
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
@@ -72,6 +74,7 @@ class MessageService(
         if (groupMessage) {
             val members = groupService.getGroupMembers(receiver)
             val group = groupService.getGroupById(receiver)
+                ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Group not found")
 
             members
                 .filter { it.userid != sender } //Do not send notification to sender
