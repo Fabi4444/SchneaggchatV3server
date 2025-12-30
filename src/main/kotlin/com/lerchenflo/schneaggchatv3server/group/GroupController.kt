@@ -1,6 +1,7 @@
 package com.lerchenflo.schneaggchatv3server.group
 
 import com.lerchenflo.schneaggchatv3server.group.model.GroupResponse
+import com.lerchenflo.schneaggchatv3server.user.usermodel.UserRequest
 import com.lerchenflo.schneaggchatv3server.user.usermodel.UserService
 import org.bson.types.ObjectId
 import org.springframework.http.HttpStatus
@@ -76,6 +77,43 @@ class GroupController(
         require(groupService.isUserInGroup(ObjectId(requestingUserId), ObjectId(groupId)))
 
         return groupService.getGroupProfilePic(ObjectId(groupId))
+    }
+
+    @PostMapping("/setprofilepic")
+    fun setProfilePic(
+        @RequestParam("groupid") groupid: String,
+        @RequestBody multipartFile: MultipartFile
+    ) {
+        val requestingUserId =
+            SecurityContextHolder.getContext().authentication?.principal as? String ?: throw ResponseStatusException(
+                /* status = */ HttpStatus.FORBIDDEN,
+                /* reason = */ "Not logged in"
+            )
+
+        groupService.changeGroupProfilePic(
+            userId = ObjectId(requestingUserId),
+            groupId = ObjectId(groupid),
+            image = multipartFile
+        )
+    }
+
+
+    @PostMapping("/setdescription")
+    fun setGroupDescription(
+        @RequestParam("groupid") groupid: String,
+        @RequestBody newDescription: String
+    ) {
+        val requestingUserId =
+            SecurityContextHolder.getContext().authentication?.principal as? String ?: throw ResponseStatusException(
+                /* status = */ HttpStatus.FORBIDDEN,
+                /* reason = */ "Not logged in"
+            )
+
+        groupService.changeGroupDescription(
+            userId = ObjectId(requestingUserId),
+            groupId = ObjectId(groupid),
+            newDescription = newDescription
+        )
     }
 
 }
