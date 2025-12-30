@@ -6,17 +6,23 @@ import com.lerchenflo.schneaggchatv3server.repository.RefreshTokenRepository
 import com.lerchenflo.schneaggchatv3server.repository.UserRepository
 import com.lerchenflo.schneaggchatv3server.user.FriendsService
 import com.lerchenflo.schneaggchatv3server.user.friendshipmodel.FriendshipStatus
+import com.lerchenflo.schneaggchatv3server.util.ImageManager
 import org.bson.types.ObjectId
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
+import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 @Service
 class UserService(
     private val userRepository: UserRepository,
     private val friendshipsService : FriendsService,
     private val hashEncoder: HashEncoder,
-    private val refreshTokenRepository: RefreshTokenRepository
+    private val refreshTokenRepository: RefreshTokenRepository,
+    private val imageManager: ImageManager
+
 ) {
     fun checkExistingUser(username: String, email: String) {
         val usernameexists = userRepository.findByUsernameIgnoreCase(username)
@@ -195,6 +201,54 @@ class UserService(
         val user = userRepository.findById(ObjectId(requestingUserId)).get()
 
         userRepository.save(user.copy(username = newName))
+    }
+
+    fun changeProfilepic(requestingUserId: String, newPic: MultipartFile){
+        val user = userRepository.findById(ObjectId(requestingUserId)).get()
+
+        //TODO: Picture validation
+        imageManager.saveProfilePic(
+            image = newPic,
+            userId = requestingUserId,
+            group = false
+        )
+
+        userRepository.save(user.copy(
+            updatedAt = Clock.System.now(),
+        ))
+    }
+
+    fun changeUserProfile(
+        changingUserId: String,
+        userRequest: UserRequest
+    ) {
+        val requestingUser = findById(changingUserId)
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")
+
+        val user = findById(userRequest.userId)
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")
+
+        //Change something about yourself
+        if (changingUserId == userRequest.userId) {
+
+            val somethingChanged = userRequest.newStatus != null
+
+            save(requestingUser.copy(
+                updatedAt = if (somethingChanged) Clock.System.now() else requestingUser.updatedAt,
+                userStatus = userRequest.newStatus ?: requestingUser.userStatus
+            ))
+
+        } else {
+            require(friendshipsService.areFriends(requestingUser.id, user.id))
+
+            val somethingChanged = userRequest.newDescription != null
+
+            save(user.copy(
+                updatedAt = if (somethingChanged) Clock.System.now() else user.updatedAt,
+                userDescription = userRequest.newDescription ?: user.userDescription
+            ))
+
+        }
     }
 
 

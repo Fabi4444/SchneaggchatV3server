@@ -5,6 +5,8 @@ package com.lerchenflo.schneaggchatv3server.user
 import com.lerchenflo.schneaggchatv3server.authentication.EmailService
 import com.lerchenflo.schneaggchatv3server.notifications.FirebaseService
 import com.lerchenflo.schneaggchatv3server.user.usermodel.NewFriendsUserResponse
+import com.lerchenflo.schneaggchatv3server.user.usermodel.UserRequest
+import com.lerchenflo.schneaggchatv3server.user.usermodel.UserResponse
 import com.lerchenflo.schneaggchatv3server.user.usermodel.UserService
 import com.lerchenflo.schneaggchatv3server.util.ImageManager
 import org.bson.types.ObjectId
@@ -13,6 +15,7 @@ import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
 import kotlin.time.ExperimentalTime
 
@@ -125,6 +128,40 @@ class UserController(
             ResponseEntity.notFound().build()
         }
     }
+
+    @PostMapping("/setprofilepic")
+    fun setProfilePic(
+        @RequestBody multipartFile: MultipartFile
+    ) {
+        val requestingUserId =
+            SecurityContextHolder.getContext().authentication?.principal as? String ?: throw ResponseStatusException(
+                /* status = */ HttpStatus.FORBIDDEN,
+                /* reason = */ "Not logged in"
+            )
+
+        userService.changeProfilepic(
+            requestingUserId = requestingUserId,
+            newPic = multipartFile
+        )
+    }
+
+
+    @PostMapping("/changeprofile")
+    fun changeProfile(
+        @RequestBody request: UserRequest
+    ) {
+        val requestingUserId =
+            SecurityContextHolder.getContext().authentication?.principal as? String ?: throw ResponseStatusException(
+                /* status = */ HttpStatus.FORBIDDEN,
+                /* reason = */ "Not logged in"
+            )
+
+        userService.changeUserProfile(
+            changingUserId = requestingUserId,
+            userRequest = request
+        )
+    }
+
 
     @GetMapping("/availableusers")
     fun getAvailableUsers(

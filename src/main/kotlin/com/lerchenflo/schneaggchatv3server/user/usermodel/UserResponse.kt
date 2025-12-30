@@ -8,9 +8,6 @@ import com.lerchenflo.schneaggchatv3server.user.friendshipmodel.FriendshipStatus
 import kotlin.time.ExperimentalTime
 
 
-//TODO: Request when the user changes something about his profile
-
-
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,
     include = JsonTypeInfo.As.PROPERTY,

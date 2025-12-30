@@ -42,7 +42,7 @@ const donationsConfig = {
         {
             name: "Daffith",
             amount: 10.00,
-            date: "25. Dezember 2025",
+            date: "24. Dezember 2025",
             message: "Weihnachtsspende"
         },
 
