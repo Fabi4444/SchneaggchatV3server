@@ -34,9 +34,16 @@ const donationsConfig = {
     donations: [
         {
             name: "Flo",
-            amount: 125.00,
-            date: "15. Dezember 2025",
-            message: "Playstore & Appstore Lizenz"
+            amount: 23.06,
+            date: "24. November 2025",
+            message: "Playstorelizenz"
+        },
+
+        {
+            name: "Daffith",
+            amount: 10.00,
+            date: "25. Dezember 2025",
+            message: "Weihnachtsspende"
         },
 
     ]
