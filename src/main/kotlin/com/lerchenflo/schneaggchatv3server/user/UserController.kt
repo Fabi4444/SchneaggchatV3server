@@ -215,4 +215,21 @@ class UserController(
             ObjectId(touserId)
         )
     }
+
+    @GetMapping("/removefriend/{id}")
+    fun removeFriend(
+        @PathVariable("id") removedfriend: String
+    ) {
+        val requestingUserId =
+            SecurityContextHolder.getContext().authentication?.principal as? String ?: throw ResponseStatusException(
+                /* status = */ HttpStatus.FORBIDDEN,
+                /* reason = */ "Not logged in"
+            )
+
+        friendshipsService.removeFriend(
+            userId = ObjectId(requestingUserId),
+            friendId = ObjectId(removedfriend)
+        )
+    }
+
 }

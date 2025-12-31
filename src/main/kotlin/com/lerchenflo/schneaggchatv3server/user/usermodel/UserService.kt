@@ -201,7 +201,10 @@ class UserService(
         //Username does not exist, updating
         val user = userRepository.findById(ObjectId(requestingUserId)).get()
 
-        userRepository.save(user.copy(username = newName))
+        userRepository.save(user.copy(
+            username = newName,
+            updatedAt = Clock.System.now()
+        ))
     }
 
     fun changeProfilepic(requestingUserId: String, newPic: MultipartFile){
