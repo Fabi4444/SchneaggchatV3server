@@ -8,7 +8,9 @@ import com.lerchenflo.schneaggchatv3server.user.friendshipmodel.FriendshipStatus
 import com.lerchenflo.schneaggchatv3server.util.LogType
 import com.lerchenflo.schneaggchatv3server.util.LoggingService
 import org.bson.types.ObjectId
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
+import org.springframework.web.server.ResponseStatusException
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
@@ -121,14 +123,13 @@ class FriendsService(
     /**
      * Remove/unfriend a user
      */
-    fun removeFriend(userId: ObjectId, friendId: ObjectId): Boolean {
+    fun removeFriend(userId: ObjectId, friendId: ObjectId) {
         val friendship = findFriendship(userId, friendId)
-            ?: return false
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Friendship not found")
 
         friendshipRepository.delete(friendship)
 
         //TODO: Delete settings for this friendship
-        return true
     }
 
     /**
