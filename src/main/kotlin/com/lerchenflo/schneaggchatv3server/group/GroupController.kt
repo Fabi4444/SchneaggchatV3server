@@ -116,4 +116,25 @@ class GroupController(
         )
     }
 
+
+    @PostMapping("/changemembers")
+    fun changeMembers(
+        @RequestBody groupActionRequest: GroupService.GroupActionRequest
+    ){
+        val requestingUserId =
+            SecurityContextHolder.getContext().authentication?.principal as? String ?: throw ResponseStatusException(
+                /* status = */ HttpStatus.FORBIDDEN,
+                /* reason = */ "Not logged in"
+            )
+
+        groupService.performUserAction(
+            userAction = groupActionRequest.action,
+            requestingUser = ObjectId(requestingUserId),
+            groupMember = ObjectId(groupActionRequest.groupMemberId),
+            groupId = ObjectId(groupActionRequest.groupId)
+        )
+    }
+
+
+
 }

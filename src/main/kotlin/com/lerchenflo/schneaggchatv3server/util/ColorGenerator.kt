@@ -1,7 +1,6 @@
 package com.lerchenflo.schneaggchatv3server.util
 
 object ColorGenerator {
-    private val usedColors = mutableSetOf<Int>()
 
     // Predefined visually distinct colors (hex values)
     private val distinctColors = listOf(
@@ -73,7 +72,4 @@ object ColorGenerator {
                 kotlin.math.round((b + m) * 255).toInt())
     }
 
-    fun resetForGroup() {
-        usedColors.clear()
-    }
 }
