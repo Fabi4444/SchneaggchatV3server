@@ -6,11 +6,9 @@ import com.lerchenflo.schneaggchatv3server.group.model.Group
 import com.lerchenflo.schneaggchatv3server.group.model.GroupMember
 import com.lerchenflo.schneaggchatv3server.group.model.GroupResponse
 import com.lerchenflo.schneaggchatv3server.group.model.toGroupMemberResponse
-import com.lerchenflo.schneaggchatv3server.group.model.toGroupResponse
 import com.lerchenflo.schneaggchatv3server.repository.GroupMemberRepository
 import com.lerchenflo.schneaggchatv3server.repository.GroupRepository
 import com.lerchenflo.schneaggchatv3server.user.FriendsService
-import com.lerchenflo.schneaggchatv3server.user.UserController
 import com.lerchenflo.schneaggchatv3server.user.usermodel.UserService
 import com.lerchenflo.schneaggchatv3server.util.ColorGenerator
 import com.lerchenflo.schneaggchatv3server.util.ImageManager
@@ -136,6 +134,11 @@ class GroupService(
             .any { it.groupId == groupId }
     }
 
+    fun isAdmin(userId: ObjectId, members: List<GroupMember>): Boolean {
+        val member = members.find { groupMember -> groupMember.userid == userId } ?: return false
+        return member.admin
+    }
+
     fun getGroupById(groupId: ObjectId): Group? {
         val group = groupRepository.findById(groupId)
         return if (group.isPresent) {
@@ -223,6 +226,97 @@ class GroupService(
             updatedAt = Clock.System.now(),
             description = newDescription
         ))
+    }
+
+
+    enum class GroupMemberAction {
+        ADD_USER,
+        REMOVE_USER,
+        MAKE_ADMIN,
+        REMOVE_ADMIN
+    }
+
+    data class GroupActionRequest(
+        val action: GroupMemberAction,
+        val groupMemberId: String,
+        val groupId: String
+    )
+
+    fun performUserAction(userAction: GroupMemberAction, requestingUser: ObjectId, groupMember: ObjectId, groupId: ObjectId){
+
+        val group = getGroupById(groupId)
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Group not found")
+
+        val groupMembers = getGroupMembers(groupId)
+
+        require(isUserInGroup(requestingUser, groupId)) { "You are not a member of this group"}
+
+        require(isUserInGroup(groupMember, groupId)) { "Changed member is not in this group"}
+
+        val focusedMember = groupMembers.first { it.userid == groupMember }
+
+        val now = Clock.System.now()
+
+        when (userAction) {
+            GroupMemberAction.ADD_USER -> {
+                require(isAdmin(requestingUser, groupMembers)) {"You are not an admin"}
+
+                require(!isUserInGroup(groupMember, groupId)) {"User is already in this group"}
+
+                val existingColors = groupMembers.map { it.color }.toSet()
+                val newColor = ColorGenerator.generateUniqueColorsForGroup(existingColors, 1).first()
+
+                groupMemberRepository.save(GroupMember(
+                    userid = groupMember,
+                    groupId = groupId,
+                    joinedAt = now,
+                    admin = false,
+                    color = newColor
+                ))
+            }
+            GroupMemberAction.REMOVE_USER -> {
+
+                //Leave group
+                if (requestingUser == groupMember){
+                    //Leave group yourself, nothing required
+                }else {
+                    require(isAdmin(requestingUser, groupMembers)) {"You are not an admin"}
+
+                    require(isUserInGroup(groupMember, groupId)) {"User is not in this group"}
+                }
+
+                groupMemberRepository.delete(focusedMember)
+
+
+            }
+            GroupMemberAction.MAKE_ADMIN -> {
+                require(isAdmin(requestingUser, groupMembers)) {"You are not an admin"}
+
+                require(isUserInGroup(groupMember, groupId)) {"User is not in this group"}
+
+                require(!isAdmin(groupMember, groupMembers)) {"User is already admin"}
+
+                groupMemberRepository.save(focusedMember.copy(
+                    admin = true
+                ))
+            }
+            GroupMemberAction.REMOVE_ADMIN -> {
+                require(isAdmin(requestingUser, groupMembers)) {"You are not an admin"}
+
+                require(isUserInGroup(groupMember, groupId)) {"User is not in this group"}
+
+                require(isAdmin(groupMember, groupMembers)) {"User is no admin"}
+
+                groupMemberRepository.save(focusedMember.copy(
+                    admin = false
+                ))
+            }
+        }
+
+
+        //No error, update group last changed
+        groupRepository.save(group.copy(updatedAt = now))
+
 
     }
 
