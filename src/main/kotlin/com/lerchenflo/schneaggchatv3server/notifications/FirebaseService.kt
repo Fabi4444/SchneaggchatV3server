@@ -144,6 +144,44 @@ class FirebaseService(
     }
 
 
+    fun sendFriendRequestNotificationToUser(
+        senderId: ObjectId,
+        receivingUserId: ObjectId,
+        sendingUserName: String
+    ) {
+        val tokens = getTokensForUser(receivingUserId)
+
+        if (tokens.isEmpty()) {
+            println("Firebase: no tokens for user $receivingUserId found")
+            return
+        }
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+
+                // Build the NotificationResponse and delegate to generic sender
+                val notification = NotificationResponse.FriendRequestNotificationResponse(
+                    requesterId = receivingUserId.toHexString(),
+                    requesterName = sendingUserName,
+                )
+
+
+                // Reuse the generic sender
+                sendNotificationToUser(receivingUserId, notification)
+
+            } catch (e: Exception) {
+                println("Error in Firebase notification coroutine: ${e.message}")
+                e.printStackTrace()
+                loggingService.log(
+                    userId = senderId,
+                    logType = LogType.EXCEPTION_THROWN,
+                    message = "Firebase notification error: ${e.message}"
+                )
+            }
+        }
+    }
+
+
 
     fun sendNotificationToUser(userId: ObjectId, notification: NotificationResponse) {
         val tokens = getTokensForUser(userId)
