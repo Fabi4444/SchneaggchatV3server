@@ -82,7 +82,7 @@ class MessageService(
                 .forEach { member ->
                 firebaseService.sendNewMessageNotificationToUser(
                     userId = member.userid,
-                    messagecontent = content.asString(),
+                    messageContent = content.asString(),
                     senderName = userService.getUsername(sender),
                     msgId = savedObjectId.toHexString(),
                     groupMessage = true,

@@ -1,5 +1,6 @@
 package com.lerchenflo.schneaggchatv3server.notifications
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
@@ -7,6 +8,7 @@ import com.google.firebase.messaging.*
 import com.google.firebase.messaging.AndroidConfig.Priority
 import com.lerchenflo.schneaggchatv3server.core.security.JwtService
 import com.lerchenflo.schneaggchatv3server.notifications.model.FirebaseToken
+import com.lerchenflo.schneaggchatv3server.notifications.model.NotificationResponse
 import com.lerchenflo.schneaggchatv3server.repository.FirebaseTokenRepository
 import com.lerchenflo.schneaggchatv3server.util.LogType
 import com.lerchenflo.schneaggchatv3server.util.LoggingService
@@ -24,6 +26,9 @@ class FirebaseService(
     private val loggingService: LoggingService,
     private val jwtService: JwtService
 ) {
+
+    private val objectMapper = jacksonObjectMapper()
+
 
     init {
         run {
@@ -95,34 +100,14 @@ class FirebaseService(
         return tokenRepository.findAllByUserId(userId)
     }
 
-
-
-
-    private fun sendFirebaseMessageToAllDevices(userId: ObjectId, data: Map<String, String>): Int {
-        val tokens = getTokensForUser(userId)
-
-        if (tokens.isEmpty()) {
-            println("No tokens for user $userId found")
-            return 0
-        }
-
-        var successCount = 0
-        tokens.forEach { firebaseToken ->
-            val success = safeSend(
-                message = constructMessage(firebaseToken.token, data),
-                token = firebaseToken.token
-            )
-            if (success) {
-                successCount++
-            }
-        }
-
-        println("Sent message to $successCount/${tokens.size} devices for user $userId")
-        return successCount
-    }
-
-
-    fun sendNewMessageNotificationToUser(userId: ObjectId, messagecontent: String, senderName: String, msgId: String, groupMessage: Boolean, groupName: String? = null) {
+    fun sendNewMessageNotificationToUser(
+        userId: ObjectId,
+        messageContent: String,
+        senderName: String,
+        msgId: String,
+        groupMessage: Boolean,
+        groupName: String? = null
+    ) {
         val tokens = getTokensForUser(userId)
 
         if (tokens.isEmpty()) {
@@ -130,36 +115,97 @@ class FirebaseService(
             return
         }
 
-        //println("Firebase: Coroutinescope is starting...")
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val encodedContent = CryptoUtil.encrypt(messagecontent, jwtService.getEncryptionKey())
-                //println("Firebase: encoding finished: $encodedContent")
+                val encodedContent = CryptoUtil.encrypt(messageContent, jwtService.getEncryptionKey())
+
+                // Build the NotificationResponse and delegate to generic sender
+                val notification = NotificationResponse.MessageNotificationResponse(
+                    msgId = msgId,
+                    senderName = senderName,
+                    groupMessage = groupMessage,
+                    groupName = groupName ?: "",
+                    encodedContent = encodedContent
+                )
+
+                // Reuse the generic sender
+                sendNotificationToUser(userId, notification)
+
+            } catch (e: Exception) {
+                println("Error in Firebase notification coroutine: ${e.message}")
+                e.printStackTrace()
+                loggingService.log(
+                    userId = userId,
+                    logType = LogType.EXCEPTION_THROWN,
+                    message = "Firebase notification error: ${e.message}"
+                )
+            }
+        }
+    }
+
+
+    fun sendFriendRequestNotificationToUser(
+        senderId: ObjectId,
+        receivingUserId: ObjectId,
+        sendingUserName: String
+    ) {
+        val tokens = getTokensForUser(receivingUserId)
+
+        if (tokens.isEmpty()) {
+            println("Firebase: no tokens for user $receivingUserId found")
+            return
+        }
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+
+                // Build the NotificationResponse and delegate to generic sender
+                val notification = NotificationResponse.FriendRequestNotificationResponse(
+                    requesterId = receivingUserId.toHexString(),
+                    requesterName = sendingUserName,
+                )
+
+
+                // Reuse the generic sender
+                sendNotificationToUser(receivingUserId, notification)
+
+            } catch (e: Exception) {
+                println("Error in Firebase notification coroutine: ${e.message}")
+                e.printStackTrace()
+                loggingService.log(
+                    userId = senderId,
+                    logType = LogType.EXCEPTION_THROWN,
+                    message = "Firebase notification error: ${e.message}"
+                )
+            }
+        }
+    }
+
+
+
+    fun sendNotificationToUser(userId: ObjectId, notification: NotificationResponse) {
+        val tokens = getTokensForUser(userId)
+        if (tokens.isEmpty()) {
+            println("Firebase: no tokens for user $userId found")
+            return
+        }
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val dataMap = notificationResponseToDataMap(notification)
 
                 tokens.forEach { firebaseToken ->
                     if (firebaseToken.token.isEmpty()) return@forEach
-
-                   try {
-                       val message = constructMessage(
-                           firebaseToken = firebaseToken.token,
-                           data = mapOf(
-                               "encodedContent" to encodedContent,
-                               "senderName" to senderName,
-                               "groupMessage" to groupMessage.toString(),
-                               "groupName" to (groupName ?: ""),
-                               "msgId" to msgId)
-                       )
-
-                       safeSend(
-                           message = message,
-                           token = firebaseToken.token
-                       )
-
-                       //println("Firebase message to user $userId sent: $messagecontent")
-                   } catch (e: Exception) {
-                       println("Error sending to token ${firebaseToken.token}: ${e.message}")
-                       e.printStackTrace()
-                   }
+                    try {
+                        val message = constructMessage(
+                            firebaseToken = firebaseToken.token,
+                            data = dataMap
+                        )
+                        safeSend(message = message, token = firebaseToken.token)
+                    } catch (e: Exception) {
+                        println("Error sending to token ${firebaseToken.token}: ${e.message}")
+                        e.printStackTrace()
+                    }
                 }
             } catch (e: Exception) {
                 println("Error in Firebase notification coroutine: ${e.message}")
@@ -171,17 +217,9 @@ class FirebaseService(
                 )
             }
         }
-
     }
-    /*
-    data class NotificationObject(
-        val msgId: String,
-        val senderName: String,
-        val groupMessage: Boolean,
-        val encodedContent: String
-    )
 
-     */
+
 
     private fun safeSend(message: Message, token: String): Boolean {
         try {
@@ -232,6 +270,34 @@ class FirebaseService(
             )
             return false
         }
+    }
+
+
+
+    private fun notificationResponseToDataMap(notification: NotificationResponse): Map<String, String> {
+        // convert to a raw Map<*,*>
+        val raw = objectMapper.convertValue(notification, Map::class.java) as Map<String, Any?>? ?: emptyMap()
+
+        val result = raw.mapValues { (_, v) ->
+            when (v) {
+                null -> ""
+                is String -> v
+                is Number, is Boolean -> v.toString()
+                else -> objectMapper.writeValueAsString(v) // nested / complex objects -> JSON string
+            }
+        }.toMutableMap()
+
+        // ensure "type" field (JsonTypeInfo property)
+        val typeName = when (notification) {
+            is NotificationResponse.MessageNotificationResponse -> "message"
+            is NotificationResponse.FriendRequestNotificationResponse -> "friend_request"
+            is NotificationResponse.SystemNotificationResponse -> "system"
+            else -> "unknown"
+        }
+        result["type"] = typeName
+
+        // cast to Map<String,String>
+        return result.mapValues { it.value as String }
     }
 
     private fun constructMessage(firebaseToken: String, data: Map<String, String>) : Message {
