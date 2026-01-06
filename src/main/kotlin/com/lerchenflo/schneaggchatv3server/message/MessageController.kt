@@ -4,7 +4,7 @@ import com.lerchenflo.schneaggchatv3server.message.messagemodel.MessageRequest
 import com.lerchenflo.schneaggchatv3server.message.messagemodel.MessageResponse
 import com.lerchenflo.schneaggchatv3server.message.messagemodel.toMessageResponse
 import com.lerchenflo.schneaggchatv3server.user.UserController
-import com.lerchenflo.schneaggchatv3server.user.usermodel.UserService
+import com.lerchenflo.schneaggchatv3server.user.UserService
 import org.bson.types.ObjectId
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.context.SecurityContextHolder

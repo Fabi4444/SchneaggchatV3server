@@ -48,7 +48,7 @@ object ValidationUtils {
      */
     fun validateUsername(username: String): Boolean {
         if (username.isBlank()) return false
-        if (username.length !in 4..25) return false
+        if (username.length !in 3..25) return false
 
         // Must start with alphanumeric
         if (!username.first().isLetterOrDigit()) return false

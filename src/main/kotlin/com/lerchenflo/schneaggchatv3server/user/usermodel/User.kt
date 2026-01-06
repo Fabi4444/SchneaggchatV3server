@@ -12,6 +12,8 @@ import kotlin.time.Instant
 @Document("users")
 data class User(
     @Id val id: ObjectId = ObjectId.get(),
+
+    @Indexed(unique = true)
     val username: String,
     val hashedPassword: String,
 
