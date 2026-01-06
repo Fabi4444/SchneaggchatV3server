@@ -220,7 +220,6 @@ class UserService(
 
         require(ValidationUtils.validatePicture(newPic)) { "New picture is invalid" }
 
-
         imageManager.saveProfilePic(
             image = newPic,
             userId = requestingUserId,

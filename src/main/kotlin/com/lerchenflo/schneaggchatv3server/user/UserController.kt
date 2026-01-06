@@ -133,7 +133,7 @@ class UserController(
 
     @PostMapping("/setprofilepic")
     fun setProfilePic(
-        @RequestBody multipartFile: MultipartFile
+        @RequestParam("profilepic") multipartFile: MultipartFile
     ) {
         val requestingUserId =
             SecurityContextHolder.getContext().authentication?.principal as? String ?: throw ResponseStatusException(

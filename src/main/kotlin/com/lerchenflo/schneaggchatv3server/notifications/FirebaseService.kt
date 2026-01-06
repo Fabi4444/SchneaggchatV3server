@@ -68,7 +68,7 @@ class FirebaseService(
             val existingToken = tokenRepository.findByUserIdAndToken(userId, token)
 
             if (existingToken != null) {
-                println("Firebase token exists, not updating")
+                //println("Firebase token exists, not updating")
                 return
             }
 
@@ -86,9 +86,9 @@ class FirebaseService(
                 logType = LogType.FIREBASE_TOKEN_REGISTERED,
             )
 
-            println("Firebasetoken saved successfully")
+            //println("Firebasetoken saved successfully")
         } catch (e: DuplicateKeyException) {
-            println("Duplicate key already exists")
+            println("Firebase Duplicate key already exists")
         }
     }
 

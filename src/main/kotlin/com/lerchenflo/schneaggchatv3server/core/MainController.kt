@@ -38,7 +38,7 @@ class MainController(
         //listMongoIndexes()
 
         //Create default Account for Google play / App Store
-        val defaultUserUserName = "TestAccount"
+        val defaultUserUserName = "testaccount"
         val defaultUser = userService.findByUsername(defaultUserUserName)
         if(defaultUser == null){
             userService.save(

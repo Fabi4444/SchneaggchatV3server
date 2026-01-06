@@ -82,7 +82,7 @@ class GroupController(
     @PostMapping("/setprofilepic")
     fun setProfilePic(
         @RequestParam("groupid") groupid: String,
-        @RequestBody multipartFile: MultipartFile
+        @RequestParam("profilepic") multipartFile: MultipartFile
     ) {
         val requestingUserId =
             SecurityContextHolder.getContext().authentication?.principal as? String ?: throw ResponseStatusException(

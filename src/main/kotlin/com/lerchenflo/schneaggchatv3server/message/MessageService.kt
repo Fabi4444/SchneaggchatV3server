@@ -207,7 +207,7 @@ class MessageService(
 
         val result = mongoTemplate.updateMulti(query, update, "messages")
 
-        println("Marked read — modifiedCount = ${result.modifiedCount}")
+        //println("Marked read — modifiedCount = ${result.modifiedCount}")
     }
 
 
