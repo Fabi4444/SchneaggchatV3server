@@ -3,7 +3,7 @@ package com.lerchenflo.schneaggchatv3server.authentication
 import com.lerchenflo.schneaggchatv3server.core.security.JwtService
 import com.lerchenflo.schneaggchatv3server.repository.GroupMemberRepository
 import com.lerchenflo.schneaggchatv3server.repository.RefreshTokenRepository
-import com.lerchenflo.schneaggchatv3server.user.usermodel.UserService
+import com.lerchenflo.schneaggchatv3server.user.UserService
 import com.lerchenflo.schneaggchatv3server.util.LogType
 import com.lerchenflo.schneaggchatv3server.util.LoggingService
 import org.bson.types.ObjectId

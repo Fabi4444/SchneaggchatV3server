@@ -6,7 +6,7 @@ import com.lerchenflo.schneaggchatv3server.authentication.EmailService
 import com.lerchenflo.schneaggchatv3server.notifications.FirebaseService
 import com.lerchenflo.schneaggchatv3server.user.usermodel.NewFriendsUserResponse
 import com.lerchenflo.schneaggchatv3server.user.usermodel.UserRequest
-import com.lerchenflo.schneaggchatv3server.user.usermodel.UserService
+import com.lerchenflo.schneaggchatv3server.user.UserService
 import com.lerchenflo.schneaggchatv3server.util.ImageManager
 import org.bson.types.ObjectId
 import org.springframework.http.HttpStatus
@@ -16,6 +16,8 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
+import java.util.Locale
+import java.util.Locale.getDefault
 import kotlin.time.ExperimentalTime
 
 @RestController
@@ -65,7 +67,7 @@ class UserController(
                 /* status = */ HttpStatus.FORBIDDEN,
                 /* reason = */ "Not logged in")
 
-        userService.changeUsername(requestingUserId, newUsername)
+        userService.changeUsername(requestingUserId, newUsername.trim().lowercase(getDefault()))
     }
 
     @PostMapping("/changepassword")
@@ -175,7 +177,7 @@ class UserController(
 
 
         return userService.getAvailableUsers(
-            searchTerm = searchTerm,
+            searchTerm = searchTerm?.trim()?.lowercase(getDefault()),
             requestingUserId = requestingUserId
         )
 

@@ -7,7 +7,7 @@ import com.lerchenflo.schneaggchatv3server.core.security.HashEncoder
 import com.lerchenflo.schneaggchatv3server.core.security.JwtService
 import com.lerchenflo.schneaggchatv3server.repository.RefreshTokenRepository
 import com.lerchenflo.schneaggchatv3server.user.usermodel.User
-import com.lerchenflo.schneaggchatv3server.user.usermodel.UserService
+import com.lerchenflo.schneaggchatv3server.user.UserService
 import com.lerchenflo.schneaggchatv3server.util.ImageManager
 import com.lerchenflo.schneaggchatv3server.util.LogType
 import com.lerchenflo.schneaggchatv3server.util.LoggingService
@@ -22,6 +22,8 @@ import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
 import java.security.MessageDigest
 import java.util.*
+import java.util.Locale
+import java.util.Locale.getDefault
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
@@ -54,7 +56,7 @@ class AuthService(
         val now = Clock.System.now()
 
         val user = User(
-            username = username,
+            username = username.trim().lowercase(getDefault()),
             hashedPassword = hashEncoder.encode(password),
             email = email,
             userDescription = "",

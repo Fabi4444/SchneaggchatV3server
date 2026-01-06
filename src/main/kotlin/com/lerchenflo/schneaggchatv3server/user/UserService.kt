@@ -1,11 +1,13 @@
-package com.lerchenflo.schneaggchatv3server.user.usermodel
+package com.lerchenflo.schneaggchatv3server.user
 
-import com.lerchenflo.schneaggchatv3server.authentication.EmailService
 import com.lerchenflo.schneaggchatv3server.core.security.HashEncoder
 import com.lerchenflo.schneaggchatv3server.repository.RefreshTokenRepository
 import com.lerchenflo.schneaggchatv3server.repository.UserRepository
-import com.lerchenflo.schneaggchatv3server.user.FriendsService
 import com.lerchenflo.schneaggchatv3server.user.friendshipmodel.FriendshipStatus
+import com.lerchenflo.schneaggchatv3server.user.usermodel.NewFriendsUserResponse
+import com.lerchenflo.schneaggchatv3server.user.usermodel.User
+import com.lerchenflo.schneaggchatv3server.user.usermodel.UserRequest
+import com.lerchenflo.schneaggchatv3server.user.usermodel.UserResponse
 import com.lerchenflo.schneaggchatv3server.util.ImageManager
 import com.lerchenflo.schneaggchatv3server.util.ValidationUtils
 import org.bson.types.ObjectId
@@ -13,8 +15,9 @@ import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
+import java.util.Locale
+import java.util.Locale.getDefault
 import kotlin.time.Clock
-import kotlin.time.Instant
 
 @Service
 class UserService(
@@ -26,7 +29,7 @@ class UserService(
 
 ) {
     fun checkExistingUser(username: String, email: String) {
-        val usernameexists = userRepository.findByUsernameIgnoreCase(username)
+        val usernameexists = userRepository.findByUsername(username)
         if (usernameexists != null) {
             throw ResponseStatusException(HttpStatus.CONFLICT, "A user with this username already exists")
         }
@@ -57,7 +60,7 @@ class UserService(
     }
 
     fun findByUsername(username: String): User? {
-        val optuser = userRepository.findByUsernameIgnoreCase(username)
+        val optuser = userRepository.findByUsername(username)
 
         return optuser
     }
@@ -166,7 +169,9 @@ class UserService(
             }
         }else {
             //return users searched by searchterm
-            val searchResults = userRepository.findByUsernameContainingIgnoreCase(searchTerm)
+            val searchResults = userRepository.findByUsernameContainingIgnoreCase(
+                searchTerm.trim().lowercase(getDefault())
+            )
 
             val interactedUserIds = friendshipsService.getAllInteractions(ObjectId(requestingUserId))
                 .map { it.userId }
@@ -193,16 +198,19 @@ class UserService(
 
 
     fun changeUsername(requestingUserId: String, newName: String) {
-        userRepository.findByUsernameIgnoreCase(newName)
-            ?: throw ResponseStatusException(HttpStatus.CONFLICT, "A user with username $newName already exists")
+        val normalizedNewName = newName.trim().lowercase(getDefault())
+        val existingUser = userRepository.findByUsername(normalizedNewName)
 
-        require(newName.length in 4..<25) { "Username has the wrong length"}
+        if (existingUser != null) {
+            throw ResponseStatusException(HttpStatus.CONFLICT, "A user with username $normalizedNewName already exists")
+        }
 
-        //Username does not exist, updating
+        ValidationUtils.validateUsername(normalizedNewName)
+
         val user = userRepository.findById(ObjectId(requestingUserId)).get()
 
         userRepository.save(user.copy(
-            username = newName,
+            username = normalizedNewName,
             updatedAt = Clock.System.now()
         ))
     }

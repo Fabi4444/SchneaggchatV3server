@@ -1,6 +1,6 @@
 package com.lerchenflo.schneaggchatv3server.authentication
 
-import com.lerchenflo.schneaggchatv3server.user.usermodel.UserService
+import com.lerchenflo.schneaggchatv3server.user.UserService
 import com.lerchenflo.schneaggchatv3server.util.LoggingService
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.Pattern
@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
+import java.util.Locale
+import java.util.Locale.getDefault
 
 //https://schneaggchatv3.eu/auth
 
@@ -56,7 +58,7 @@ class AuthController(
         @RequestParam("profilepic") profilePic: MultipartFile
     ) {
         val user = authService.register(
-            username = username.trim(),
+            username = username.trim().lowercase(getDefault()),
             password = password,
             email = email,
             birthdate = birthDate,
@@ -75,7 +77,7 @@ class AuthController(
     ): AuthService.TokenPair {
 
         return authService.login(
-            username = loginRequest.username,
+            username = loginRequest.username.trim().lowercase(getDefault()),
             password = loginRequest.password,
         )
     }
