@@ -251,10 +251,6 @@ class GroupService(
 
         require(isUserInGroup(requestingUser, groupId)) { "You are not a member of this group"}
 
-        require(isUserInGroup(groupMember, groupId)) { "Changed member is not in this group"}
-
-        val focusedMember = groupMembers.first { it.userid == groupMember }
-
         val now = Clock.System.now()
 
         when (userAction) {
@@ -266,13 +262,17 @@ class GroupService(
                 val existingColors = groupMembers.map { it.color }.toSet()
                 val newColor = ColorGenerator.generateUniqueColorsForGroup(existingColors, 1).first()
 
-                groupMemberRepository.save(GroupMember(
-                    userid = groupMember,
-                    groupId = groupId,
-                    joinedAt = now,
-                    admin = false,
-                    color = newColor
-                ))
+                try {
+                    groupMemberRepository.save(GroupMember(
+                        userid = groupMember,
+                        groupId = groupId,
+                        joinedAt = now,
+                        admin = false,
+                        color = newColor
+                    ))
+                } catch (e: org.springframework.dao.DuplicateKeyException) {
+                    throw IllegalArgumentException("User is already in this group")
+                }
             }
             GroupMemberAction.REMOVE_USER -> {
 
@@ -282,19 +282,23 @@ class GroupService(
                 }else {
                     require(isAdmin(requestingUser, groupMembers)) {"You are not an admin"}
 
-                    require(isUserInGroup(groupMember, groupId)) {"User is not in this group"}
                 }
 
+                require(isUserInGroup(groupMember, groupId)) {"User is not in this group"}
+
+                val focusedMember = groupMembers.first { it.userid == groupMember }
+
                 groupMemberRepository.delete(focusedMember)
-
-
             }
+
             GroupMemberAction.MAKE_ADMIN -> {
                 require(isAdmin(requestingUser, groupMembers)) {"You are not an admin"}
 
                 require(isUserInGroup(groupMember, groupId)) {"User is not in this group"}
 
-                require(!isAdmin(groupMember, groupMembers)) {"User is already admin"}
+
+                val focusedMember = groupMembers.first { it.userid == groupMember }
+                require(!focusedMember.admin) {"User is already admin"}
 
                 groupMemberRepository.save(focusedMember.copy(
                     admin = true
@@ -305,7 +309,8 @@ class GroupService(
 
                 require(isUserInGroup(groupMember, groupId)) {"User is not in this group"}
 
-                require(isAdmin(groupMember, groupMembers)) {"User is no admin"}
+                val focusedMember = groupMembers.first { it.userid == groupMember }
+                require(focusedMember.admin) {"User is not an admin"}
 
                 groupMemberRepository.save(focusedMember.copy(
                     admin = false
@@ -313,11 +318,8 @@ class GroupService(
             }
         }
 
-
         //No error, update group last changed
         groupRepository.save(group.copy(updatedAt = now))
-
-
     }
 
 }
