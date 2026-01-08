@@ -11,7 +11,7 @@ import kotlin.time.Instant
 
 @Document("groupmembers")
 data class GroupMember(
-    //Id not needed
+    @Id val id: ObjectId = ObjectId.get(),
 
     @Indexed //Index for query on all user groups
     val userid: ObjectId,

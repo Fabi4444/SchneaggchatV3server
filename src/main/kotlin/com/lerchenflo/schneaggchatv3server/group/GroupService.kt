@@ -251,8 +251,6 @@ class GroupService(
 
         require(isUserInGroup(requestingUser, groupId)) { "You are not a member of this group"}
 
-        require(isUserInGroup(groupMember, groupId)) { "Changed member is not in this group"}
-
         val focusedMember = groupMembers.first { it.userid == groupMember }
 
         val now = Clock.System.now()
@@ -286,9 +284,8 @@ class GroupService(
                 }
 
                 groupMemberRepository.delete(focusedMember)
-
-
             }
+
             GroupMemberAction.MAKE_ADMIN -> {
                 require(isAdmin(requestingUser, groupMembers)) {"You are not an admin"}
 
@@ -313,11 +310,8 @@ class GroupService(
             }
         }
 
-
         //No error, update group last changed
         groupRepository.save(group.copy(updatedAt = now))
-
-
     }
 
 }
