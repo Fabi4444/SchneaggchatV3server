@@ -53,11 +53,9 @@ object ValidationUtils {
         // Must start with alphanumeric
         if (!username.first().isLetterOrDigit()) return false
 
-        // Must end with alphanumeric
-        if (!username.last().isLetterOrDigit()) return false
 
         // Only alphanumeric, underscore, and hyphen allowed
-        val validChars = username.all { it.isLetterOrDigit() || it == '_' || it == '-' }
+        val validChars = username.all { it.isLetterOrDigit() || it == '_' || it == '-' || it == '.' }
 
         return validChars
     }
