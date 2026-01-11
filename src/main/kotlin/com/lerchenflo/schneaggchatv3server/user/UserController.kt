@@ -199,7 +199,7 @@ class UserController(
             toUserId = ObjectId(touserId)
         )
 
-        println("Friend request: $friendship")
+        //println("Friend request: $friendship")
     }
 
     @GetMapping("/denyfriend/{id}")
