@@ -38,7 +38,7 @@ class GlobalExceptionHandler(
     fun handleIllegalArgumentException(e: IllegalArgumentException): ResponseEntity<String> {
         println("Illegal argument Error happened: ${e.message}")
         val error = e.message
-        logError(e)
+        //logError(e)
         return ResponseEntity
             .status(400)
             .body(error)
