@@ -1,12 +1,19 @@
 package com.lerchenflo.schneaggchatv3server.util
 
 import org.springframework.web.multipart.MultipartFile
+import java.util.Locale
+import java.util.Locale.getDefault
 
 object ValidationUtils {
 
     private val EMAIL_REGEX = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$".toRegex()
     private val ALLOWED_IMAGE_TYPES = setOf("image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp")
     private const val MAX_IMAGE_SIZE = 3 * 1024 * 1024 // 3MB
+
+    private val RESERVED_USERNAMES = setOf(
+        "admin", "administrator", "root", "system", "api",
+        "www", "mail", "ftp", "localhost", "test", "demo"
+    )
 
     /**
      * Validates email address format
@@ -52,6 +59,8 @@ object ValidationUtils {
 
         // Must start with alphanumeric
         if (!username.first().isLetterOrDigit()) return false
+
+        if (username.lowercase(getDefault()) in RESERVED_USERNAMES) return false
 
         // Only alphanumeric, underscore, and hyphen allowed
         val validChars = username.all { it.isLetterOrDigit() || it == '_' || it == '-' || it == '.' }
