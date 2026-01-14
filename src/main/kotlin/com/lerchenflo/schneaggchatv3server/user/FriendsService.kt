@@ -76,7 +76,7 @@ class FriendsService(
         firebaseService.sendFriendRequestNotificationToUser(
             senderId = fromUserId,
             receivingUserId = toUserId,
-            sendingUserName = userRepository.findById(toUserId).get().username,
+            sendingUserName = userRepository.findById(fromUserId).get().username,
         )
 
         return friendshipRepository.save(friendship)
