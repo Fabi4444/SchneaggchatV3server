@@ -275,19 +275,35 @@ class GroupService(
                 }
             }
             GroupMemberAction.REMOVE_USER -> {
-
-                //Leave group
-                if (requestingUser == groupMember){
-                    //Leave group yourself, nothing required
-                }else {
-                    require(isAdmin(requestingUser, groupMembers)) {"You are not an admin"}
-
-                }
-
                 require(isUserInGroup(groupMember, groupId)) {"User is not in this group"}
 
-                val focusedMember = groupMembers.first { it.userid == groupMember }
+                // If someone else is removing the user, they must be admin
+                if (requestingUser != groupMember) {
+                    require(isAdmin(requestingUser, groupMembers)) {"You are not an admin"}
+                }
 
+                // If user is leaving and is the last admin, promote someone
+                if (requestingUser == groupMember) {
+                    if (!groupMembers.any { it.admin && it.userid != requestingUser }) {
+                        // Without me, no user is admin
+                        val newGroupMembers = groupMembers.filter { it.userid != requestingUser }
+
+                        if (newGroupMembers.isEmpty()) {
+                            // Last person leaving - delete the group and all members
+                            val focusedMember = groupMembers.first { it.userid == groupMember }
+                            groupMemberRepository.delete(focusedMember)
+                            groupRepository.delete(group)
+                            return // Don't update group lastChanged
+                        } else {
+                            // Find user with earliest joinedAt timestamp and promote to admin
+                            val longestMember = newGroupMembers.minBy { it.joinedAt }
+                            groupMemberRepository.save(longestMember.copy(admin = true))
+                        }
+                    }
+                }
+
+                // Remove the member
+                val focusedMember = groupMembers.first { it.userid == groupMember }
                 groupMemberRepository.delete(focusedMember)
             }
 
@@ -295,7 +311,6 @@ class GroupService(
                 require(isAdmin(requestingUser, groupMembers)) {"You are not an admin"}
 
                 require(isUserInGroup(groupMember, groupId)) {"User is not in this group"}
-
 
                 val focusedMember = groupMembers.first { it.userid == groupMember }
                 require(!focusedMember.admin) {"User is already admin"}
@@ -311,6 +326,10 @@ class GroupService(
 
                 val focusedMember = groupMembers.first { it.userid == groupMember }
                 require(focusedMember.admin) {"User is not an admin"}
+
+                // Check if this is the last admin
+                val adminCount = groupMembers.count { it.admin }
+                require(adminCount > 1) {"Cannot remove the last admin. Promote someone else first."}
 
                 groupMemberRepository.save(focusedMember.copy(
                     admin = false
