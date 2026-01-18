@@ -2,7 +2,7 @@
 
 package com.lerchenflo.schneaggchatv3server.user
 
-import com.lerchenflo.schneaggchatv3server.notifications.FirebaseService
+import com.lerchenflo.schneaggchatv3server.notifications.firebase.FirebaseService
 import com.lerchenflo.schneaggchatv3server.repository.FriendshipRepository
 import com.lerchenflo.schneaggchatv3server.repository.UserRepository
 import com.lerchenflo.schneaggchatv3server.user.friendshipmodel.Friendship

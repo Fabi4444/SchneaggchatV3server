@@ -1,0 +1,88 @@
+package com.lerchenflo.schneaggchatv3server.notifications.websocket
+
+import com.lerchenflo.schneaggchatv3server.core.security.JwtService
+import com.lerchenflo.schneaggchatv3server.notifications.websocket.model.SocketConnection
+import org.bson.types.ObjectId
+import org.springframework.http.HttpStatus
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.stereotype.Component
+import org.springframework.web.server.ResponseStatusException
+import org.springframework.web.socket.CloseStatus
+import org.springframework.web.socket.WebSocketMessage
+import org.springframework.web.socket.WebSocketSession
+import org.springframework.web.socket.handler.TextWebSocketHandler
+import java.util.concurrent.CopyOnWriteArrayList
+import kotlin.text.startsWith
+
+@Component
+class SocketConnectionHandler(
+    private val jwtService: JwtService
+): TextWebSocketHandler() {
+
+    var connections : CopyOnWriteArrayList<SocketConnection> = CopyOnWriteArrayList()
+
+
+    override fun afterConnectionEstablished(session: WebSocketSession) {
+        super.afterConnectionEstablished(session)
+
+        var requestingUserId : String? = null
+
+        val authHeader = session.handshakeHeaders.get("Authorization")?.first()
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            if (jwtService.validateAccessToken(authHeader)) {
+                requestingUserId = jwtService.getUserIdFromToken(authHeader)
+
+            }
+        }
+
+
+        requestingUserId ?: run {
+                println("socket connection not authenticated")
+                throw ResponseStatusException(
+                    /* status = */ HttpStatus.FORBIDDEN,
+                    /* reason = */ "Not logged in"
+                )
+            }
+
+
+        println("New socket connection: ${session.remoteAddress}")
+
+        //Update session or create new (Multiple connections from the same userid are allowed
+        synchronized(connections) {
+            connections += SocketConnection(
+                sessionId = session.id,
+                userId = ObjectId(requestingUserId),
+                session = session,
+            )
+        }
+
+        println("Total connections: ${connections.size}")
+
+    }
+
+    override fun afterConnectionClosed(session: WebSocketSession, status: CloseStatus) {
+        super.afterConnectionClosed(session, status)
+
+        //Remove session
+        //println("Socket connection closed: $status")
+
+        //TODO: Log connection time?
+
+        synchronized(connections) {
+            println("Socket connection closed: ${session.id}")
+            connections.removeIf { it.sessionId == session.id }
+        }
+
+        println("Socket connection closed: $status. Remaining connections: ${connections.size}")
+
+    }
+
+
+    override fun handleMessage(session: WebSocketSession, message: WebSocketMessage<*>) {
+        super.handleMessage(session, message)
+        println("Message received: $message")
+        //TODO: Handle messages
+    }
+
+}

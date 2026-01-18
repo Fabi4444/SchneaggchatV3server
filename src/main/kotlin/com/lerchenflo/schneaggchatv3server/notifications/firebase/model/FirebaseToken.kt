@@ -1,4 +1,4 @@
-package com.lerchenflo.schneaggchatv3server.notifications.model
+package com.lerchenflo.schneaggchatv3server.notifications.firebase.model
 
 import org.bson.types.ObjectId
 import org.springframework.data.annotation.Id
