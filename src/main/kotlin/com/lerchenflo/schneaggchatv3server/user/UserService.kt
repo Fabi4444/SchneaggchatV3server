@@ -152,22 +152,38 @@ class UserService(
     ) : List<NewFriendsUserResponse>{
         //Is user searching?
         if (searchTerm.isNullOrBlank()) {
+            //User is not searching
+            val requestingUserObjectId = ObjectId(requestingUserId)
+            val allUserIds = userRepository.findAll().map { it.id }
 
-            //User is not searching, return all users with common friends
-            val alluserIds = userRepository.findAll().map { it.id }
-            val newusers = friendshipsService.getUsersWithNoInteraction(
-                userId = ObjectId(requestingUserId),
-                allUserIds = alluserIds
+            // Check if requesting user has any friendships
+            val hasFriendships = friendshipsService.getAllInteractions(requestingUserObjectId).isNotEmpty()
+
+            // Get users with no interaction
+            val usersWithNoInteraction = friendshipsService.getUsersWithNoInteraction(
+                userId = requestingUserObjectId,
+                allUserIds = allUserIds
             )
 
-            return userRepository.findAllById(newusers).map { user ->
+            val eligibleUsers = if (hasFriendships) {
+                // Return only users with common friends (at least 1)
+                userRepository.findAllById(usersWithNoInteraction)
+                    .filter { user ->
+                        friendshipsService.getCommonFriendCount(requestingUserObjectId, user.id) > 0
+                    }
+            } else {
+                // Return all users with no interaction
+                userRepository.findAllById(usersWithNoInteraction)
+            }
+
+            return eligibleUsers.map { user ->
                 NewFriendsUserResponse(
                     id = user.id.toHexString(),
                     username = user.username,
-                    commonFriendCount = friendshipsService.getCommonFriendCount(ObjectId(requestingUserId), user.id),
+                    commonFriendCount = friendshipsService.getCommonFriendCount(requestingUserObjectId, user.id),
                 )
             }
-        }else {
+        } else {
             //return users searched by searchterm
             val searchResults = userRepository.findByUsernameContainingIgnoreCase(
                 searchTerm.trim().lowercase(getDefault())

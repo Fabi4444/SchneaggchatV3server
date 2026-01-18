@@ -11,6 +11,8 @@ import com.lerchenflo.schneaggchatv3server.repository.MessageRepository
 import com.lerchenflo.schneaggchatv3server.user.FriendsService
 import com.lerchenflo.schneaggchatv3server.user.UserService
 import com.lerchenflo.schneaggchatv3server.util.ImageManager
+import com.lerchenflo.schneaggchatv3server.util.LogType
+import com.lerchenflo.schneaggchatv3server.util.LoggingService
 import com.lerchenflo.schneaggchatv3server.util.ValidationUtils
 import org.bson.types.ObjectId
 import org.springframework.data.domain.Sort
@@ -36,6 +38,7 @@ class MessageService(
     private val imageManager: ImageManager,
     private val firebaseService: FirebaseService,
     private val userService: UserService,
+    private val loggingService: LoggingService
 ) {
 
     fun MessageContent.asString() : String {
@@ -144,6 +147,11 @@ class MessageService(
         val message = canUserAccessMessage(messageId, deletingUserId)
 
         require(message.senderId == deletingUserId) { "Only the sender can delete a message" }
+
+        loggingService.log(
+            userId = deletingUserId,
+            logType = LogType.MESSAGE_DELETED
+        )
 
         messageRepository.save(message.copy(deleted = true))
     }
