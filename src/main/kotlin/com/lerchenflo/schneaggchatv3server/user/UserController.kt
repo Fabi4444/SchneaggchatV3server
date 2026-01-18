@@ -3,7 +3,7 @@
 package com.lerchenflo.schneaggchatv3server.user
 
 import com.lerchenflo.schneaggchatv3server.authentication.EmailService
-import com.lerchenflo.schneaggchatv3server.notifications.FirebaseService
+import com.lerchenflo.schneaggchatv3server.notifications.firebase.FirebaseService
 import com.lerchenflo.schneaggchatv3server.user.usermodel.NewFriendsUserResponse
 import com.lerchenflo.schneaggchatv3server.user.usermodel.UserRequest
 import com.lerchenflo.schneaggchatv3server.user.UserService

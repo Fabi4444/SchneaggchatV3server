@@ -6,7 +6,7 @@ import com.lerchenflo.schneaggchatv3server.group.GroupService
 import com.lerchenflo.schneaggchatv3server.message.MessageService.MessageContent.Image
 import com.lerchenflo.schneaggchatv3server.message.MessageService.MessageContent.Text
 import com.lerchenflo.schneaggchatv3server.message.messagemodel.*
-import com.lerchenflo.schneaggchatv3server.notifications.FirebaseService
+import com.lerchenflo.schneaggchatv3server.notifications.firebase.FirebaseService
 import com.lerchenflo.schneaggchatv3server.repository.MessageRepository
 import com.lerchenflo.schneaggchatv3server.user.FriendsService
 import com.lerchenflo.schneaggchatv3server.user.UserService

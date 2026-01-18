@@ -1,4 +1,4 @@
-package com.lerchenflo.schneaggchatv3server.notifications.model
+package com.lerchenflo.schneaggchatv3server.notifications.firebase.model
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo

@@ -60,6 +60,8 @@ dependencies {
     implementation("dev.whyoleg.cryptography:cryptography-core:0.5.0")
     implementation("dev.whyoleg.cryptography:cryptography-provider-jdk:0.5.0")
 
+    implementation("org.springframework.boot:spring-boot-starter-websocket")
+
 }
 
 kotlin {

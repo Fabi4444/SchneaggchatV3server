@@ -1,14 +1,20 @@
-package com.lerchenflo.schneaggchatv3server.notifications
+package com.lerchenflo.schneaggchatv3server.notifications.firebase
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
-import com.google.firebase.messaging.*
-import com.google.firebase.messaging.AndroidConfig.Priority
+import com.google.firebase.messaging.AndroidConfig
+import com.google.firebase.messaging.ApnsConfig
+import com.google.firebase.messaging.Aps
+import com.google.firebase.messaging.FirebaseMessaging
+import com.google.firebase.messaging.FirebaseMessagingException
+import com.google.firebase.messaging.Message
+import com.google.firebase.messaging.MessagingErrorCode
 import com.lerchenflo.schneaggchatv3server.core.security.JwtService
-import com.lerchenflo.schneaggchatv3server.notifications.model.FirebaseToken
-import com.lerchenflo.schneaggchatv3server.notifications.model.NotificationResponse
+import com.lerchenflo.schneaggchatv3server.notifications.CryptoUtil
+import com.lerchenflo.schneaggchatv3server.notifications.firebase.model.FirebaseToken
+import com.lerchenflo.schneaggchatv3server.notifications.firebase.model.NotificationResponse
 import com.lerchenflo.schneaggchatv3server.repository.FirebaseTokenRepository
 import com.lerchenflo.schneaggchatv3server.util.LogType
 import com.lerchenflo.schneaggchatv3server.util.LoggingService
@@ -117,7 +123,7 @@ class FirebaseService(
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val encodedContent = CryptoUtil.encrypt(messageContent, jwtService.getEncryptionKey())
+                val encodedContent = CryptoUtil.Companion.encrypt(messageContent, jwtService.getEncryptionKey())
 
                 // Build the NotificationResponse and delegate to generic sender
                 val notification = NotificationResponse.MessageNotificationResponse(
@@ -292,7 +298,6 @@ class FirebaseService(
             is NotificationResponse.MessageNotificationResponse -> "message"
             is NotificationResponse.FriendRequestNotificationResponse -> "friend_request"
             is NotificationResponse.SystemNotificationResponse -> "system"
-            else -> "unknown"
         }
         result["type"] = typeName
 
@@ -306,7 +311,7 @@ class FirebaseService(
             .putAllData(data)
             .setAndroidConfig(
                 AndroidConfig.builder()
-                    .setPriority(Priority.HIGH) //for immediate delivery: https://firebase.google.com/docs/cloud-messaging/android-message-priority?hl=de
+                    .setPriority(AndroidConfig.Priority.HIGH) //for immediate delivery: https://firebase.google.com/docs/cloud-messaging/android-message-priority?hl=de
                     .build()
             )
             .setApnsConfig(
@@ -317,7 +322,8 @@ class FirebaseService(
                  */
                 ApnsConfig.builder()
                     .putHeader("apns-priority", "5")
-                    .setAps(Aps.builder()
+                    .setAps(
+                        Aps.builder()
                         .setContentAvailable(true) //Allow background work on ios
                         .build())
                     .build()
