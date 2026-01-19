@@ -63,7 +63,7 @@ object ValidationUtils {
         if (username.lowercase(getDefault()) in RESERVED_USERNAMES) return false
 
         // Only alphanumeric, underscore, and hyphen allowed
-        val validChars = username.all { it.isLetterOrDigit() || it == '_' || it == '-' || it == '.' }
+        val validChars = username.all { it.isLetterOrDigit() || it == '_' || it == '-' || it == '.' || it == ' ' }
 
         return validChars
     }
