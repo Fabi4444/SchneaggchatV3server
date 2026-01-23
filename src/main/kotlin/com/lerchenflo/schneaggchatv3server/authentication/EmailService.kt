@@ -3,6 +3,7 @@ package com.lerchenflo.schneaggchatv3server.authentication
 import com.lerchenflo.schneaggchatv3server.core.security.JwtService
 import com.lerchenflo.schneaggchatv3server.repository.GroupMemberRepository
 import com.lerchenflo.schneaggchatv3server.repository.RefreshTokenRepository
+import com.lerchenflo.schneaggchatv3server.user.UserLookupService
 import com.lerchenflo.schneaggchatv3server.user.UserService
 import com.lerchenflo.schneaggchatv3server.util.LogType
 import com.lerchenflo.schneaggchatv3server.util.LoggingService
@@ -22,6 +23,7 @@ import kotlin.time.Instant
 class EmailService(
     private val jwtService: JwtService,
     private val userService: UserService,
+    private val userLookupService: UserLookupService,
     private val mailSender: JavaMailSender,
     private val loggingService: LoggingService,
     private val refreshTokenRepository: RefreshTokenRepository,
@@ -33,7 +35,7 @@ class EmailService(
      */
     fun sendVerificationEmail(userId: ObjectId) {
 
-        val user = userService.findByObjectId(userId) ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "User $userId not found")
+        val user = userLookupService.findByObjectId(userId) ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "User $userId not found")
 
         if (user.emailVerifiedAt != null) {
             return //Email already verified
@@ -66,12 +68,12 @@ class EmailService(
     fun verifyEmailRequest(token: String) : Boolean {
         val (email, userId) = jwtService.validateEmailToken(token) ?: return false
 
-        val user = userService.findByEmail(email) ?: return false
+        val user = userLookupService.findByEmail(email) ?: return false
 
         if (user.id != userId) return false
 
         //TODO: Update user even if only the email got verified (All friends resync)?
-        userService.save(user.copy(
+        userLookupService.save(user.copy(
             emailVerifiedAt = Clock.System.now(),
             updatedAt = Clock.System.now(),
         ))
@@ -112,7 +114,7 @@ class EmailService(
     fun verifyDelAccRequest(token: String) : Boolean {
         val (email, userId) = jwtService.validateDelAccEmailToken(token) ?: return false
 
-        val user = userService.findByEmail(email) ?: return false
+        val user = userLookupService.findByEmail(email) ?: return false
 
         if (user.id != userId) return false
 

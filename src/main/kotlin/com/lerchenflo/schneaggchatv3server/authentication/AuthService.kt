@@ -6,8 +6,8 @@ import com.lerchenflo.schneaggchatv3server.authentication.model.RefreshToken
 import com.lerchenflo.schneaggchatv3server.core.security.HashEncoder
 import com.lerchenflo.schneaggchatv3server.core.security.JwtService
 import com.lerchenflo.schneaggchatv3server.repository.RefreshTokenRepository
+import com.lerchenflo.schneaggchatv3server.user.UserLookupService
 import com.lerchenflo.schneaggchatv3server.user.usermodel.User
-import com.lerchenflo.schneaggchatv3server.user.UserService
 import com.lerchenflo.schneaggchatv3server.util.ImageManager
 import com.lerchenflo.schneaggchatv3server.util.LogType
 import com.lerchenflo.schneaggchatv3server.util.LoggingService
@@ -22,7 +22,6 @@ import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
 import java.security.MessageDigest
 import java.util.*
-import java.util.Locale
 import java.util.Locale.getDefault
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
@@ -31,7 +30,8 @@ import kotlin.time.Instant
 @Service
 class AuthService(
     private val jwtService: JwtService,
-    private val userService: UserService,
+    private val userLookupService: UserLookupService,
+
     private val hashEncoder: HashEncoder,
     private val refreshTokenRepository: RefreshTokenRepository,
     private val loggingService: LoggingService,
@@ -51,7 +51,7 @@ class AuthService(
         require(ValidationUtils.validateEmail(email)) { "Email invalid" }
         require(ValidationUtils.validatePicture(profilePic)) { "Picture invalid" }
 
-        userService.checkExistingUser(username, email)
+        userLookupService.checkExistingUser(username, email)
 
         val now = Clock.System.now()
 
@@ -73,12 +73,12 @@ class AuthService(
             group = false
         )
 
-        return userService.save(user)
+        return userLookupService.save(user)
     }
 
     fun login(username: String, password: String) : TokenPair {
         //Does this user exist
-        val user = userService.findByUsername(username) ?: throw BadCredentialsException("Invalid credentials")
+        val user = userLookupService.findByUsername(username) ?: throw BadCredentialsException("Invalid credentials")
 
         loggingService.log(
             userId = user.id,
@@ -119,7 +119,7 @@ class AuthService(
         val userId = jwtService.getUserIdFromToken(refreshToken)
 
         //find the user to the userid (If no user is found exception is thrown)
-        val user = userService.findById(userId)
+        val user = userLookupService.findById(userId)
             ?: throw ResponseStatusException(HttpStatusCode.valueOf(401) ,"Invalid refresh token")
 
         val hashed = hashToken(refreshToken)

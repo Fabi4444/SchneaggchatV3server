@@ -9,6 +9,7 @@ import com.lerchenflo.schneaggchatv3server.message.messagemodel.*
 import com.lerchenflo.schneaggchatv3server.notifications.firebase.FirebaseService
 import com.lerchenflo.schneaggchatv3server.repository.MessageRepository
 import com.lerchenflo.schneaggchatv3server.user.FriendsService
+import com.lerchenflo.schneaggchatv3server.user.UserLookupService
 import com.lerchenflo.schneaggchatv3server.user.UserService
 import com.lerchenflo.schneaggchatv3server.util.ImageManager
 import com.lerchenflo.schneaggchatv3server.util.LogType
@@ -38,6 +39,7 @@ class MessageService(
     private val imageManager: ImageManager,
     private val firebaseService: FirebaseService,
     private val userService: UserService,
+    private val userLookupService: UserLookupService,
     private val loggingService: LoggingService
 ) {
 
@@ -86,7 +88,7 @@ class MessageService(
                 firebaseService.sendNewMessageNotificationToUser(
                     userId = member.userid,
                     messageContent = content.asString(),
-                    senderName = userService.getUsername(sender),
+                    senderName = userLookupService.getUsername(sender),
                     msgId = savedObjectId.toHexString(),
                     groupMessage = true,
                     groupName = group.name,
@@ -98,7 +100,7 @@ class MessageService(
             //println("Firebase message send start")
             firebaseService.sendNewMessageNotificationToUser(
                 receiver, content.asString(),
-                senderName = userService.getUsername(sender),
+                senderName = userLookupService.getUsername(sender),
                 msgId = savedObjectId.toString(),
                 groupMessage = false
             )

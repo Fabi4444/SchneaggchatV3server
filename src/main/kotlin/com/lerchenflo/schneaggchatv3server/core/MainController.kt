@@ -5,6 +5,7 @@ package com.lerchenflo.schneaggchatv3server.core
 import com.lerchenflo.schneaggchatv3server.core.security.HashEncoder
 import com.lerchenflo.schneaggchatv3server.group.GroupService
 import com.lerchenflo.schneaggchatv3server.repository.GroupRepository
+import com.lerchenflo.schneaggchatv3server.user.UserLookupService
 import com.lerchenflo.schneaggchatv3server.user.usermodel.User
 import com.lerchenflo.schneaggchatv3server.user.UserService
 import org.springframework.beans.factory.annotation.Value
@@ -24,6 +25,7 @@ import kotlin.time.ExperimentalTime
 @RestController
 class MainController(
     private val userService: UserService,
+    private val userLookupService: UserLookupService,
     private val hashEncoder: HashEncoder,
     private val mongoTemplate: MongoTemplate,
     private val groupService: GroupService,
@@ -44,9 +46,9 @@ class MainController(
 
         //Create default Account for Google play / App Store
         val defaultUserUserName = "testaccount"
-        val defaultUser = userService.findByUsername(defaultUserUserName)
+        val defaultUser = userLookupService.findByUsername(defaultUserUserName)
         if(defaultUser == null){
-            userService.save(
+            userLookupService.save(
                 User(
                     username = defaultUserUserName,
                     hashedPassword = hashEncoder.encode(defaultPassword),
@@ -118,7 +120,7 @@ class MainController(
             println("║  ├──────────────────────────────────┼──────────────┼──────────────────────────┤║")
 
             members.forEach { member ->
-                val username = userService.getUsername(member.userid) ?: "Unknown"
+                val username = userLookupService.getUsername(member.userid) ?: "Unknown"
                 val isCreator = member.userid == creatorId
                 val isAdmin = member.admin
 

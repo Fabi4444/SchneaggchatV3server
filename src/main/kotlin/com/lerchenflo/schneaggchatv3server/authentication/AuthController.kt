@@ -1,5 +1,6 @@
 package com.lerchenflo.schneaggchatv3server.authentication
 
+import com.lerchenflo.schneaggchatv3server.user.UserLookupService
 import com.lerchenflo.schneaggchatv3server.user.UserService
 import com.lerchenflo.schneaggchatv3server.util.LoggingService
 import jakarta.validation.constraints.Email
@@ -24,7 +25,8 @@ import java.util.Locale.getDefault
 class AuthController(
     private val authService: AuthService,
     private val emailService: EmailService,
-    private val userService: UserService
+
+    private val userLookupService: UserLookupService,
 ) {
 
     data class LoginRequest(
@@ -112,7 +114,7 @@ class AuthController(
     fun sendDeleteAccEmail(
         @RequestParam("email") email: String,
     ){
-        val user = userService.findByEmail(email)
+        val user = userLookupService.findByEmail(email)
         if (user == null){
             println("No user to delete found with email $email")
             return
