@@ -21,10 +21,14 @@ class NotificationService(
     private val firebaseMessagingService: FirebaseService
 ) {
 
+    
     /**
      * Send a notification to a client device
      */
-    fun notifyMessageUpdate(message: Message, receiverId: ObjectId) {
+    fun notifyMessageUpdate(message: Message, newMessage: Boolean) {
+
+        val group = message.groupMessage
+
 
         //Try sending via socket connection (if fail (not connected) or group use firebase)
         if (group || !socketConnectionHandler.sendMessage(

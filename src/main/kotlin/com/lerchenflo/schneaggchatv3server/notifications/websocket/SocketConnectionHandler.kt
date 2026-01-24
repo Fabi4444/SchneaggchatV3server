@@ -25,7 +25,6 @@ class SocketConnectionHandler(
     private val objectMapper = ObjectMapper()
 
 
-
     var connections : CopyOnWriteArrayList<SocketConnection> = CopyOnWriteArrayList()
 
 
