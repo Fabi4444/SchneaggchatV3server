@@ -12,10 +12,11 @@ import com.google.firebase.messaging.FirebaseMessagingException
 import com.google.firebase.messaging.Message
 import com.google.firebase.messaging.MessagingErrorCode
 import com.lerchenflo.schneaggchatv3server.core.security.JwtService
-import com.lerchenflo.schneaggchatv3server.notifications.CryptoUtil
+import com.lerchenflo.schneaggchatv3server.util.CryptoUtil
 import com.lerchenflo.schneaggchatv3server.notifications.firebase.model.FirebaseToken
 import com.lerchenflo.schneaggchatv3server.notifications.firebase.model.NotificationResponse
 import com.lerchenflo.schneaggchatv3server.repository.FirebaseTokenRepository
+import com.lerchenflo.schneaggchatv3server.user.UserLookupService
 import com.lerchenflo.schneaggchatv3server.util.LogType
 import com.lerchenflo.schneaggchatv3server.util.LoggingService
 import kotlinx.coroutines.CoroutineScope
@@ -30,6 +31,7 @@ import java.io.FileInputStream
 class FirebaseService(
     private val tokenRepository: FirebaseTokenRepository,
     private val loggingService: LoggingService,
+    private val userLookupService: UserLookupService,
     private val jwtService: JwtService
 ) {
 
@@ -106,14 +108,16 @@ class FirebaseService(
         return tokenRepository.findAllByUserId(userId)
     }
 
+
     fun sendNewMessageNotificationToUser(
         userId: ObjectId,
         messageContent: String,
-        senderName: String,
         msgId: String,
         groupMessage: Boolean,
         groupName: String? = null
     ) {
+        val senderName = userLookupService.getUsername(userId)
+
         val tokens = getTokensForUser(userId)
 
         if (tokens.isEmpty()) {
@@ -153,8 +157,9 @@ class FirebaseService(
     fun sendFriendRequestNotificationToUser(
         senderId: ObjectId,
         receivingUserId: ObjectId,
-        sendingUserName: String
     ) {
+        val sendingUserName = userLookupService.getUsername(senderId)
+
         val tokens = getTokensForUser(receivingUserId)
 
         if (tokens.isEmpty()) {

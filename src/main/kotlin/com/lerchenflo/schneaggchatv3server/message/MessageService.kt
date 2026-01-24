@@ -6,6 +6,7 @@ import com.lerchenflo.schneaggchatv3server.group.GroupService
 import com.lerchenflo.schneaggchatv3server.message.MessageService.MessageContent.Image
 import com.lerchenflo.schneaggchatv3server.message.MessageService.MessageContent.Text
 import com.lerchenflo.schneaggchatv3server.message.messagemodel.*
+import com.lerchenflo.schneaggchatv3server.notifications.NotificationService
 import com.lerchenflo.schneaggchatv3server.notifications.firebase.FirebaseService
 import com.lerchenflo.schneaggchatv3server.repository.MessageRepository
 import com.lerchenflo.schneaggchatv3server.user.FriendsService
@@ -38,8 +39,8 @@ class MessageService(
     private val groupService: GroupService,
     private val imageManager: ImageManager,
     private val firebaseService: FirebaseService,
-    private val userService: UserService,
     private val userLookupService: UserLookupService,
+    private val notificationService: NotificationService,
     private val loggingService: LoggingService
 ) {
 
@@ -75,7 +76,27 @@ class MessageService(
         }
 
 
-        //println("Sendmessage: Firebase sending")
+        val sendDate = Clock.System.now()
+
+        val message = messageRepository.save(Message(
+            id = savedObjectId,
+            senderId = sender,
+            receiverId = receiver,
+            groupMessage = groupMessage,
+            msgType = messageType,
+            content = storedContent,
+            answerId = answerId,
+            sendDate = sendDate,
+            lastChanged = sendDate,
+            deleted = false,
+            readers = listOf(Reader(
+                userId = sender,
+                readAt = sendDate
+            )),
+        ))
+
+
+
 
         if (groupMessage) {
             val members = groupService.getGroupMembers(receiver)
@@ -85,6 +106,14 @@ class MessageService(
             members
                 .filter { it.userid != sender } //Do not send notification to sender
                 .forEach { member ->
+
+                    notificationService.notifyMessageUpdate(
+                        message = message,
+                        newMessage = true,
+                        receiverId = receiver,
+                        group = true
+                    )
+
                 firebaseService.sendNewMessageNotificationToUser(
                     userId = member.userid,
                     messageContent = content.asString(),
@@ -107,24 +136,7 @@ class MessageService(
         }
 
 
-        val sendDate = Clock.System.now()
-
-        return messageRepository.save(Message(
-            id = savedObjectId,
-            senderId = sender,
-            receiverId = receiver,
-            groupMessage = groupMessage,
-            msgType = messageType,
-            content = storedContent,
-            answerId = answerId,
-            sendDate = sendDate,
-            lastChanged = sendDate,
-            deleted = false,
-            readers = listOf(Reader(
-                userId = sender,
-                readAt = sendDate
-            )),
-        ))
+        return message
     }
 
     fun editMessage(messageId: ObjectId, editingUserId: ObjectId, newContent: String) : MessageResponse {

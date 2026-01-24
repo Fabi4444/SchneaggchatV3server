@@ -24,7 +24,7 @@ class NotificationService(
     /**
      * Send a notification to a client device
      */
-    fun notifyMessageUpdate(message: Message, newMessage: Boolean, receiverId: ObjectId, group: Boolean) {
+    fun notifyMessageUpdate(message: Message, receiverId: ObjectId) {
 
         //Try sending via socket connection (if fail (not connected) or group use firebase)
         if (group || !socketConnectionHandler.sendMessage(
@@ -45,7 +45,6 @@ class NotificationService(
         firebaseMessagingService.sendNewMessageNotificationToUser(
             userId = receiverId,
             messageContent = TODO(),
-            senderName = TODO(),
             msgId = TODO(),
             groupMessage = TODO(),
             groupName = TODO()
