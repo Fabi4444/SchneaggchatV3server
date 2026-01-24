@@ -3,6 +3,7 @@
 package com.lerchenflo.schneaggchatv3server.core
 
 import com.lerchenflo.schneaggchatv3server.core.security.HashEncoder
+import com.lerchenflo.schneaggchatv3server.group.GroupLookupService
 import com.lerchenflo.schneaggchatv3server.group.GroupService
 import com.lerchenflo.schneaggchatv3server.repository.GroupRepository
 import com.lerchenflo.schneaggchatv3server.user.UserLookupService
@@ -24,12 +25,15 @@ import kotlin.time.ExperimentalTime
 
 @RestController
 class MainController(
-    private val userService: UserService,
     private val userLookupService: UserLookupService,
+    private val groupLookupService: GroupLookupService,
+
     private val hashEncoder: HashEncoder,
     private val mongoTemplate: MongoTemplate,
     private val groupService: GroupService,
     private val groupRepository: GroupRepository,
+
+
     @Value("\${defaultaccount.password}") private val defaultPassword: String
 ){
 
@@ -106,7 +110,7 @@ class MainController(
         println("╠════════════════════════════════════════════════════════════════════════════════╣")
 
         groups.forEach { group ->
-            val members = groupService.getGroupMembers(group.id)
+            val members = groupLookupService.getGroupMembers(group.id)
             val creatorId = group.creatorId
 
             println("║                                                                                ║")

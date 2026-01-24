@@ -2,12 +2,12 @@
 
 package com.lerchenflo.schneaggchatv3server.message
 
+import com.lerchenflo.schneaggchatv3server.group.GroupLookupService
 import com.lerchenflo.schneaggchatv3server.group.GroupService
 import com.lerchenflo.schneaggchatv3server.message.MessageService.MessageContent.Image
 import com.lerchenflo.schneaggchatv3server.message.MessageService.MessageContent.Text
 import com.lerchenflo.schneaggchatv3server.message.messagemodel.*
 import com.lerchenflo.schneaggchatv3server.notifications.NotificationService
-import com.lerchenflo.schneaggchatv3server.notifications.firebase.FirebaseService
 import com.lerchenflo.schneaggchatv3server.repository.MessageRepository
 import com.lerchenflo.schneaggchatv3server.user.FriendsService
 import com.lerchenflo.schneaggchatv3server.user.UserLookupService
@@ -19,6 +19,7 @@ import com.lerchenflo.schneaggchatv3server.util.ValidationUtils
 import org.bson.types.ObjectId
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.MongoTemplate
+import org.springframework.data.mongodb.core.find
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.Update
@@ -36,10 +37,8 @@ class MessageService(
     private val mongoTemplate: MongoTemplate,
     private val messageRepository: MessageRepository,
     private val friendsService: FriendsService,
-    private val groupService: GroupService,
+    private val groupLookupService: GroupLookupService,
     private val imageManager: ImageManager,
-    private val firebaseService: FirebaseService,
-    private val userLookupService: UserLookupService,
     private val notificationService: NotificationService,
     private val loggingService: LoggingService
 ) {
@@ -96,44 +95,11 @@ class MessageService(
         ))
 
 
-
-
-        if (groupMessage) {
-            val members = groupService.getGroupMembers(receiver)
-            val group = groupService.getGroupById(receiver)
-                ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Group not found")
-
-            members
-                .filter { it.userid != sender } //Do not send notification to sender
-                .forEach { member ->
-
-                    notificationService.notifyMessageUpdate(
-                        message = message,
-                        newMessage = true,
-                        receiverId = receiver,
-                        group = true
-                    )
-
-                firebaseService.sendNewMessageNotificationToUser(
-                    userId = member.userid,
-                    messageContent = content.asString(),
-                    senderName = userLookupService.getUsername(sender),
-                    msgId = savedObjectId.toHexString(),
-                    groupMessage = true,
-                    groupName = group.name,
-                )
-            }
-
-
-        }else {
-            //println("Firebase message send start")
-            firebaseService.sendNewMessageNotificationToUser(
-                receiver, content.asString(),
-                senderName = userLookupService.getUsername(sender),
-                msgId = savedObjectId.toString(),
-                groupMessage = false
-            )
-        }
+        notificationService.notifyMessageUpdate(
+            message = message,
+            newMessage = true,
+            deleted = false,
+        )
 
 
         return message
@@ -154,6 +120,12 @@ class MessageService(
             edited = true
         ))
 
+        notificationService.notifyMessageUpdate(
+            message = newmessage,
+            newMessage = false,
+            deleted = false
+        )
+
         return newmessage.toMessageResponse()
     }
 
@@ -167,7 +139,13 @@ class MessageService(
             logType = LogType.MESSAGE_DELETED
         )
 
-        messageRepository.save(message.copy(deleted = true))
+        val updatedMessage = messageRepository.save(message.copy(deleted = true))
+
+        notificationService.notifyMessageUpdate(
+            message = updatedMessage,
+            newMessage = false,
+            deleted = true
+        )
     }
 
 
@@ -187,7 +165,7 @@ class MessageService(
         val query = if (group) {
             // For group messages: find all messages sent to this group
             // that the user hasn't read yet
-            if (!groupService.isUserInGroup(readingUser, chat)) {
+            if (!groupLookupService.isUserInGroup(readingUser, chat)) {
                 println("User $readingUser is not a member of group $chat")
                 return
             }
@@ -217,6 +195,8 @@ class MessageService(
             )
         }
 
+        val messagesToUpdate = mongoTemplate.find<Message>(query, "messages")
+
         // Build reader object to push into the readers array
         val readerDoc = mapOf(
             "userId" to readingUser,
@@ -228,6 +208,29 @@ class MessageService(
             .max("lastChanged", usedInstant)
 
         val result = mongoTemplate.updateMulti(query, update, "messages")
+
+
+        if (result.modifiedCount > 0) {
+            // Fetch the updated messages with the new reader info
+            val updatedQuery = Query().addCriteria(
+                Criteria.where("_id").`in`(messagesToUpdate.map { it.id })
+            )
+            val updatedMessages = mongoTemplate.find<Message>(updatedQuery, "messages")
+
+            updatedMessages.forEach { message ->
+                try {
+                    notificationService.notifyMessageUpdate(
+                        message = message,
+                        newMessage = false,
+                        deleted = false
+                    )
+                } catch (e: Exception) {
+                    println("Failed to notify message update for ${message.id}: ${e.message}")
+                }
+            }
+        }
+
+
 
         //println("Marked read — modifiedCount = ${result.modifiedCount}")
     }
@@ -284,7 +287,7 @@ class MessageService(
     }
 
     private fun getAllUserMessages(userId: ObjectId): List<Message> {
-        val userGroups = groupService.getUserGroupIds(userId)
+        val userGroups = groupLookupService.getUserGroupIds(userId)
 
         val query = Query()
         // Build criteria: user is sender OR receiver OR (groupMessage AND receiver is in user's groups)
@@ -331,7 +334,7 @@ class MessageService(
      */
     private fun canUserAccessMessage(sender: ObjectId, receiver: ObjectId, groupMessage: Boolean) {
         if (groupMessage) {
-            require(groupService.isUserInGroup(sender, receiver)) {
+            require(groupLookupService.isUserInGroup(sender, receiver)) {
                 "You are not a member of this group"
             }
         } else {
