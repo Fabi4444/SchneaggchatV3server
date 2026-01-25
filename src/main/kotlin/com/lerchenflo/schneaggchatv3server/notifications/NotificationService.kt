@@ -1,9 +1,6 @@
 package com.lerchenflo.schneaggchatv3server.notifications
 
 import com.lerchenflo.schneaggchatv3server.group.GroupLookupService
-import com.lerchenflo.schneaggchatv3server.group.GroupService
-import com.lerchenflo.schneaggchatv3server.group.model.Group
-import com.lerchenflo.schneaggchatv3server.group.model.GroupMember
 import com.lerchenflo.schneaggchatv3server.group.model.GroupResponse
 import com.lerchenflo.schneaggchatv3server.message.messagemodel.Message
 import com.lerchenflo.schneaggchatv3server.message.messagemodel.toMessageResponse
@@ -12,10 +9,8 @@ import com.lerchenflo.schneaggchatv3server.notifications.websocket.SocketConnect
 import com.lerchenflo.schneaggchatv3server.notifications.websocket.model.SocketConnectionMessage
 import com.lerchenflo.schneaggchatv3server.user.UserLookupService
 import com.lerchenflo.schneaggchatv3server.user.usermodel.User
-import com.lerchenflo.schneaggchatv3server.user.usermodel.UserResponse
 import org.bson.types.ObjectId
 import org.springframework.stereotype.Service
-import org.springframework.web.socket.TextMessage
 
 
 /**
@@ -62,7 +57,8 @@ class NotificationService(
                     if (newMessage) {
                         //Socket connection failed, use firebase
                         firebaseMessagingService.sendNewMessageNotificationToUser(
-                            userId = member.userid,
+                            senderId = message.senderId,
+                            receiverId = member.userid,
                             messageContent = message.content,
                             msgId = message.id.toHexString(),
                             groupMessage = true,
@@ -89,7 +85,8 @@ class NotificationService(
                 //Message sending failed, use firebase if new, else ignore
                 if (newMessage) {
                     firebaseMessagingService.sendNewMessageNotificationToUser(
-                        userId = message.receiverId,
+                        senderId = message.senderId,
+                        receiverId = message.receiverId,
                         messageContent = message.content,
                         msgId = message.id.toHexString(),
                         groupMessage = false,

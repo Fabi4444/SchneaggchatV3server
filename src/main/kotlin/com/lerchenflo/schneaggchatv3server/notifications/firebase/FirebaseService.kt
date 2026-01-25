@@ -110,18 +110,19 @@ class FirebaseService(
 
 
     fun sendNewMessageNotificationToUser(
-        userId: ObjectId,
+        senderId: ObjectId,
+        receiverId: ObjectId,
         messageContent: String,
         msgId: String,
         groupMessage: Boolean,
         groupName: String? = null
     ) {
-        val senderName = userLookupService.getUsername(userId)
+        val senderName = userLookupService.getUsername(senderId)
 
-        val tokens = getTokensForUser(userId)
+        val tokens = getTokensForUser(receiverId)
 
         if (tokens.isEmpty()) {
-            println("Firebase: no tokens for user $userId found")
+            println("Firebase: no tokens for user $receiverId found")
             return
         }
 
@@ -139,13 +140,13 @@ class FirebaseService(
                 )
 
                 // Reuse the generic sender
-                sendNotificationToUser(userId, notification)
+                sendNotificationToUser(receiverId, notification)
 
             } catch (e: Exception) {
                 println("Error in Firebase notification coroutine: ${e.message}")
                 e.printStackTrace()
                 loggingService.log(
-                    userId = userId,
+                    userId = receiverId,
                     logType = LogType.EXCEPTION_THROWN,
                     message = "Firebase notification error: ${e.message}"
                 )
