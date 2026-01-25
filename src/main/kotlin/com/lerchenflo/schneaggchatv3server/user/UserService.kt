@@ -1,6 +1,7 @@
 package com.lerchenflo.schneaggchatv3server.user
 
 import com.lerchenflo.schneaggchatv3server.core.security.HashEncoder
+import com.lerchenflo.schneaggchatv3server.notifications.NotificationService
 import com.lerchenflo.schneaggchatv3server.repository.RefreshTokenRepository
 import com.lerchenflo.schneaggchatv3server.repository.UserRepository
 import com.lerchenflo.schneaggchatv3server.user.friendshipmodel.FriendshipStatus
@@ -24,14 +25,13 @@ class UserService(
     private val userRepository: UserRepository,
     private val userLookupService: UserLookupService,
 
-    private val friendshipsService : FriendsService,
+    private val friendshipsService: FriendsService,
     private val hashEncoder: HashEncoder,
     private val refreshTokenRepository: RefreshTokenRepository,
-    private val imageManager: ImageManager
+    private val imageManager: ImageManager,
+    private val notificationService: NotificationService
 
 ) {
-
-
 
 
     data class IdTimeStamp(val id: String, val timeStamp: String)
@@ -223,9 +223,10 @@ class UserService(
             //TODO: Send email to the old verified email address
             val somethingChanged = (userRequest.newStatus != null || emailvalid || userRequest.newBirthDate != null)
 
-                userLookupService.save(requestingUser.copy(
+            userLookupService.save(requestingUser.copy(
                 updatedAt = if (somethingChanged) Clock.System.now() else requestingUser.updatedAt,
-                userStatus = userRequest.newStatus ?: requestingUser.userStatus
+                userStatus = userRequest.newStatus ?: requestingUser.userStatus,
+                birthDate = userRequest.newBirthDate ?: requestingUser.birthDate,
             ))
 
         } else {
@@ -241,7 +242,8 @@ class UserService(
             ))
         }
 
-        //TODO: Add user changing + user update notify
+        //TODO: Add user changing + user update notify (Which users??)
+        //notificationService.notifyUserUpdate()
     }
 
 
