@@ -1,6 +1,7 @@
 package com.lerchenflo.schneaggchatv3server.notifications
 
 import com.lerchenflo.schneaggchatv3server.group.GroupLookupService
+import com.lerchenflo.schneaggchatv3server.group.model.Group
 import com.lerchenflo.schneaggchatv3server.group.model.GroupMember
 import com.lerchenflo.schneaggchatv3server.message.messagemodel.Message
 import com.lerchenflo.schneaggchatv3server.message.messagemodel.toMessageResponse
@@ -104,6 +105,8 @@ class NotificationService(
     fun notifyUserUpdate(user: User, deleted: Boolean) {
         //TODO
     }
+
+    fun notifyGroupUpdate(group: Group)
 
     fun notifyFriendRequest(requestingUser: ObjectId, receivingUser: ObjectId, accepted: Boolean) {
         if (!socketConnectionHandler.sendMessage(
