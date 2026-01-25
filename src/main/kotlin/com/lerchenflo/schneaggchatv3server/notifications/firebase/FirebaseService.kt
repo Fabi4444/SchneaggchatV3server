@@ -240,12 +240,10 @@ class FirebaseService(
 
         } catch (e: FirebaseMessagingException) {
             // Use error codes instead of string comparison
-            val errorCode = e.messagingErrorCode
-
             //println("[Firebase] Exception: Code=${errorCode}, Message=${e.message}")
 
             // Remove tokens only for permanent failures
-            when (errorCode) {
+            when (val errorCode = e.messagingErrorCode) {
                 MessagingErrorCode.UNREGISTERED,
                 MessagingErrorCode.INVALID_ARGUMENT,
                 MessagingErrorCode.SENDER_ID_MISMATCH -> {

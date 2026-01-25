@@ -20,17 +20,3 @@ data class Group(
     val creatorId: ObjectId
 
 )
-
-fun Group.toGroupResponse(members: List<GroupMember>): GroupResponse {
-    return GroupResponse(
-        id = id.toHexString(),
-        name = name,
-        description = description,
-        updatedAt = updatedAt.toEpochMilliseconds().toString(),
-        createdAt = createdAt.toEpochMilliseconds().toString(),
-        creatorId = creatorId.toHexString(),
-        members = members.map {
-            it.toGroupMemberResponse()
-        }
-    )
-}
