@@ -30,6 +30,8 @@ import kotlin.time.ExperimentalTime
 class GroupService(
     private val groupRepository: GroupRepository,
     private val groupMemberRepository: GroupMemberRepository,
+    private val groupLookupService: GroupLookupService,
+
     private val imageManager: ImageManager,
     private val friendsService: FriendsService,
     private val loggingService: LoggingService,
@@ -93,58 +95,6 @@ class GroupService(
     }
 
 
-    fun getUserGroupIds(userId: ObjectId): List<ObjectId> {
-        return groupMemberRepository.findByuserid(userId)
-            .map { it.groupId }
-    }
-
-    fun getUserGroupIdsLastchanged(userId: ObjectId): List<UserService.IdTimeStamp> {
-        val usergroups = getUserGroupIds(userId)
-
-        return groupRepository.findAllById(usergroups).map { group ->
-            UserService.IdTimeStamp(
-                id = group.id.toHexString(),
-                timeStamp = group.updatedAt.toEpochMilliseconds().toString()
-            )
-        }
-    }
-    
-    fun getGroupAsGroupResponse(groupId: ObjectId): GroupResponse {
-
-        val group = groupRepository.findById(groupId).get()
-        val members = getGroupMembers(groupId)
-
-        return GroupResponse(
-            id = group.id.toHexString(),
-            name = group.name,
-            description = group.description,
-            updatedAt = group.updatedAt.toEpochMilliseconds().toString(),
-            createdAt = group.createdAt.toEpochMilliseconds().toString(),
-            creatorId = group.creatorId.toHexString(),
-            members = members.map { it.toGroupMemberResponse() }
-        )
-    }
-
-    fun getGroupMembers(groupId: ObjectId): List<GroupMember> {
-        return groupMemberRepository.findAllByGroupId(groupId)
-    }
-
-    fun isUserInGroup(userId: ObjectId, groupId: ObjectId): Boolean {
-        return groupMemberRepository.findByuserid(userId)
-            .any { it.groupId == groupId }
-    }
-
-    fun isAdmin(userId: ObjectId, members: List<GroupMember>): Boolean {
-        val member = members.find { groupMember -> groupMember.userid == userId } ?: return false
-        return member.admin
-    }
-
-    fun getGroupById(groupId: ObjectId): Group? {
-        val group = groupRepository.findById(groupId)
-        return if (group.isPresent) {
-            group.get()
-        } else null
-    }
 
     data class GroupSyncResponse(
         val updatedGroups: List<GroupResponse>,
@@ -158,7 +108,7 @@ class GroupService(
         }
 
         // All groups this user is part of on the server
-        val serverGroups = getUserGroupIdsLastchanged(ObjectId(userId)).associate {
+        val serverGroups = groupLookupService.getUserGroupIdsLastchanged(ObjectId(userId)).associate {
             it.id to it.timeStamp
         }
 
@@ -174,7 +124,7 @@ class GroupService(
 
         return GroupSyncResponse(
             updatedGroups = groupsToSyncIds.map { groupId ->
-                getGroupAsGroupResponse(ObjectId(groupId))
+                groupLookupService.getGroupAsGroupResponse(ObjectId(groupId))
             },
             deletedGroups = deletedGroups
         )
@@ -196,10 +146,10 @@ class GroupService(
 
     fun changeGroupProfilePic(userId: ObjectId, groupId: ObjectId, image: MultipartFile) {
 
-        require(isUserInGroup(userId, groupId))
+        require(groupLookupService.isUserInGroup(userId, groupId))
         require(ValidationUtils.validatePicture(image)) { "Image invalid" }
 
-        val group = getGroupById(groupId)
+        val group = groupLookupService.getGroupById(groupId)
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Group not found")
 
         imageManager.saveProfilePic(
@@ -216,10 +166,10 @@ class GroupService(
 
     fun changeGroupDescription(userId: ObjectId, groupId: ObjectId, newDescription: String) {
 
-        require(isUserInGroup(userId, groupId))
+        require(groupLookupService.isUserInGroup(userId, groupId))
         require(ValidationUtils.validateString(newDescription)) { "Invalid string" }
 
-        val group = getGroupById(groupId)
+        val group = groupLookupService.getGroupById(groupId)
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Group not found")
 
         groupRepository.save(group.copy(
@@ -244,20 +194,20 @@ class GroupService(
 
     fun performUserAction(userAction: GroupMemberAction, requestingUser: ObjectId, groupMember: ObjectId, groupId: ObjectId){
 
-        val group = getGroupById(groupId)
+        val group = groupLookupService.getGroupById(groupId)
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Group not found")
 
-        val groupMembers = getGroupMembers(groupId)
+        val groupMembers = groupLookupService.getGroupMembers(groupId)
 
-        require(isUserInGroup(requestingUser, groupId)) { "You are not a member of this group"}
+        require(groupLookupService.isUserInGroup(requestingUser, groupId)) { "You are not a member of this group"}
 
         val now = Clock.System.now()
 
         when (userAction) {
             GroupMemberAction.ADD_USER -> {
-                require(isAdmin(requestingUser, groupMembers)) {"You are not an admin"}
+                require(groupLookupService.isAdmin(requestingUser, groupMembers)) {"You are not an admin"}
 
-                require(!isUserInGroup(groupMember, groupId)) {"User is already in this group"}
+                require(!groupLookupService.isUserInGroup(groupMember, groupId)) {"User is already in this group"}
 
                 val existingColors = groupMembers.map { it.color }.toSet()
                 val newColor = ColorGenerator.generateUniqueColorsForGroup(existingColors, 1).first()
@@ -275,11 +225,11 @@ class GroupService(
                 }
             }
             GroupMemberAction.REMOVE_USER -> {
-                require(isUserInGroup(groupMember, groupId)) {"User is not in this group"}
+                require(groupLookupService.isUserInGroup(groupMember, groupId)) {"User is not in this group"}
 
                 // If someone else is removing the user, they must be admin
                 if (requestingUser != groupMember) {
-                    require(isAdmin(requestingUser, groupMembers)) {"You are not an admin"}
+                    require(groupLookupService.isAdmin(requestingUser, groupMembers)) {"You are not an admin"}
                 }
 
                 // If user is leaving and is the last admin, promote someone
@@ -308,9 +258,9 @@ class GroupService(
             }
 
             GroupMemberAction.MAKE_ADMIN -> {
-                require(isAdmin(requestingUser, groupMembers)) {"You are not an admin"}
+                require(groupLookupService.isAdmin(requestingUser, groupMembers)) {"You are not an admin"}
 
-                require(isUserInGroup(groupMember, groupId)) {"User is not in this group"}
+                require(groupLookupService.isUserInGroup(groupMember, groupId)) {"User is not in this group"}
 
                 val focusedMember = groupMembers.first { it.userid == groupMember }
                 require(!focusedMember.admin) {"User is already admin"}
@@ -320,9 +270,9 @@ class GroupService(
                 ))
             }
             GroupMemberAction.REMOVE_ADMIN -> {
-                require(isAdmin(requestingUser, groupMembers)) {"You are not an admin"}
+                require(groupLookupService.isAdmin(requestingUser, groupMembers)) {"You are not an admin"}
 
-                require(isUserInGroup(groupMember, groupId)) {"User is not in this group"}
+                require(groupLookupService.isUserInGroup(groupMember, groupId)) {"User is not in this group"}
 
                 val focusedMember = groupMembers.first { it.userid == groupMember }
                 require(focusedMember.admin) {"User is not an admin"}

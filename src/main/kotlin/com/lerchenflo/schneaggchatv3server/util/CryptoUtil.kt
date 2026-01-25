@@ -1,9 +1,8 @@
-package com.lerchenflo.schneaggchatv3server.notifications
+package com.lerchenflo.schneaggchatv3server.util
 
 import dev.whyoleg.cryptography.CryptographyProvider
 import dev.whyoleg.cryptography.algorithms.AES
 import dev.whyoleg.cryptography.algorithms.SHA256
-import org.springframework.stereotype.Component
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
@@ -11,7 +10,7 @@ import kotlin.io.encoding.ExperimentalEncodingApi
 class CryptoUtil {
 
     companion object {
-        private val provider = CryptographyProvider.Default
+        private val provider = CryptographyProvider.Companion.Default
         private val aesGcm = provider.get(AES.GCM)
         private val sha256 = provider.get(SHA256)
 
@@ -30,7 +29,7 @@ class CryptoUtil {
                 plaintext = plainText.encodeToByteArray()
             )
 
-            return Base64.encode(encryptedBytes)
+            return Base64.Default.encode(encryptedBytes)
         }
 
         /**
@@ -45,7 +44,7 @@ class CryptoUtil {
             val cipher = aesKey.cipher()
 
             val decryptedBytes = cipher.decrypt(
-                ciphertext = Base64.decode(encryptedText)
+                ciphertext = Base64.Default.decode(encryptedText)
             )
 
             return decryptedBytes.decodeToString()

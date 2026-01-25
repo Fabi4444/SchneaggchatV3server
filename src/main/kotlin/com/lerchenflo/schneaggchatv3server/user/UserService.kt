@@ -22,62 +22,15 @@ import kotlin.time.Clock
 @Service
 class UserService(
     private val userRepository: UserRepository,
+    private val userLookupService: UserLookupService,
+
     private val friendshipsService : FriendsService,
     private val hashEncoder: HashEncoder,
     private val refreshTokenRepository: RefreshTokenRepository,
     private val imageManager: ImageManager
 
 ) {
-    fun checkExistingUser(username: String, email: String) {
-        val usernameexists = userRepository.findByUsername(username)
-        if (usernameexists != null) {
-            throw ResponseStatusException(HttpStatus.CONFLICT, "A user with this username already exists")
-        }
 
-        val emailexists = userRepository.findByEmail(email.trim())
-        if (emailexists != null) {
-            throw ResponseStatusException(HttpStatus.CONFLICT, "A user with this email already exists")
-        }
-    }
-
-    fun save(user: User): User {
-        return userRepository.save(user)
-    }
-
-    fun findById(id: String): User? {
-        val objid = ObjectId(id)
-
-        return findByObjectId(objid)
-    }
-
-    fun findByObjectId(id: ObjectId): User? {
-
-        val optuser = userRepository.findById(id)
-
-        return if (optuser.isPresent) {
-            optuser.get()
-        }else null
-    }
-
-    fun findByUsername(username: String): User? {
-        val optuser = userRepository.findByUsername(username)
-
-        return optuser
-    }
-
-    fun findByEmail(email: String): User? {
-        val optuser = userRepository.findByEmail(email)
-
-        return optuser
-    }
-
-    fun deleteUser(userId: ObjectId) {
-        userRepository.deleteById(userId)
-    }
-
-    fun getUsername(userId: ObjectId): String {
-        return userRepository.findById(userId).get().username
-    }
 
 
 
@@ -251,10 +204,10 @@ class UserService(
         changingUserId: String,
         userRequest: UserRequest
     ) {
-        val requestingUser = findById(changingUserId)
+        val requestingUser = userLookupService.findById(changingUserId)
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")
 
-        val user = findById(userRequest.userId)
+        val user = userLookupService.findById(userRequest.userId)
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")
 
         //Change something about yourself
@@ -262,7 +215,7 @@ class UserService(
 
             val somethingChanged = userRequest.newStatus != null
 
-            save(requestingUser.copy(
+                userLookupService.save(requestingUser.copy(
                 updatedAt = if (somethingChanged) Clock.System.now() else requestingUser.updatedAt,
                 userStatus = userRequest.newStatus ?: requestingUser.userStatus
             ))
@@ -272,7 +225,7 @@ class UserService(
 
             val somethingChanged = userRequest.newDescription != null
 
-            save(user.copy(
+                userLookupService.save(user.copy(
                 updatedAt = if (somethingChanged) Clock.System.now() else user.updatedAt,
                 userDescription = userRequest.newDescription ?: user.userDescription
             ))

@@ -2,7 +2,7 @@
 
 package com.lerchenflo.schneaggchatv3server.user
 
-import com.lerchenflo.schneaggchatv3server.notifications.firebase.FirebaseService
+import com.lerchenflo.schneaggchatv3server.notifications.NotificationService
 import com.lerchenflo.schneaggchatv3server.repository.FriendshipRepository
 import com.lerchenflo.schneaggchatv3server.repository.UserRepository
 import com.lerchenflo.schneaggchatv3server.user.friendshipmodel.Friendship
@@ -21,8 +21,8 @@ import kotlin.time.Instant
 class FriendsService(
     private val friendshipRepository: FriendshipRepository,
     private val loggingService: LoggingService,
-    private val firebaseService: FirebaseService,
     private val userRepository: UserRepository,
+    private val notificationService: NotificationService
     ) {
 
     /**
@@ -73,10 +73,10 @@ class FriendsService(
             status = FriendshipStatus.PENDING
         )
 
-        firebaseService.sendFriendRequestNotificationToUser(
-            senderId = fromUserId,
-            receivingUserId = toUserId,
-            sendingUserName = userRepository.findById(fromUserId).get().username,
+
+        notificationService.notifyFriendRequest(
+            requestingUser = fromUserId,
+            receivingUser = toUserId
         )
 
         return friendshipRepository.save(friendship)

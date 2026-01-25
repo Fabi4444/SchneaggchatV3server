@@ -22,7 +22,8 @@ import org.springframework.web.server.ResponseStatusException
 @RestController
 @RequestMapping("/groups")
 class GroupController(
-    private val groupService: GroupService
+    private val groupService: GroupService,
+    private val groupLookupService: GroupLookupService,
 ) {
 
     @PostMapping("/create", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
@@ -46,7 +47,7 @@ class GroupController(
             description = description
         )
 
-        return groupService.getGroupAsGroupResponse(group.id)
+        return groupLookupService.getGroupAsGroupResponse(group.id)
     }
 
     @PostMapping("/sync")
@@ -74,7 +75,7 @@ class GroupController(
                 /* reason = */ "Not logged in"
             )
 
-        require(groupService.isUserInGroup(ObjectId(requestingUserId), ObjectId(groupId)))
+        require(groupLookupService.isUserInGroup(ObjectId(requestingUserId), ObjectId(groupId)))
 
         return groupService.getGroupProfilePic(ObjectId(groupId))
     }
