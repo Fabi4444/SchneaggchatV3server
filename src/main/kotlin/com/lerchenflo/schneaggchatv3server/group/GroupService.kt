@@ -4,11 +4,14 @@ package com.lerchenflo.schneaggchatv3server.group
 
 import com.lerchenflo.schneaggchatv3server.group.model.Group
 import com.lerchenflo.schneaggchatv3server.group.model.GroupMember
+import com.lerchenflo.schneaggchatv3server.group.model.GroupMemberResponse
 import com.lerchenflo.schneaggchatv3server.group.model.GroupResponse
 import com.lerchenflo.schneaggchatv3server.group.model.toGroupMemberResponse
+import com.lerchenflo.schneaggchatv3server.notifications.NotificationService
 import com.lerchenflo.schneaggchatv3server.repository.GroupMemberRepository
 import com.lerchenflo.schneaggchatv3server.repository.GroupRepository
 import com.lerchenflo.schneaggchatv3server.user.FriendsService
+import com.lerchenflo.schneaggchatv3server.user.UserLookupService
 import com.lerchenflo.schneaggchatv3server.user.UserService
 import com.lerchenflo.schneaggchatv3server.util.ColorGenerator
 import com.lerchenflo.schneaggchatv3server.util.ImageManager
@@ -16,7 +19,9 @@ import com.lerchenflo.schneaggchatv3server.util.LogType
 import com.lerchenflo.schneaggchatv3server.util.LoggingService
 import com.lerchenflo.schneaggchatv3server.util.ValidationUtils
 import io.jsonwebtoken.security.Keys.password
+import org.bson.codecs.ObjectIdGenerator
 import org.bson.types.ObjectId
+import org.springframework.dao.DuplicateKeyException
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -31,6 +36,9 @@ class GroupService(
     private val groupRepository: GroupRepository,
     private val groupMemberRepository: GroupMemberRepository,
     private val groupLookupService: GroupLookupService,
+    private val userLookupService: UserLookupService,
+
+    private val notificationService: NotificationService,
 
     private val imageManager: ImageManager,
     private val friendsService: FriendsService,
@@ -74,7 +82,7 @@ class GroupService(
         val memberColors = ColorGenerator.generateUniqueColorsForGroup(existingColors, membersInternal.size)
         val memberColorMap = membersInternal.zip(memberColors).toMap()
 
-        groupMemberRepository.saveAll(
+        val members = groupMemberRepository.saveAll(
             membersInternal.mapIndexed { index, userId ->
                 GroupMember(
                     userid = userId,
@@ -89,6 +97,23 @@ class GroupService(
         loggingService.log(
             userId = creatorId,
             logType = LogType.GROUP_CREATED,
+        )
+
+        notificationService.notifyGroupUpdate(
+            GroupResponse(
+                id = group.id.toHexString(),
+                name = group.name,
+                description = group.description,
+                updatedAt = group.updatedAt.toEpochMilliseconds().toString(),
+                createdAt = group.createdAt.toEpochMilliseconds().toString(),
+                creatorId = group.creatorId.toHexString(),
+                members = members.map { member ->
+                    member.toGroupMemberResponse(
+                        memberName = userLookupService.getUsername(member.userid)
+                    )
+                }
+            ),
+            deleted = false
         )
 
         return group
@@ -162,6 +187,8 @@ class GroupService(
             updatedAt = Clock.System.now()
         ))
 
+        notificationService.notifyGroupUpdate(groupLookupService.getGroupAsGroupResponse(groupId), false)
+
     }
 
     fun changeGroupDescription(userId: ObjectId, groupId: ObjectId, newDescription: String) {
@@ -176,6 +203,9 @@ class GroupService(
             updatedAt = Clock.System.now(),
             description = newDescription
         ))
+
+        notificationService.notifyGroupUpdate(groupLookupService.getGroupAsGroupResponse(groupId), false)
+
     }
 
 
@@ -220,7 +250,7 @@ class GroupService(
                         admin = false,
                         color = newColor
                     ))
-                } catch (e: org.springframework.dao.DuplicateKeyException) {
+                } catch (e: DuplicateKeyException) {
                     throw IllegalArgumentException("User is already in this group")
                 }
             }
@@ -289,6 +319,9 @@ class GroupService(
 
         //No error, update group last changed
         groupRepository.save(group.copy(updatedAt = now))
+
+        notificationService.notifyGroupUpdate(groupLookupService.getGroupAsGroupResponse(groupId), false)
+
     }
 
 }

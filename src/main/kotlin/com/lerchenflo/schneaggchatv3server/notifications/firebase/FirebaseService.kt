@@ -157,6 +157,7 @@ class FirebaseService(
     fun sendFriendRequestNotificationToUser(
         senderId: ObjectId,
         receivingUserId: ObjectId,
+        accepted: Boolean
     ) {
         val sendingUserName = userLookupService.getUsername(senderId)
 
@@ -174,6 +175,7 @@ class FirebaseService(
                 val notification = NotificationResponse.FriendRequestNotificationResponse(
                     requesterId = receivingUserId.toHexString(),
                     requesterName = sendingUserName,
+                    accepted = accepted,
                 )
 
 
@@ -240,12 +242,10 @@ class FirebaseService(
 
         } catch (e: FirebaseMessagingException) {
             // Use error codes instead of string comparison
-            val errorCode = e.messagingErrorCode
-
             //println("[Firebase] Exception: Code=${errorCode}, Message=${e.message}")
 
             // Remove tokens only for permanent failures
-            when (errorCode) {
+            when (val errorCode = e.messagingErrorCode) {
                 MessagingErrorCode.UNREGISTERED,
                 MessagingErrorCode.INVALID_ARGUMENT,
                 MessagingErrorCode.SENDER_ID_MISMATCH -> {

@@ -29,7 +29,7 @@ class GroupController(
     @PostMapping("/create", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun register(
         @RequestParam("name") groupname: String,
-        @RequestParam("memberlist[]") members: List<String>,
+        @RequestParam("memberlist") members: String,
         @RequestParam("description") description: String,
         @RequestParam("profilepic") profilePic: MultipartFile
     ) : GroupResponse {
@@ -39,9 +39,12 @@ class GroupController(
                 /* reason = */ "Not logged in"
             )
 
+        //Members as string that they do not steal all requestparams
+        val memberIds = members.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+
         val group = groupService.createGroup(
             groupName = groupname,
-            members = members.map { ObjectId(it) },
+            members = memberIds.map { ObjectId(it) },
             creatorId = ObjectId(requestingUserId),
             profilePic = profilePic,
             description = description

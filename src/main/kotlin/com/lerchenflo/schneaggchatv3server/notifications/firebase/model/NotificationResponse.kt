@@ -27,7 +27,8 @@ sealed interface NotificationResponse {
     //Response for a friend request notification
     data class FriendRequestNotificationResponse(
         val requesterId: String,
-        val requesterName: String
+        val requesterName: String,
+        val accepted: Boolean
     ) : NotificationResponse
 
     //Response for a system notification

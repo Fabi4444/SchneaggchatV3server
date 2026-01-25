@@ -124,7 +124,7 @@ class MainController(
             println("║  ├──────────────────────────────────┼──────────────┼──────────────────────────┤║")
 
             members.forEach { member ->
-                val username = userLookupService.getUsername(member.userid) ?: "Unknown"
+                val username = userLookupService.getUsername(member.userid)
                 val isCreator = member.userid == creatorId
                 val isAdmin = member.admin
 

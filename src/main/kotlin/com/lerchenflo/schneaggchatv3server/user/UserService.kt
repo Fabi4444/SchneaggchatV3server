@@ -182,6 +182,8 @@ class UserService(
             username = normalizedNewName,
             updatedAt = Clock.System.now()
         ))
+
+        //TODO: User sync for connected friends??
     }
 
     fun changeProfilepic(requestingUserId: String, newPic: MultipartFile){
@@ -198,6 +200,9 @@ class UserService(
         userRepository.save(user.copy(
             updatedAt = Clock.System.now(),
         ))
+
+        //TODO: User sync for connected friends??
+
     }
 
     fun changeUserProfile(
@@ -210,10 +215,13 @@ class UserService(
         val user = userLookupService.findById(userRequest.userId)
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")
 
-        //Change something about yourself
+        //Change something about yourself (Status, email, birthdate)
         if (changingUserId == userRequest.userId) {
 
-            val somethingChanged = userRequest.newStatus != null
+            val emailvalid = user.emailVerifiedAt != null && userRequest.newEmail != null
+
+            //TODO: Send email to the old verified email address
+            val somethingChanged = (userRequest.newStatus != null || emailvalid || userRequest.newBirthDate != null)
 
                 userLookupService.save(requestingUser.copy(
                 updatedAt = if (somethingChanged) Clock.System.now() else requestingUser.updatedAt,
@@ -223,14 +231,17 @@ class UserService(
         } else {
             require(friendshipsService.areFriends(requestingUser.id, user.id))
 
+
+            //TODO: newNickname
             val somethingChanged = userRequest.newDescription != null
 
-                userLookupService.save(user.copy(
+            userLookupService.save(user.copy(
                 updatedAt = if (somethingChanged) Clock.System.now() else user.updatedAt,
                 userDescription = userRequest.newDescription ?: user.userDescription
             ))
-
         }
+
+        //TODO: Add user changing + user update notify
     }
 
 

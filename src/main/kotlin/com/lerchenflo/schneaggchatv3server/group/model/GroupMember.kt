@@ -26,11 +26,12 @@ data class GroupMember(
     val color: Int
 )
 
-fun GroupMember.toGroupMemberResponse(): GroupMemberResponse {
+fun GroupMember.toGroupMemberResponse(memberName: String): GroupMemberResponse {
     return GroupMemberResponse(
         userid = userid.toHexString(),
         joinedAt = joinedAt.toEpochMilliseconds().toString(),
         admin = admin,
-        color = color
+        color = color,
+        memberName = memberName
     )
 }
