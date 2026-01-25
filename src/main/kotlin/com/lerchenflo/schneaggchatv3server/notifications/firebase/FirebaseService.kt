@@ -157,6 +157,7 @@ class FirebaseService(
     fun sendFriendRequestNotificationToUser(
         senderId: ObjectId,
         receivingUserId: ObjectId,
+        accepted: Boolean
     ) {
         val sendingUserName = userLookupService.getUsername(senderId)
 
@@ -174,6 +175,7 @@ class FirebaseService(
                 val notification = NotificationResponse.FriendRequestNotificationResponse(
                     requesterId = receivingUserId.toHexString(),
                     requesterName = sendingUserName,
+                    accepted = accepted,
                 )
 
 

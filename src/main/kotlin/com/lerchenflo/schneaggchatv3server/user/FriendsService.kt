@@ -76,7 +76,8 @@ class FriendsService(
 
         notificationService.notifyFriendRequest(
             requestingUser = fromUserId,
-            receivingUser = toUserId
+            receivingUser = toUserId,
+            accepted = false
         )
 
         return friendshipRepository.save(friendship)
@@ -102,6 +103,12 @@ class FriendsService(
         friendship.updatedAt = Clock.System.now()
 
         println("New friendship saved")
+
+        notificationService.notifyFriendRequest(
+            requestingUser = acceptingUserId,
+            receivingUser = requesterId,
+            accepted = true
+        )
 
         return friendshipRepository.save(friendship)
     }

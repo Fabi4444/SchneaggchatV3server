@@ -105,19 +105,20 @@ class NotificationService(
         //TODO
     }
 
-    fun notifyFriendRequest(requestingUser: ObjectId, receivingUser: ObjectId) {
+    fun notifyFriendRequest(requestingUser: ObjectId, receivingUser: ObjectId, accepted: Boolean) {
         if (!socketConnectionHandler.sendMessage(
                 SocketConnectionMessage.FriendRequest(
-                    requestingUser = requestingUser,
-                    receivingUser = receivingUser,
-                    sendingUserName = userLookupService.getUsername(requestingUser)
+                    requestingUser = requestingUser.toHexString(),
+                    requestingUserName = userLookupService.getUsername(requestingUser),
+                    accepted = accepted,
                 ),
                 receiverId = receivingUser,
             )
         ) {
             firebaseMessagingService.sendFriendRequestNotificationToUser(
                 senderId = requestingUser,
-                receivingUserId = receivingUser
+                receivingUserId = receivingUser,
+                accepted = accepted
             )
         }
     }
