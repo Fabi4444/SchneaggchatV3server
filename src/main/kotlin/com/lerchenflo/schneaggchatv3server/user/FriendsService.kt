@@ -107,7 +107,7 @@ class FriendsService(
         notificationService.notifyFriendRequest(
             requestingUser = acceptingUserId,
             receivingUser = requesterId,
-            accepted = true
+            accepted = true,
         )
 
         return friendshipRepository.save(friendship)

@@ -1,8 +1,10 @@
 package com.lerchenflo.schneaggchatv3server.notifications
 
 import com.lerchenflo.schneaggchatv3server.group.GroupLookupService
+import com.lerchenflo.schneaggchatv3server.group.GroupService
 import com.lerchenflo.schneaggchatv3server.group.model.Group
 import com.lerchenflo.schneaggchatv3server.group.model.GroupMember
+import com.lerchenflo.schneaggchatv3server.group.model.GroupResponse
 import com.lerchenflo.schneaggchatv3server.message.messagemodel.Message
 import com.lerchenflo.schneaggchatv3server.message.messagemodel.toMessageResponse
 import com.lerchenflo.schneaggchatv3server.notifications.firebase.FirebaseService
@@ -10,6 +12,7 @@ import com.lerchenflo.schneaggchatv3server.notifications.websocket.SocketConnect
 import com.lerchenflo.schneaggchatv3server.notifications.websocket.model.SocketConnectionMessage
 import com.lerchenflo.schneaggchatv3server.user.UserLookupService
 import com.lerchenflo.schneaggchatv3server.user.usermodel.User
+import com.lerchenflo.schneaggchatv3server.user.usermodel.UserResponse
 import org.bson.types.ObjectId
 import org.springframework.stereotype.Service
 import org.springframework.web.socket.TextMessage
@@ -106,14 +109,26 @@ class NotificationService(
         //TODO
     }
 
-    fun notifyGroupUpdate(group: Group)
+    fun notifyGroupUpdate(groupResponse: GroupResponse, deleted: Boolean) {
+
+        //Only for socket connected users
+        groupResponse.members.forEach { member ->
+            socketConnectionHandler.sendMessage(
+                SocketConnectionMessage.GroupChange(
+                    group = groupResponse,
+                    deleted = deleted
+                ),
+                receiverId = ObjectId(member.userid),
+            )
+        }
+    }
 
     fun notifyFriendRequest(requestingUser: ObjectId, receivingUser: ObjectId, accepted: Boolean) {
         if (!socketConnectionHandler.sendMessage(
                 SocketConnectionMessage.FriendRequest(
                     requestingUser = requestingUser.toHexString(),
                     requestingUserName = userLookupService.getUsername(requestingUser),
-                    accepted = accepted,
+                    accepted = accepted
                 ),
                 receiverId = receivingUser,
             )
