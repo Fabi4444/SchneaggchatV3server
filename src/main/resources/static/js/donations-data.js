@@ -39,10 +39,16 @@ const donationsConfig = {
             message: "Weihnachtsspende"
         },
         {
-            name: "jonny",
+            name: "Jonny",
             amount: 5.00,
             date: "14. Jänner 2026",
             message: "Liebe Grüße"
+        },
+        {
+            name: "Petra",
+            amount: 50.00,
+            date: "27. Jänner 2026",
+            message: "Gratuliere"
         },
 
     ]
