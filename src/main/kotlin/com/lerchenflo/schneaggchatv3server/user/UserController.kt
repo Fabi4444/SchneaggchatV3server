@@ -7,6 +7,7 @@ import com.lerchenflo.schneaggchatv3server.notifications.firebase.FirebaseServic
 import com.lerchenflo.schneaggchatv3server.user.usermodel.NewFriendsUserResponse
 import com.lerchenflo.schneaggchatv3server.user.usermodel.UserRequest
 import com.lerchenflo.schneaggchatv3server.util.ImageManager
+import jakarta.validation.Valid
 import org.bson.types.ObjectId
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -71,7 +72,7 @@ class UserController(
 
     @PostMapping("/changepassword")
     fun changePassword(
-        @RequestBody(required = true) changeRequest: UserService.PasswordChangeRequest,
+        @Valid @RequestBody(required = true) changeRequest: UserService.PasswordChangeRequest,
     ){
         val requestingUserId =
             SecurityContextHolder.getContext().authentication?.principal as? String ?: throw ResponseStatusException(
