@@ -99,7 +99,7 @@ class EmailService(
         val mail = SimpleMailMessage()
         mail.setTo(email)
         mail.subject = "Schneaggchat account deletion"
-        mail.text = "Someone requested to delete your account. If this was not you, please ignore this email.\nIf you really want to delete your account, click the link below.\nYOUR ACCOUNT WILL BE DELETED IMMEDIATELY!:\n$verificationUrl"
+        mail.text = "Someone requested to delete your account. If this was not you, please ignore this email.\nIf you really want to delete your account, click the link below to confirm:\n$verificationUrl\n\nNote: You will need to confirm the deletion on the website before your account is permanently deleted."
         try {
             mailSender.send(mail)
             loggingService.log(userId, LogType.ACCOUNT_DELETION_EMAIL_SENT)
@@ -109,19 +109,33 @@ class EmailService(
     }
 
     /**
-     * Client pressed on the link, verify
+     * Generate confirmation token for account deletion (called from confirmation page)
      */
-    fun verifyDelAccRequest(token: String) : Boolean {
-        val (email, userId) = jwtService.validateDelAccEmailToken(token) ?: return false
+    fun generateDelAccConfirmToken(token: String): String? {
+        val (email, userId) = jwtService.validateDelAccEmailToken(token) ?: return null
+        
+        val user = userLookupService.findByEmail(email) ?: return null
+        if (user.id != userId) return null
+        
+        return jwtService.generateDelAccConfirmToken(userId.toHexString(), email)
+    }
+
+    /**
+     * Actually delete the account after confirmation
+     */
+    fun confirmDeleteAccount(confirmToken: String): Boolean {
+        val (email, userId) = jwtService.validateDelAccConfirmToken(confirmToken) ?: return false
 
         val user = userLookupService.findByEmail(email) ?: return false
-
         if (user.id != userId) return false
 
-        //TODO: Delete messages from this user and leave all groups
+        // Delete refresh tokens
         refreshTokenRepository.deleteByUserId(user.id)
+        
+        // Delete the user
+        userLookupService.deleteUser(user.id)
         println("Account with name ${user.username} has been deleted")
-        //userService.deleteUser(user.id)
+        
         return true
     }
 

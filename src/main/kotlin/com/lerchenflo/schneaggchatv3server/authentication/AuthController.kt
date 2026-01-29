@@ -129,14 +129,104 @@ class AuthController(
     fun deleteAccount(
         @RequestParam("token") token: String,
     ) : String {
-        //println("Delete account token: $token")
+        // Generate confirmation page
+        val confirmToken = emailService.generateDelAccConfirmToken(token)
+        
+        return if (confirmToken != null) {
+            """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Confirm Account Deletion</title>
+                <style>
+                    body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+                    .warning { color: #d32f2f; font-weight: bold; margin: 20px 0; }
+                    .button { background-color: #d32f2f; color: white; padding: 10px 20px; border: none; cursor: pointer; }
+                    .cancel { background-color: #666; color: white; padding: 10px 20px; border: none; cursor: pointer; margin-left: 10px; }
+                </style>
+            </head>
+            <body>
+                <h1>Confirm Account Deletion</h1>
+                <div class="warning">
+                    WARNING: This action cannot be undone. All your data will be permanently deleted.
+                </div>
+                <p>Are you sure you want to delete your account?</p>
+                <form action="/auth/confirm_delete_account" method="post">
+                    <input type="hidden" name="confirmToken" value="$confirmToken">
+                    <button type="submit" class="button">Yes, Delete My Account</button>
+                    <a href="/" class="cancel">Cancel</a>
+                </form>
+            </body>
+            </html>
+            """.trimIndent()
+        } else {
+            """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Invalid Link</title>
+                <style>
+                    body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+                    .error { color: #d32f2f; font-weight: bold; }
+                </style>
+            </head>
+            <body>
+                <h1>Invalid or Expired Link</h1>
+                <div class="error">
+                    The deletion link is invalid or has expired. Please request a new deletion email.
+                </div>
+                <a href="/">Return to Home</a>
+            </body>
+            </html>
+            """.trimIndent()
+        }
+    }
 
-        return if (emailService.verifyDelAccRequest(token)){
-            //Email verified
-            "Your account has been deleted"
-        }else {
-            //Email not verified
-            "Account deletion failed"
+    @PostMapping("/confirm_delete_account")
+    fun confirmDeleteAccount(
+        @RequestParam("confirmToken") confirmToken: String,
+    ) : String {
+        return if (emailService.confirmDeleteAccount(confirmToken)){
+            """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Account Deleted</title>
+                <style>
+                    body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+                    .success { color: #4caf50; font-weight: bold; }
+                </style>
+            </head>
+            <body>
+                <h1>Account Successfully Deleted</h1>
+                <div class="success">
+                    Your account has been permanently deleted. All your data has been removed.
+                </div>
+                <p>Thank you for using Schneaggchat.</p>
+                <a href="/">Return to Home</a>
+            </body>
+            </html>
+            """.trimIndent()
+        } else {
+            """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Deletion Failed</title>
+                <style>
+                    body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+                    .error { color: #d32f2f; font-weight: bold; }
+                </style>
+            </head>
+            <body>
+                <h1>Account Deletion Failed</h1>
+                <div class="error">
+                    The confirmation token is invalid or has expired. Please request a new deletion email.
+                </div>
+                <a href="/">Return to Home</a>
+            </body>
+            </html>
+            """.trimIndent()
         }
     }
 
