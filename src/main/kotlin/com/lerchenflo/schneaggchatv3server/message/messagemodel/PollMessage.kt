@@ -12,6 +12,9 @@ data class PollMessage(
     val allowCustomAnswers: Boolean,
     val allowMultipleAnswers: Boolean,
     val showAnswers: Boolean,
+    val maxCustomAnswers: Int?,
+
+
     val expiresAt: Instant?,
 
     val voteOptions: List<PollVoteOption> = emptyList(),
