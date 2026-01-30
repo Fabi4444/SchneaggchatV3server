@@ -33,10 +33,10 @@ const donationsConfig = {
     // No need to specify icons - they're assigned randomly!
     donations: [
         {
-            name: "Daffith",
-            amount: 10.00,
-            date: "24. Dezember 2025",
-            message: "Weihnachtsspende"
+            name: "Petra",
+            amount: 50.00,
+            date: "27. Jänner 2026",
+            message: "Gratuliere"
         },
         {
             name: "Jonny",
@@ -45,11 +45,13 @@ const donationsConfig = {
             message: "Liebe Grüße"
         },
         {
-            name: "Petra",
-            amount: 50.00,
-            date: "27. Jänner 2026",
-            message: "Gratuliere"
+            name: "Daffith",
+            amount: 10.00,
+            date: "24. Dezember 2025",
+            message: "Weihnachtsspende"
         },
+
+
 
     ]
 };
