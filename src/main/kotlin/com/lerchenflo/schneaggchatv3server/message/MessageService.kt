@@ -204,7 +204,7 @@ class MessageService(
         )
 
         val update = Update()
-            .push("readers", readerDoc)
+            .addToSet("readers", readerDoc)
             .max("lastChanged", usedInstant)
 
         val result = mongoTemplate.updateMulti(query, update, "messages")

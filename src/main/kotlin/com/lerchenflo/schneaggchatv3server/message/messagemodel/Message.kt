@@ -18,8 +18,10 @@ data class Message(
     val receiverId: ObjectId,
     val groupMessage: Boolean,
     val msgType: MessageType,
-    val content: String,
     val answerId: ObjectId?,
+
+    val content: String,
+    
 
     val sendDate: Instant,
     val lastChanged: Instant,

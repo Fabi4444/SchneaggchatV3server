@@ -1,6 +1,5 @@
 package com.lerchenflo.schneaggchatv3server.message.messagemodel
 
-import com.fasterxml.jackson.databind.JsonSerializer
 import com.fasterxml.jackson.databind.ObjectMapper
 import kotlin.time.Instant
 
@@ -10,9 +9,12 @@ data class PollMessage(
     val description: String?,
 
     val allowCustomAnswers: Boolean,
+    val maxAnswers: Int?,
+
     val allowMultipleAnswers: Boolean,
-    val showAnswers: Boolean,
     val maxCustomAnswers: Int?,
+
+    val visibility: PollVisibility,
 
 
     val expiresAt: Instant?,
@@ -30,6 +32,7 @@ data class PollVoteOption(
     val id: String,
     val text: String,
     val custom: Boolean,
+    val creatorId: String,
     val voters : List<PollVoter>
 )
 
@@ -38,3 +41,9 @@ data class PollVoter(
     val votedAt: Instant,
 
 )
+
+enum class PollVisibility{
+    PUBLIC,
+    PRIVATE,
+    ANONYMOUS
+}
