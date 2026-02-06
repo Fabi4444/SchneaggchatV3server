@@ -7,6 +7,7 @@ data class MessageResponse(
     val groupMessage: Boolean,
     val msgType: MessageType,
     val content: String,
+    val pollResponse: PollResponse?,
     val answerId: String?,
 
     val sendDate: Long,

@@ -1,6 +1,5 @@
 package com.lerchenflo.schneaggchatv3server.notifications.firebase
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
@@ -17,6 +16,7 @@ import com.lerchenflo.schneaggchatv3server.notifications.firebase.model.Firebase
 import com.lerchenflo.schneaggchatv3server.notifications.firebase.model.NotificationResponse
 import com.lerchenflo.schneaggchatv3server.repository.FirebaseTokenRepository
 import com.lerchenflo.schneaggchatv3server.user.UserLookupService
+import com.lerchenflo.schneaggchatv3server.util.Json
 import com.lerchenflo.schneaggchatv3server.util.LogType
 import com.lerchenflo.schneaggchatv3server.util.LoggingService
 import kotlinx.coroutines.CoroutineScope
@@ -34,9 +34,6 @@ class FirebaseService(
     private val userLookupService: UserLookupService,
     private val jwtService: JwtService
 ) {
-
-    private val objectMapper = jacksonObjectMapper()
-
 
     init {
         run {
@@ -288,14 +285,14 @@ class FirebaseService(
 
     private fun notificationResponseToDataMap(notification: NotificationResponse): Map<String, String> {
         // convert to a raw Map<*,*>
-        val raw = objectMapper.convertValue(notification, Map::class.java) as Map<String, Any?>? ?: emptyMap()
+        val raw = Json.mapper.convertValue(notification, Map::class.java) as Map<String, Any?>? ?: emptyMap()
 
         val result = raw.mapValues { (_, v) ->
             when (v) {
                 null -> ""
                 is String -> v
                 is Number, is Boolean -> v.toString()
-                else -> objectMapper.writeValueAsString(v) // nested / complex objects -> JSON string
+                else -> Json.mapper.writeValueAsString(v) // nested / complex objects -> JSON string
             }
         }.toMutableMap()
 
