@@ -50,6 +50,18 @@ const donationsConfig = {
             date: "24. Dezember 2025",
             message: "Weihnachtsspende"
         },
+        {
+            name: "Herr Ess",
+            amount: 20.00,
+            date: "14. Oktober 2025",
+            message: "Schneaggchat"
+        },
+        {
+            name: "Norbert Konrad",
+            amount: 20.00,
+            date: "28. Mai 2025",
+            message: "Dra bliba buaba..."
+        },
 
 
 

@@ -44,7 +44,7 @@ class MessageController(
             answerId = if (messageRequest.answerId != null) ObjectId(messageRequest.answerId) else null
         )
 
-        return message.toMessageResponse()
+        return message.toMessageResponse(ObjectId(requestingUserId))
     }
 
 
