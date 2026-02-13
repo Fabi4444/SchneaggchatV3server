@@ -47,7 +47,7 @@ class NotificationService(
 
                 if (!socketConnectionHandler.sendMessage(
                         message = SocketConnectionMessage.MessageChange(
-                            message = message.toMessageResponse(),
+                            message = message.toMessageResponse(member.userid),
                             deleted = deleted,
                             newMessage = newMessage,
                         ),
@@ -75,7 +75,7 @@ class NotificationService(
             //Try sending via socketconnection
             if (!socketConnectionHandler.sendMessage(
                     SocketConnectionMessage.MessageChange(
-                        message = message.toMessageResponse(),
+                        message = message.toMessageResponse(message.receiverId),
                         deleted = deleted,
                         newMessage = newMessage,
                     ),

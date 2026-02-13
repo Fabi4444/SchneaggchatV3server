@@ -47,11 +47,14 @@ class MessageService(
         return when (this) {
             is Image -> "image"
             is Text -> message.take(300)
+            is MessageContent.Poll -> poll.toJson()
         }
     }
     sealed class MessageContent {
         data class Text(val message: String) : MessageContent()
         data class Image(val image: MultipartFile) : MessageContent()
+
+        data class Poll(val poll: PollMessage) : MessageContent()
     }
 
     fun sendMessage(sender: ObjectId, receiver: ObjectId, groupMessage: Boolean, messageType: MessageType, content: MessageContent, answerId: ObjectId?) : Message {
@@ -72,6 +75,10 @@ class MessageService(
             is Text -> {
                 content.message
             }
+
+            is MessageContent.Poll -> {
+                ""
+            }
         }
 
 
@@ -84,6 +91,7 @@ class MessageService(
             groupMessage = groupMessage,
             msgType = messageType,
             content = storedContent,
+            poll = if (content is MessageContent.Poll) content.poll else null,
             answerId = answerId,
             sendDate = sendDate,
             lastChanged = sendDate,
@@ -126,7 +134,7 @@ class MessageService(
             deleted = false
         )
 
-        return newmessage.toMessageResponse()
+        return newmessage.toMessageResponse(editingUserId)
     }
 
     fun deleteMessage(messageId: ObjectId, deletingUserId: ObjectId) {
@@ -204,7 +212,7 @@ class MessageService(
         )
 
         val update = Update()
-            .push("readers", readerDoc)
+            .addToSet("readers", readerDoc)
             .max("lastChanged", usedInstant)
 
         val result = mongoTemplate.updateMulti(query, update, "messages")
@@ -275,7 +283,7 @@ class MessageService(
         val paginatedMessages = allMessagesToUpdate
             .drop(startIndex)
             .take(pageSize)
-            .map { it.toMessageResponse() }
+            .map { it.toMessageResponse(requestingUser) }
 
         val moreMessages = endIndex < allMessagesToUpdate.size
 
