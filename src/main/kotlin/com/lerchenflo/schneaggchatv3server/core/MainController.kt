@@ -109,13 +109,13 @@ class MainController(
         println("Running database migrations...")
 
         val query = Query()
-        query.addCriteria(Criteria.where("profilePicChangedAt").exists(false))
+        query.addCriteria(Criteria.where("profilePicUpdatedAt").exists(false))
 
         // Use SetOperation to reference the updatedAt field
         val update = AggregationUpdate.update()
             .set(
                 SetOperation.builder()
-                .set("profilePicChangedAt")
+                .set("profilePicUpdatedAt")
                 .toValueOf("updatedAt")
             )
 
@@ -126,9 +126,9 @@ class MainController(
         )
 
         if (result.modifiedCount > 0) {
-            println("✅ Migration completed: Added profilePicChangedAt field to ${result.modifiedCount} users")
+            println("✅ Migration completed: Added profilePicUpdatedAt field to ${result.modifiedCount} users")
         } else {
-            println("✅ Migration check: All users already have profilePicChangedAt field")
+            println("✅ Migration check: All users already have profilePicUpdatedAt field")
         }
     }
 

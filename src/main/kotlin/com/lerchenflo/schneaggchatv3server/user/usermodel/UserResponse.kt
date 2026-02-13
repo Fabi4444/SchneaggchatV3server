@@ -27,13 +27,14 @@ sealed interface UserResponse {
     val id: String
     val username: String
     val updatedAt: Long
-
+    val profilePicUpdatedAt: Long
 
     //Response for a user (Not yourself and not your friend)
     data class SimpleUserResponse(
         override val id: String,
         override val username: String,
         override val updatedAt: Long,
+        override val profilePicUpdatedAt: Long,
 
         //Custom to simpleuserresponse:
         val friendShipStatus: FriendshipStatus?,
@@ -46,6 +47,7 @@ sealed interface UserResponse {
         override val id: String,
         override val username: String,
         override val updatedAt: Long,
+        override val profilePicUpdatedAt: Long,
 
         val requesterId: String?, //Who requested the friendship
 
@@ -62,9 +64,8 @@ sealed interface UserResponse {
     data class SelfUserResponse(
         override val id: String,
         override val username: String,
-
         override val updatedAt: Long,
-
+        override val profilePicUpdatedAt: Long,
 
         //Custom to friend response
         val birthDate: String,

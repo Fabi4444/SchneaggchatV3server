@@ -197,8 +197,11 @@ class UserService(
             group = false
         )
 
+        val currenttime = Clock.System.now()
+
         userRepository.save(user.copy(
-            updatedAt = Clock.System.now(),
+            updatedAt = currenttime,
+            profilePicUpdatedAt = currenttime
         ))
 
         //TODO: User sync for connected friends??
@@ -290,6 +293,7 @@ class UserService(
                 email = user.email,
                 createdAt = user.createdAt.toEpochMilliseconds(),
                 emailVerifiedAt = user.emailVerifiedAt?.toEpochMilliseconds(),
+                profilePicUpdatedAt = user.profilePicUpdatedAt.toEpochMilliseconds(),
             )
         }
 
@@ -303,6 +307,7 @@ class UserService(
                 updatedAt = lastChangedAt ?: user.updatedAt.toEpochMilliseconds(),
                 birthDate = user.birthDate,
                 requesterId = requesterId?.toHexString(),
+                profilePicUpdatedAt = user.profilePicUpdatedAt.toEpochMilliseconds(),
             )
         }
 
@@ -314,6 +319,7 @@ class UserService(
                 updatedAt = lastChangedAt ?: user.updatedAt.toEpochMilliseconds(),
                 friendShipStatus = friendshipStatus,
                 requesterId = requesterId?.toHexString(),
+                profilePicUpdatedAt = user.profilePicUpdatedAt.toEpochMilliseconds(),
             )
         }
     }

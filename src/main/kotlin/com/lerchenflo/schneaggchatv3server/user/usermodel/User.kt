@@ -28,6 +28,6 @@ data class User(
     val createdAt: Instant,
     val updatedAt: Instant,
 
-    val profilePicChangedAt: Instant = updatedAt  // New field with default
+    val profilePicUpdatedAt: Instant = updatedAt  // New field with default
 
 )
