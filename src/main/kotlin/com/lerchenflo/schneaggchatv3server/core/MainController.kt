@@ -5,6 +5,7 @@ package com.lerchenflo.schneaggchatv3server.core
 import com.lerchenflo.schneaggchatv3server.core.security.HashEncoder
 import com.lerchenflo.schneaggchatv3server.group.GroupLookupService
 import com.lerchenflo.schneaggchatv3server.group.GroupService
+import com.lerchenflo.schneaggchatv3server.group.model.Group
 import com.lerchenflo.schneaggchatv3server.repository.GroupRepository
 import com.lerchenflo.schneaggchatv3server.repository.UserRepository
 import com.lerchenflo.schneaggchatv3server.user.UserLookupService
@@ -119,16 +120,28 @@ class MainController(
                 .toValueOf("updatedAt")
             )
 
-        val result = mongoTemplate.updateMulti(
+        val resultUsers = mongoTemplate.updateMulti(
             query,
             update,
             User::class.java
         )
 
-        if (result.modifiedCount > 0) {
-            println("✅ Migration completed: Added profilePicUpdatedAt field to ${result.modifiedCount} users")
+        val resultGroups = mongoTemplate.updateMulti(
+            query,
+            update,
+            Group::class.java
+        )
+
+        if (resultUsers.modifiedCount > 0) {
+            println("✅ Migration completed: Added profilePicUpdatedAt field to ${resultUsers.modifiedCount} users")
         } else {
-            println("✅ Migration check: All users already have profilePicUpdatedAt field")
+            println("✅ Migration check: All users already have a profilePicUpdatedAt field")
+        }
+
+        if (resultGroups.modifiedCount > 0) {
+            println("✅ Migration completed: Added profilePicUpdatedAt field to ${resultGroups.modifiedCount} groups")
+        } else {
+            println("✅ Migration check: All groups already have a profilePicUpdatedAt field")
         }
     }
 

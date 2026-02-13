@@ -7,9 +7,10 @@ data class GroupResponse(
     val name: String,
     val description: String,
 
-    val updatedAt: String,
+    val updatedAt: Long,
+    val profilePicUpdatedAt: Long,
 
-    val createdAt: String,
+    val createdAt: Long,
     val creatorId: String,
     val members: List<GroupMemberResponse>
 )

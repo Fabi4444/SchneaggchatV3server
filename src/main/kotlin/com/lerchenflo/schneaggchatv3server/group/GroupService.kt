@@ -66,6 +66,7 @@ class GroupService(
                 name = groupName.trim(),
                 description = description,
                 updatedAt = currentTime,
+                profilePicUpdatedAt = currentTime,
                 createdAt = currentTime,
                 creatorId = creatorId
             )
@@ -104,8 +105,9 @@ class GroupService(
                 id = group.id.toHexString(),
                 name = group.name,
                 description = group.description,
-                updatedAt = group.updatedAt.toEpochMilliseconds().toString(),
-                createdAt = group.createdAt.toEpochMilliseconds().toString(),
+                updatedAt = group.updatedAt.toEpochMilliseconds(),
+                profilePicUpdatedAt = group.profilePicUpdatedAt.toEpochMilliseconds(),
+                createdAt = group.createdAt.toEpochMilliseconds(),
                 creatorId = group.creatorId.toHexString(),
                 members = members.map { member ->
                     member.toGroupMemberResponse(
@@ -183,8 +185,10 @@ class GroupService(
             group = true
         )
 
+        val now = Clock.System.now()
         groupRepository.save(group.copy(
-            updatedAt = Clock.System.now()
+            updatedAt = now,
+            profilePicUpdatedAt = now
         ))
 
         notificationService.notifyGroupUpdate(groupLookupService.getGroupAsGroupResponse(groupId), false)

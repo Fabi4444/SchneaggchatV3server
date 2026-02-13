@@ -15,6 +15,7 @@ data class Group(
     val description: String,
 
     val updatedAt: Instant,
+    val profilePicUpdatedAt: Instant = updatedAt,
 
     val createdAt: Instant,
     val creatorId: ObjectId
