@@ -1,12 +1,13 @@
 package com.lerchenflo.schneaggchatv3server.notifications.firebase
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
 import com.google.firebase.messaging.AndroidConfig
 import com.google.firebase.messaging.ApnsConfig
+import com.google.firebase.messaging.ApnsFcmOptions
 import com.google.firebase.messaging.Aps
+import com.google.firebase.messaging.FcmOptions
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.FirebaseMessagingException
 import com.google.firebase.messaging.Message
@@ -17,6 +18,7 @@ import com.lerchenflo.schneaggchatv3server.notifications.firebase.model.Firebase
 import com.lerchenflo.schneaggchatv3server.notifications.firebase.model.NotificationResponse
 import com.lerchenflo.schneaggchatv3server.repository.FirebaseTokenRepository
 import com.lerchenflo.schneaggchatv3server.user.UserLookupService
+import com.lerchenflo.schneaggchatv3server.util.Json
 import com.lerchenflo.schneaggchatv3server.util.LogType
 import com.lerchenflo.schneaggchatv3server.util.LoggingService
 import kotlinx.coroutines.CoroutineScope
@@ -34,9 +36,6 @@ class FirebaseService(
     private val userLookupService: UserLookupService,
     private val jwtService: JwtService
 ) {
-
-    private val objectMapper = jacksonObjectMapper()
-
 
     init {
         run {
@@ -288,14 +287,14 @@ class FirebaseService(
 
     private fun notificationResponseToDataMap(notification: NotificationResponse): Map<String, String> {
         // convert to a raw Map<*,*>
-        val raw = objectMapper.convertValue(notification, Map::class.java) as Map<String, Any?>? ?: emptyMap()
+        val raw = Json.mapper.convertValue(notification, Map::class.java) as Map<String, Any?>? ?: emptyMap()
 
         val result = raw.mapValues { (_, v) ->
             when (v) {
                 null -> ""
                 is String -> v
                 is Number, is Boolean -> v.toString()
-                else -> objectMapper.writeValueAsString(v) // nested / complex objects -> JSON string
+                else -> Json.mapper.writeValueAsString(v) // nested / complex objects -> JSON string
             }
         }.toMutableMap()
 
@@ -325,13 +324,17 @@ class FirebaseService(
                 Priority:
                 Apple docs say 10 for immediate: //https://developer.apple.com/library/archive/documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/CommunicatingwithAPNs.html#//apple_ref/doc/uid/TP40008194-CH11-SW1
                 Firebasee docs say 10 gets blocked: https://firebase.google.com/docs/cloud-messaging/customize-messages/setting-message-priority?hl=de
+
+                solution: Alert, decrypt custom on recieving device (implement first)
                  */
                 ApnsConfig.builder()
                     .putHeader("apns-priority", "5")
                     .setAps(
                         Aps.builder()
-                        .setContentAvailable(true) //Allow background work on ios
+                            .setContentAvailable(true) //Allow background work on ios
+                            //.setBadge(1) //TODO: Get correct unread message count
                         .build())
+
                     .build()
             )
             .build()

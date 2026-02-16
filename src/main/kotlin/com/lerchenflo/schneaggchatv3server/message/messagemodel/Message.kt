@@ -18,8 +18,11 @@ data class Message(
     val receiverId: ObjectId,
     val groupMessage: Boolean,
     val msgType: MessageType,
-    val content: String,
     val answerId: ObjectId?,
+
+    val content: String,
+    val poll: PollMessage? = null,
+
 
     val sendDate: Instant,
     val lastChanged: Instant,
@@ -40,17 +43,22 @@ data class Reader(
 
 enum class MessageType {
     TEXT,
-    IMAGE
+    IMAGE,
+    POLL
 }
 
-fun Message.toMessageResponse() : MessageResponse {
+fun Message.toMessageResponse(requestingUserId: ObjectId) : MessageResponse {
     return MessageResponse(
         messageId = this.id.toHexString(),
         senderId = this.senderId.toHexString(),
         receiverId = this.receiverId.toHexString(),
         groupMessage = this.groupMessage,
         msgType = this.msgType,
+
         content = if (msgType == MessageType.IMAGE) "" else this.content,
+
+        pollResponse = this.poll?.toPollMessageResponse(requestingUserId),
+
         answerId = this.answerId?.toHexString(),
         sendDate = this.sendDate.toEpochMilliseconds(),
         lastChanged = this.lastChanged.toEpochMilliseconds(),

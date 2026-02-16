@@ -11,6 +11,7 @@ import com.lerchenflo.schneaggchatv3server.user.usermodel.UserRequest
 import com.lerchenflo.schneaggchatv3server.user.usermodel.UserResponse
 import com.lerchenflo.schneaggchatv3server.util.ImageManager
 import com.lerchenflo.schneaggchatv3server.util.ValidationUtils
+import jakarta.validation.constraints.Pattern
 import org.bson.types.ObjectId
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
@@ -251,7 +252,12 @@ class UserService(
 
 
     data class PasswordChangeRequest(
+
         val oldPassword: String,
+        @field:Pattern(
+            regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}\$",
+            message = "Password must be at least 8 characters long and contain at least one digit, uppercase and lowercase character."
+        )
         val newPassword: String
     )
 
