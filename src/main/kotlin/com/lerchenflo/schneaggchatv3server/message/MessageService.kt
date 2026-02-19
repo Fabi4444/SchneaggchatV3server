@@ -216,11 +216,19 @@ class MessageService(
             )
         }
 
-        //Poll update is finished(test with beta users) save and return
-        return messageRepository.save(message.copy(
+        val savedMessage = messageRepository.save(message.copy(
             lastChanged = timeStamp,
             poll = poll,
         ))
+
+        notificationService.notifyMessageUpdate(
+            message = savedMessage,
+            newMessage = false,
+            deleted = false,
+        )
+
+        //Poll update is finished(test with beta users) save and return
+        return savedMessage
     }
 
 
