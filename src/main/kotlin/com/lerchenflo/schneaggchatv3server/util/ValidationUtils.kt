@@ -101,4 +101,11 @@ object ValidationUtils {
 
         return true
     }
+
+    fun validatePollVoteText(text: String): Boolean {
+        if (text.isBlank()) return false
+        if (text.length > 250) return false
+
+        return true
+    }
 }

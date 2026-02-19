@@ -43,13 +43,6 @@ class MessageService(
     private val loggingService: LoggingService
 ) {
 
-    fun MessageContent.asString() : String {
-        return when (this) {
-            is Image -> "image"
-            is Text -> message.take(300)
-            is MessageContent.Poll -> poll.toJson()
-        }
-    }
     sealed class MessageContent {
         data class Text(val message: String) : MessageContent()
         data class Image(val image: MultipartFile) : MessageContent()
@@ -65,7 +58,6 @@ class MessageService(
             groupMessage = groupMessage,
         )
 
-
         val savedObjectId = ObjectId()
 
         val storedContent = when(content) {
@@ -80,6 +72,22 @@ class MessageService(
                 ""
             }
         }
+
+
+        if (messageType == MessageType.POLL) {
+            require(content is MessageContent.Poll) { "Pollmessage with empty poll" }
+
+            //TODO: Poll validation
+            if (content.poll.closeDate != null) {
+                require(content.poll.closeDate > Clock.System.now()) { "Poll closedate is in the past" }
+            }
+
+            content.poll.voteOptions.forEach { voteOption ->
+                require(ValidationUtils.validatePollVoteText(voteOption.text)) {"Pollvote option text in wrong format"}
+            }
+
+        }
+
 
 
         val sendDate = Clock.System.now()
@@ -112,6 +120,118 @@ class MessageService(
 
         return message
     }
+
+
+    fun votePoll(requestingUserId: ObjectId, pollVoteRequest: PollVoteRequest) : Message {
+        val message = canUserAccessMessage(
+            messageId = ObjectId(pollVoteRequest.messageId),
+            userId = requestingUserId
+        )
+
+        //Throw if the message is not a poll
+        require(message.msgType == MessageType.POLL && message.poll != null) { "This is not a poll message" }
+
+        //Validate pollrequest
+
+        //Create a new option
+        if (pollVoteRequest.id == null) {
+            require(pollVoteRequest.text != null && ValidationUtils.validatePollVoteText(pollVoteRequest.text)) { "Poll text invalid" }
+        }
+
+
+        var poll = message.poll
+
+        val timeStamp = Clock.System.now()
+
+        //Block custom answers if not allowed
+        if (pollVoteRequest.id == null || poll.voteOptions.none { it.id == pollVoteRequest.id }) {
+            require(poll.customAnswersEnabled) { "Custom answers are not allowed for this poll" }
+        }
+
+        //Block answers after expiry
+        if (poll.closeDate != null) {
+            require(Clock.System.now() < poll.closeDate) { "Poll is closed" }
+        }
+
+        //Check max answer limit for this poll
+        if (poll.maxAnswers != null) {
+            val thisUserVoteCount = poll.getVoteCountForUser(requestingUserId)
+
+            if (pollVoteRequest.selected && thisUserVoteCount >= poll.maxAnswers) {
+                val oldestVote = poll.voteOptions
+                    .flatMap { option -> option.voters.map { voter -> option to voter } }
+                    .filter { (_, voter) -> voter.userId == requestingUserId }
+                    .minByOrNull { (_, voter) -> voter.votedAt }
+
+                if (oldestVote != null) {
+                    val (optionToModify, voterToRemove) = oldestVote
+                    poll = poll.copy(
+                        voteOptions = poll.voteOptions.map { option ->
+                            if (option.id == optionToModify.id) {
+                                option.copy(voters = option.voters - voterToRemove)
+                            } else {
+                                option
+                            }
+                        }
+                    )
+                }
+            }
+        }
+
+        //Ready for poll voting, no illegal states
+
+        //Custom answer
+        if (pollVoteRequest.id == null) {
+            //User created a new option
+            poll = poll.copy(
+                voteOptions = poll.voteOptions + PollVoteOption(
+                    id = ObjectId.get().toHexString(),
+                    text = pollVoteRequest.text!!,
+                    custom = true,
+                    creatorId = requestingUserId,
+
+                    //User automatically votes for his created item
+                    voters = listOf(PollVoter(
+                        userId = requestingUserId,
+                        votedAt = timeStamp
+                    ))
+                )
+            )
+        } else {
+
+            //Option selected
+            poll = poll.copy(
+                voteOptions = poll.voteOptions.map { option ->
+                    if (option.id == pollVoteRequest.id) {
+                        option.copy(
+                            voters = option.voters + PollVoter(
+                                userId = requestingUserId,
+                                votedAt = timeStamp
+                            )
+                        )
+                    } else {
+                        option
+                    }
+                }
+            )
+        }
+
+        val savedMessage = messageRepository.save(message.copy(
+            lastChanged = timeStamp,
+            poll = poll,
+        ))
+
+        notificationService.notifyMessageUpdate(
+            message = savedMessage,
+            newMessage = false,
+            deleted = false,
+        )
+
+        //Poll update is finished(test with beta users) save and return
+        return savedMessage
+    }
+
+
 
     fun editMessage(messageId: ObjectId, editingUserId: ObjectId, newContent: String) : MessageResponse {
 
@@ -322,7 +442,7 @@ class MessageService(
         messageId: ObjectId,
         userId: ObjectId,
     ) : Message {
-        val message = messageRepository.findById(messageId).get()
+        val message = messageRepository.findById(messageId)?.get() ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
 
         if (message.groupMessage) {
             canUserAccessMessage(userId, message.receiverId, true)
