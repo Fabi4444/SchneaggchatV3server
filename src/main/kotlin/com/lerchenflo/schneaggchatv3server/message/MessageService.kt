@@ -180,8 +180,8 @@ class MessageService(
 
         //Ready for poll voting, no illegal states
 
-        //Custom answer
         if (pollVoteRequest.id == null) {
+
             //User created a new option
             poll = poll.copy(
                 voteOptions = poll.voteOptions + PollVoteOption(
@@ -203,12 +203,22 @@ class MessageService(
             poll = poll.copy(
                 voteOptions = poll.voteOptions.map { option ->
                     if (option.id == pollVoteRequest.id) {
-                        option.copy(
-                            voters = option.voters + PollVoter(
-                                userId = requestingUserId,
-                                votedAt = timeStamp
+
+                        //User selected this option, add him as voter
+                        if (pollVoteRequest.selected) {
+                            option.copy(
+                                voters = option.voters + PollVoter(
+                                    userId = requestingUserId,
+                                    votedAt = timeStamp
+                                )
                             )
-                        )
+                        } else {
+
+                            //User unselected this option, remove him as voter if he exists
+                            option.copy(
+                                voters = option.voters.filter { it.userId != requestingUserId }
+                            )
+                        }
                     } else {
                         option
                     }
