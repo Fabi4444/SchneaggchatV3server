@@ -10,8 +10,13 @@ data class PollMessage(
     val description: String?,
 
 
+    //Max answers per user
     val maxAnswers: Int?, // null = unlimited
+
+    //Custom answers enabled
     val customAnswersEnabled: Boolean,
+
+    //Max allowed custom answers per user
     val maxAllowedCustomAnswers: Int?, // null = unlimited
 
     val visibility: PollVisibility,
@@ -21,6 +26,7 @@ data class PollMessage(
 
     val voteOptions: List<PollVoteOption> = emptyList(),
 ) {
+
     fun toJson(): String = Json.mapper.writeValueAsString(this)
 
     fun isAnonymous(requestingUserId: ObjectId): Boolean {
@@ -34,6 +40,13 @@ data class PollMessage(
         if (visibility == PollVisibility.PUBLIC) return false
 
         return true
+    }
+
+
+    fun getVoteCountForUser(userId: ObjectId): Int {
+        return voteOptions.sumOf { option ->
+            option.voters.count { it.userId == userId }
+        }
     }
 }
 

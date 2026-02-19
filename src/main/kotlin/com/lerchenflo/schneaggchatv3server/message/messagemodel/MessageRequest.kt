@@ -9,3 +9,13 @@ data class MessageRequest(
     val content: String,
     val answerId: String?
 )
+
+data class PollMessageRequest(
+    val messageId: String?, //Objectid
+
+    val receiverId: String,
+    val groupMessage: Boolean,
+    val msgType: MessageType,
+    val answerId: String?,
+    val poll: PollCreateRequest
+)
