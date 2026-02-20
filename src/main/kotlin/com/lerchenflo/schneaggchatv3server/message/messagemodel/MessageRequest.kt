@@ -11,8 +11,6 @@ data class MessageRequest(
 )
 
 data class PollMessageRequest(
-    val messageId: String?, //Objectid
-
     val receiverId: String,
     val groupMessage: Boolean,
     val msgType: MessageType,
