@@ -19,14 +19,15 @@ fun PollMessage.toPollMessageResponse(requestingUserId: ObjectId): PollResponse 
                 customAnswersEnabled = poll.customAnswersEnabled,
                 maxAllowedCustomAnswers = poll.maxAllowedCustomAnswers,
                 visibility = poll.visibility,
-                closeDate = poll.closeDate?.toEpochMilliseconds()?.toString(),
+                closeDate = poll.closeDate?.toEpochMilliseconds(),
                 voteOptions = poll.voteOptions.map { option -> 
                     AnonymousPollVoteOptionResponse(
                         id = option.id,
                         text = option.text,
                         voters = option.voters.map { voter -> 
                             AnonymousPollVoterResponse(
-                                votedAt = voter.votedAt.toEpochMilliseconds().toString()
+                                votedAt = voter.votedAt.toEpochMilliseconds(),
+                                isMe = voter.userId == requestingUserId
                             )
                         }
                     )
@@ -42,7 +43,7 @@ fun PollMessage.toPollMessageResponse(requestingUserId: ObjectId): PollResponse 
                 customAnswersEnabled = poll.customAnswersEnabled,
                 maxAllowedCustomAnswers = poll.maxAllowedCustomAnswers,
                 visibility = poll.visibility,
-                closeDate = poll.closeDate?.toEpochMilliseconds()?.toString(),
+                closeDate = poll.closeDate?.toEpochMilliseconds(),
                 voteOptions = poll.voteOptions.map { option ->
                     PublicPollVoteOptionResponse(
                         id = option.id,
@@ -52,7 +53,7 @@ fun PollMessage.toPollMessageResponse(requestingUserId: ObjectId): PollResponse 
                         voters = option.voters.map { voter ->
                             PublicPollVoterResponse(
                                 userId = voter.userId.toHexString(),
-                                votedAt = voter.votedAt.toEpochMilliseconds().toString()
+                                votedAt = voter.votedAt.toEpochMilliseconds()
                             )
                         }
                     )
@@ -87,7 +88,7 @@ interface PollResponse {
     val visibility: PollVisibility
 
 
-    val closeDate: String?
+    val closeDate: Long?
 
 
 
@@ -99,7 +100,7 @@ interface PollResponse {
         override val customAnswersEnabled: Boolean,
         override val maxAllowedCustomAnswers: Int?,
         override val visibility: PollVisibility,
-        override val closeDate: String?,
+        override val closeDate: Long?,
 
         val voteOptions: List<PublicPollVoteOptionResponse>,
 
@@ -113,7 +114,7 @@ interface PollResponse {
         override val customAnswersEnabled: Boolean,
         override val maxAllowedCustomAnswers: Int?,
         override val visibility: PollVisibility,
-        override val closeDate: String?,
+        override val closeDate: Long?,
 
         val voteOptions: List<AnonymousPollVoteOptionResponse>,
 
@@ -129,7 +130,8 @@ data class AnonymousPollVoteOptionResponse(
 )
 
 data class AnonymousPollVoterResponse(
-    val votedAt: String,
+    val isMe: Boolean,
+    val votedAt: Long,
 )
 
 
@@ -145,5 +147,5 @@ data class PublicPollVoteOptionResponse(
 
 data class PublicPollVoterResponse(
     val userId: String,
-    val votedAt: String,
+    val votedAt: Long,
 )
