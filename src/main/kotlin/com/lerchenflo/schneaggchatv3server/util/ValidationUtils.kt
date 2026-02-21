@@ -60,6 +60,9 @@ object ValidationUtils {
         // Must start with alphanumeric
         if (!username.first().isLetterOrDigit()) return false
 
+        if (!username.last().isLetterOrDigit()) return false
+
+
         if (username.lowercase(getDefault()) in RESERVED_USERNAMES) return false
 
         // Only alphanumeric, underscore, and hyphen allowed
