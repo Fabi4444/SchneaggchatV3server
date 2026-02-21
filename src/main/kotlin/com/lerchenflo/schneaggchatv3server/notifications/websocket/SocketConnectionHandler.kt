@@ -74,7 +74,7 @@ class SocketConnectionHandler(
             }
 
 
-        println("New socket connection: ${session.remoteAddress}")
+        println("New socket connection from IP: ${session.handshakeHeaders["X-Real-IP"]}")
 
         //Update session or create new (Multiple connections from the same userid are allowed
         synchronized(connections) {
