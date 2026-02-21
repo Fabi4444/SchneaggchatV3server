@@ -6,7 +6,7 @@ import org.springframework.data.mongodb.repository.MongoRepository
 
 interface RefreshTokenRepository: MongoRepository<RefreshToken, ObjectId> {
 
-    fun findByUserIdAndHashedToken(userId: ObjectId, hashedToken: String): RefreshToken?
+    fun findByUserIdAndHashedToken(userId: ObjectId, hashedToken: String): List<RefreshToken>
     fun deleteByUserIdAndHashedToken(userId: ObjectId, hashedToken: String) : Long
 
     fun findByUserIdAndHashedTokenAndDeletedAtIsNull(userId: ObjectId, hashedToken: String): RefreshToken?
