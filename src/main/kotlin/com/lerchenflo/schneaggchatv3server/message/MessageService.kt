@@ -188,7 +188,7 @@ class MessageService(
 
             //Not unlimited custom answers allowed
             if (poll.maxAllowedCustomAnswers != null) {
-                require(userCreatedCustomPollCount <= poll.maxAllowedCustomAnswers) { "You already made the max amount of custom answers allowed" }
+                require(userCreatedCustomPollCount < poll.maxAllowedCustomAnswers) { "You already made the max amount of custom answers allowed" }
             }
 
 
@@ -216,12 +216,17 @@ class MessageService(
 
                         //User selected this option, add him as voter
                         if (pollVoteRequest.selected) {
-                            option.copy(
-                                voters = option.voters + PollVoter(
-                                    userId = requestingUserId,
-                                    votedAt = timeStamp
+                            // Prevent double voting on same option
+                            if (option.voters.none { it.userId == requestingUserId }) {
+                                option.copy(
+                                    voters = option.voters + PollVoter(
+                                        userId = requestingUserId,
+                                        votedAt = timeStamp
+                                    )
                                 )
-                            )
+                            } else {
+                                option // Already voted, return unchanged
+                            }
                         } else {
 
                             //User unselected this option, remove him as voter if he exists
