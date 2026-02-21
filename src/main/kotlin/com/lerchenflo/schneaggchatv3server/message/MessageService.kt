@@ -17,8 +17,12 @@ import com.lerchenflo.schneaggchatv3server.util.LogType
 import com.lerchenflo.schneaggchatv3server.util.LoggingService
 import com.lerchenflo.schneaggchatv3server.util.ValidationUtils
 import com.lerchenflo.schneaggchatv3server.util.withOptimisticRetry
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import org.bson.types.ObjectId
+import org.springframework.dao.OptimisticLockingFailureException
 import org.springframework.data.domain.Sort
+import org.springframework.data.mongodb.core.FindAndModifyOptions
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.find
 import org.springframework.data.mongodb.core.query.Criteria
@@ -243,10 +247,22 @@ class MessageService(
                 )
             }
 
-            val savedMessage = messageRepository.save(message.copy(
-                lastChanged = timeStamp,
-                poll = poll,
-            ))
+            val query = Query(
+                Criteria.where("_id").`is`(message.id)
+                    .and("lastChanged").`is`(message.lastChanged)
+            )
+
+            val update = Update()
+                .set("lastChanged", timeStamp)
+                .set("poll", poll)
+
+            val savedMessage = mongoTemplate.findAndModify(
+                query,
+                update,
+                FindAndModifyOptions.options().returnNew(true),
+                Message::class.java
+            ) ?: throw OptimisticLockingFailureException("Message was modified by another request")
+
 
             notificationService.notifyMessageUpdate(
                 message = savedMessage,
@@ -264,7 +280,7 @@ class MessageService(
 
     fun editMessage(messageId: ObjectId, editingUserId: ObjectId, newContent: String) : MessageResponse {
 
-        require(ValidationUtils.validateString(newContent)) { "Invalid new content"}
+        require(ValidationUtils.validateStringMessage(newContent)) { "Invalid new content"}
 
         val message = canUserAccessMessage(messageId, editingUserId)
 

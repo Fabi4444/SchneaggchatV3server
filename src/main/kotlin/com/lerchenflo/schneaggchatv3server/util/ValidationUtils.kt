@@ -98,9 +98,14 @@ object ValidationUtils {
         return true
     }
 
+    fun validateDescription(string: String) : Boolean {
+        if (string.length > 200) return false
 
-    fun validateString(string: String) : Boolean {
-        if (string.length > 2000) return false
+        return true
+    }
+
+    fun validateStringMessage(string: String) : Boolean {
+        if (string.length > 2000 || string.isEmpty()) return false
 
         return true
     }

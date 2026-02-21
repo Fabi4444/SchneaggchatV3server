@@ -227,6 +227,16 @@ class UserService(
             //TODO: Send email to the old verified email address
             val somethingChanged = (userRequest.newStatus != null || emailvalid || userRequest.newBirthDate != null)
 
+            if (userRequest.newStatus != null) {
+                require(ValidationUtils.validateDescription(userRequest.newStatus)) { "New description is invalid" }
+            }
+
+            if (userRequest.newEmail != null) {
+                require(ValidationUtils.validateEmail(userRequest.newEmail)) { "New email is invalid" }
+            }
+
+            //TODO: birthdate validation
+
             userLookupService.save(requestingUser.copy(
                 updatedAt = if (somethingChanged) Clock.System.now() else requestingUser.updatedAt,
                 userStatus = userRequest.newStatus ?: requestingUser.userStatus,
@@ -239,6 +249,10 @@ class UserService(
 
             //TODO: newNickname
             val somethingChanged = userRequest.newDescription != null
+
+            if (userRequest.newDescription != null) {
+                require(ValidationUtils.validateDescription(userRequest.newDescription)) { "New description is invalid" }
+            }
 
             userLookupService.save(user.copy(
                 updatedAt = if (somethingChanged) Clock.System.now() else user.updatedAt,
