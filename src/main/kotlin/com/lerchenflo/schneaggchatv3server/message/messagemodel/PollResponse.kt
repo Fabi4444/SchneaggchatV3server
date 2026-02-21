@@ -2,13 +2,12 @@ package com.lerchenflo.schneaggchatv3server.message.messagemodel
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import com.lerchenflo.schneaggchatv3server.message.MessageService
 import org.bson.types.ObjectId
 
 
 fun PollMessage.toPollMessageResponse(requestingUserId: ObjectId): PollResponse {
     val poll = this
-    
+    println("pollresponse: ${poll.toJson()}")
     return when (poll.isAnonymous(requestingUserId)) {
         true -> {
             PollResponse.AnonymousPollResponse(
@@ -27,7 +26,7 @@ fun PollMessage.toPollMessageResponse(requestingUserId: ObjectId): PollResponse 
                         voters = option.voters.map { voter -> 
                             AnonymousPollVoterResponse(
                                 votedAt = voter.votedAt.toEpochMilliseconds(),
-                                isMe = voter.userId == requestingUserId
+                                myAnswer = voter.userId == requestingUserId
                             )
                         }
                     )
@@ -130,7 +129,7 @@ data class AnonymousPollVoteOptionResponse(
 )
 
 data class AnonymousPollVoterResponse(
-    val isMe: Boolean,
+    val myAnswer: Boolean,
     val votedAt: Long,
 )
 
