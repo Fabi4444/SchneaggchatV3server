@@ -125,7 +125,7 @@ class MessageService(
 
 
     fun votePoll(requestingUserId: ObjectId, pollVoteRequest: PollVoteRequest) : Message {
-        withOptimisticRetry {
+        return withOptimisticRetry {
             val message = canUserAccessMessage(
                 messageId = ObjectId(pollVoteRequest.messageId),
                 userId = requestingUserId
@@ -256,7 +256,7 @@ class MessageService(
             )
 
             //Poll update is finished(test with beta users) save and return
-            return savedMessage
+            savedMessage
         }
     }
 
