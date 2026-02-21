@@ -7,7 +7,7 @@ import org.bson.types.ObjectId
 
 fun PollMessage.toPollMessageResponse(requestingUserId: ObjectId): PollResponse {
     val poll = this
-    println("pollresponse: ${poll.toJson()}")
+
     return when (poll.isAnonymous(requestingUserId)) {
         true -> {
             PollResponse.AnonymousPollResponse(

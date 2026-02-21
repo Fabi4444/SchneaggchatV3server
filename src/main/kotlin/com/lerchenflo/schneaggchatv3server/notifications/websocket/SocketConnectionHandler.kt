@@ -3,6 +3,8 @@ package com.lerchenflo.schneaggchatv3server.notifications.websocket
 import com.lerchenflo.schneaggchatv3server.core.security.JwtService
 import com.lerchenflo.schneaggchatv3server.notifications.websocket.model.SocketConnection
 import com.lerchenflo.schneaggchatv3server.notifications.websocket.model.SocketConnectionMessage
+import com.lerchenflo.schneaggchatv3server.user.UserLookupService
+import com.lerchenflo.schneaggchatv3server.user.UserService
 import com.lerchenflo.schneaggchatv3server.util.Json
 import org.bson.types.ObjectId
 import org.springframework.http.HttpStatus
@@ -18,6 +20,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 @Component
 class SocketConnectionHandler(
     private val jwtService: JwtService,
+    private val userLookupService: UserLookupService,
 ): TextWebSocketHandler() {
 
     var connections : CopyOnWriteArrayList<SocketConnection> = CopyOnWriteArrayList()
@@ -33,9 +36,10 @@ class SocketConnectionHandler(
         try {
             val jsonMessage = Json.mapper.writeValueAsString(message)
             userConnection.session.sendMessage(TextMessage(jsonMessage))
+            println("Sending socket message to user: ${userLookupService.getUsername(receiverId)}")
             return true
         } catch (e: Exception) {
-            println("Error sending message to user $receiverId: ${e.message}")
+            println("Error sending socket message to user $receiverId: ${e.message}")
             return false
         }
     }
