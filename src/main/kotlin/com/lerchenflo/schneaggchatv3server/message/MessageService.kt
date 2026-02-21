@@ -115,6 +115,7 @@ class MessageService(
             message = message,
             newMessage = true,
             deleted = false,
+            changingUserId = sender
         )
 
 
@@ -244,6 +245,7 @@ class MessageService(
             message = savedMessage,
             newMessage = false,
             deleted = false,
+            changingUserId = requestingUserId
         )
 
         //Poll update is finished(test with beta users) save and return
@@ -270,7 +272,8 @@ class MessageService(
         notificationService.notifyMessageUpdate(
             message = newmessage,
             newMessage = false,
-            deleted = false
+            deleted = false,
+            changingUserId = editingUserId
         )
 
         return newmessage.toMessageResponse(editingUserId)
@@ -291,7 +294,8 @@ class MessageService(
         notificationService.notifyMessageUpdate(
             message = updatedMessage,
             newMessage = false,
-            deleted = true
+            deleted = true,
+            changingUserId = deletingUserId
         )
     }
 
@@ -369,7 +373,8 @@ class MessageService(
                     notificationService.notifyMessageUpdate(
                         message = message,
                         newMessage = false,
-                        deleted = false
+                        deleted = false,
+                        changingUserId = readingUser,
                     )
                 } catch (e: Exception) {
                     println("Failed to notify message update for ${message.id}: ${e.message}")
