@@ -6,6 +6,7 @@ import com.lerchenflo.schneaggchatv3server.core.security.HashEncoder
 import com.lerchenflo.schneaggchatv3server.group.GroupLookupService
 import com.lerchenflo.schneaggchatv3server.group.GroupService
 import com.lerchenflo.schneaggchatv3server.group.model.Group
+import com.lerchenflo.schneaggchatv3server.message.messagemodel.Message
 import com.lerchenflo.schneaggchatv3server.repository.GroupRepository
 import com.lerchenflo.schneaggchatv3server.repository.UserRepository
 import com.lerchenflo.schneaggchatv3server.user.UserLookupService
@@ -143,6 +144,8 @@ class MainController(
         } else {
             println("✅ Migration check: All groups already have a profilePicUpdatedAt field")
         }
+
+
     }
 
 

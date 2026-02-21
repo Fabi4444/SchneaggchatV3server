@@ -20,6 +20,9 @@ inline fun <T> withOptimisticRetry(
         try {
             return operation(retryCount)
         } catch (e: OptimisticLockingFailureException) {
+
+            println("Optimistic Locking exception caught: ${e.message}")
+
             retryCount++
             if (retryCount > maxRetries) {
                 throw OptimisticLockingFailureException(

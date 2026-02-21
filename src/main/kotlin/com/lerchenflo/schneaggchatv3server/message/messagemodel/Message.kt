@@ -13,8 +13,6 @@ import kotlin.time.Instant
 data class Message(
     val id: ObjectId = ObjectId.get(),
 
-    @Version
-    val version: Int = 0,
 
     @Indexed
     val senderId: ObjectId,
