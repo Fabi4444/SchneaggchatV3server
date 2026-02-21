@@ -158,7 +158,9 @@ class AuthService(
 
         // Soft delete all existing tokens
         existingTokens.forEach { token ->
-            token.deletedAt = now
+            if (token.deletedAt == null) {
+                token.deletedAt = now
+            }
         }
         refreshTokenRepository.saveAll(existingTokens)
         println("Refresh token for user $userId deleted")

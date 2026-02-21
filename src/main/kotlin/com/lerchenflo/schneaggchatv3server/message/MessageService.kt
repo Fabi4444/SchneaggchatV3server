@@ -182,6 +182,15 @@ class MessageService(
 
         if (pollVoteRequest.id == null) {
 
+            //Check if user created the max allowed custom answers
+            val userCreatedCustomPollCount = poll.getCustomVoteCountForUser(requestingUserId)
+
+            //Not unlimited custom answers allowed
+            if (poll.maxAllowedCustomAnswers != null) {
+                require(userCreatedCustomPollCount <= poll.maxAllowedCustomAnswers) { "You already made the max amount of custom answers allowed" }
+            }
+
+
             //User created a new option
             poll = poll.copy(
                 voteOptions = poll.voteOptions + PollVoteOption(

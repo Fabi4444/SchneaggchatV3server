@@ -48,6 +48,10 @@ data class PollMessage(
             option.voters.count { it.userId == userId }
         }
     }
+
+    fun getCustomVoteCountForUser(userId: ObjectId): Int {
+        return voteOptions.count { it.custom && it.creatorId == userId }
+    }
 }
 
 data class PollVoteOption(
