@@ -36,7 +36,6 @@ class SocketConnectionHandler(
         try {
             val jsonMessage = Json.mapper.writeValueAsString(message)
             userConnection.session.sendMessage(TextMessage(jsonMessage))
-            println("Sending socket message to user: ${userLookupService.getUsername(receiverId)}")
             return true
         } catch (e: Exception) {
             println("Error sending socket message to user $receiverId: ${e.message}")

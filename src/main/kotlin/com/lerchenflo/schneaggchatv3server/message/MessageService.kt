@@ -16,6 +16,7 @@ import com.lerchenflo.schneaggchatv3server.util.ImageManager
 import com.lerchenflo.schneaggchatv3server.util.LogType
 import com.lerchenflo.schneaggchatv3server.util.LoggingService
 import com.lerchenflo.schneaggchatv3server.util.ValidationUtils
+import com.lerchenflo.schneaggchatv3server.util.withOptimisticRetry
 import org.bson.types.ObjectId
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.MongoTemplate
@@ -124,132 +125,139 @@ class MessageService(
 
 
     fun votePoll(requestingUserId: ObjectId, pollVoteRequest: PollVoteRequest) : Message {
-        val message = canUserAccessMessage(
-            messageId = ObjectId(pollVoteRequest.messageId),
-            userId = requestingUserId
-        )
-
-        //Throw if the message is not a poll
-        require(message.msgType == MessageType.POLL && message.poll != null) { "This is not a poll message" }
-
-        //Validate pollrequest
-
-        //Create a new option
-        if (pollVoteRequest.id == null) {
-            require(pollVoteRequest.text != null && ValidationUtils.validatePollVoteText(pollVoteRequest.text)) { "Poll text invalid" }
-        }
-
-
-        var poll = message.poll
-
-        val timeStamp = Clock.System.now()
-
-        //Block custom answers if not allowed
-        if (pollVoteRequest.id == null || poll.voteOptions.none { it.id == pollVoteRequest.id }) {
-            require(poll.customAnswersEnabled) { "Custom answers are not allowed for this poll" }
-        }
-
-        //Block answers after expiry
-        if (poll.closeDate != null) {
-            require(Clock.System.now() < poll.closeDate) { "Poll is closed" }
-        }
-
-        //Check max answer limit for this poll
-        if (poll.maxAnswers != null) {
-            val thisUserVoteCount = poll.getVoteCountForUser(requestingUserId)
-
-            if (pollVoteRequest.selected && thisUserVoteCount >= poll.maxAnswers) {
-                val oldestVote = poll.voteOptions
-                    .flatMap { option -> option.voters.map { voter -> option to voter } }
-                    .filter { (_, voter) -> voter.userId == requestingUserId }
-                    .minByOrNull { (_, voter) -> voter.votedAt }
-
-                if (oldestVote != null) {
-                    val (optionToModify, voterToRemove) = oldestVote
-                    poll = poll.copy(
-                        voteOptions = poll.voteOptions.map { option ->
-                            if (option.id == optionToModify.id) {
-                                option.copy(voters = option.voters - voterToRemove)
-                            } else {
-                                option
-                            }
-                        }
-                    )
-                }
-            }
-        }
-
-        //Ready for poll voting, no illegal states
-
-        if (pollVoteRequest.id == null) {
-
-            //Check if user created the max allowed custom answers
-            val userCreatedCustomPollCount = poll.getCustomVoteCountForUser(requestingUserId)
-
-            //Not unlimited custom answers allowed
-            if (poll.maxAllowedCustomAnswers != null) {
-                require(userCreatedCustomPollCount <= poll.maxAllowedCustomAnswers) { "You already made the max amount of custom answers allowed" }
-            }
-
-
-            //User created a new option
-            poll = poll.copy(
-                voteOptions = poll.voteOptions + PollVoteOption(
-                    id = ObjectId.get().toHexString(),
-                    text = pollVoteRequest.text!!,
-                    custom = true,
-                    creatorId = requestingUserId,
-
-                    //User automatically votes for his created item
-                    voters = listOf(PollVoter(
-                        userId = requestingUserId,
-                        votedAt = timeStamp
-                    ))
-                )
+        withOptimisticRetry {
+            val message = canUserAccessMessage(
+                messageId = ObjectId(pollVoteRequest.messageId),
+                userId = requestingUserId
             )
-        } else {
 
-            //Option selected
-            poll = poll.copy(
-                voteOptions = poll.voteOptions.map { option ->
-                    if (option.id == pollVoteRequest.id) {
+            //Throw if the message is not a poll
+            require(message.msgType == MessageType.POLL && message.poll != null) { "This is not a poll message" }
 
-                        //User selected this option, add him as voter
-                        if (pollVoteRequest.selected) {
-                            option.copy(
-                                voters = option.voters + PollVoter(
-                                    userId = requestingUserId,
-                                    votedAt = timeStamp
-                                )
-                            )
-                        } else {
+            //Validate pollrequest
 
-                            //User unselected this option, remove him as voter if he exists
-                            option.copy(
-                                voters = option.voters.filter { it.userId != requestingUserId }
-                            )
-                        }
-                    } else {
-                        option
+            //Create a new option
+            if (pollVoteRequest.id == null) {
+                require(pollVoteRequest.text != null && ValidationUtils.validatePollVoteText(pollVoteRequest.text)) { "Poll text invalid" }
+            }
+
+
+            var poll = message.poll
+
+            val timeStamp = Clock.System.now()
+
+            //Block custom answers if not allowed
+            if (pollVoteRequest.id == null || poll.voteOptions.none { it.id == pollVoteRequest.id }) {
+                require(poll.customAnswersEnabled) { "Custom answers are not allowed for this poll" }
+            }
+
+            //Block answers after expiry
+            if (poll.closeDate != null) {
+                require(Clock.System.now() < poll.closeDate) { "Poll is closed" }
+            }
+
+            //Check max answer limit for this poll
+            if (poll.maxAnswers != null) {
+                val thisUserVoteCount = poll.getVoteCountForUser(requestingUserId)
+
+                if (pollVoteRequest.selected && thisUserVoteCount >= poll.maxAnswers) {
+                    val oldestVote = poll.voteOptions
+                        .flatMap { option -> option.voters.map { voter -> option to voter } }
+                        .filter { (_, voter) -> voter.userId == requestingUserId }
+                        .minByOrNull { (_, voter) -> voter.votedAt }
+
+                    if (oldestVote != null) {
+                        val (optionToModify, voterToRemove) = oldestVote
+                        poll = poll.copy(
+                            voteOptions = poll.voteOptions.map { option ->
+                                if (option.id == optionToModify.id) {
+                                    option.copy(voters = option.voters - voterToRemove)
+                                } else {
+                                    option
+                                }
+                            }
+                        )
                     }
                 }
+            }
+
+            //Ready for poll voting, no illegal states
+
+            if (pollVoteRequest.id == null) {
+
+                //Check if user created the max allowed custom answers
+                val userCreatedCustomPollCount = poll.getCustomVoteCountForUser(requestingUserId)
+
+                //Not unlimited custom answers allowed
+                if (poll.maxAllowedCustomAnswers != null) {
+                    require(userCreatedCustomPollCount < poll.maxAllowedCustomAnswers) { "You already made the max amount of custom answers allowed" }
+                }
+
+
+                //User created a new option
+                poll = poll.copy(
+                    voteOptions = poll.voteOptions + PollVoteOption(
+                        id = ObjectId.get().toHexString(),
+                        text = pollVoteRequest.text!!,
+                        custom = true,
+                        creatorId = requestingUserId,
+
+                        //User automatically votes for his created item
+                        voters = listOf(PollVoter(
+                            userId = requestingUserId,
+                            votedAt = timeStamp
+                        ))
+                    )
+                )
+            } else {
+
+                //Option selected
+                poll = poll.copy(
+                    voteOptions = poll.voteOptions.map { option ->
+                        if (option.id == pollVoteRequest.id) {
+
+                            //User selected this option, add him as voter
+                            if (pollVoteRequest.selected) {
+                                // Prevent double voting on same option
+                                if (option.voters.none { it.userId == requestingUserId }) {
+                                    option.copy(
+                                        voters = option.voters + PollVoter(
+                                            userId = requestingUserId,
+                                            votedAt = timeStamp
+                                        )
+                                    )
+                                } else {
+                                    option // Already voted, return unchanged
+                                }
+                            } else {
+
+                                //User unselected this option, remove him as voter if he exists
+                                option.copy(
+                                    voters = option.voters.filter { it.userId != requestingUserId }
+                                )
+                            }
+                        } else {
+                            option
+                        }
+                    }
+                )
+            }
+
+            val savedMessage = messageRepository.save(message.copy(
+                lastChanged = timeStamp,
+                poll = poll,
+            ))
+
+            notificationService.notifyMessageUpdate(
+                message = savedMessage,
+                newMessage = false,
+                deleted = false,
+                changingUserId = requestingUserId
             )
+
+            //Poll update is finished(test with beta users) save and return
+            return savedMessage
         }
-
-        val savedMessage = messageRepository.save(message.copy(
-            lastChanged = timeStamp,
-            poll = poll,
-        ))
-
-        notificationService.notifyMessageUpdate(
-            message = savedMessage,
-            newMessage = false,
-            deleted = false,
-            changingUserId = requestingUserId
-        )
-
-        //Poll update is finished(test with beta users) save and return
-        return savedMessage
     }
 
 

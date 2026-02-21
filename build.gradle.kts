@@ -38,7 +38,6 @@ dependencies {
     implementation("org.projectlombok:lombok")
 
     implementation("org.thymeleaf.extras:thymeleaf-extras-springsecurity6")
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.projectreactor:reactor-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
@@ -62,6 +61,12 @@ dependencies {
 
     implementation("org.springframework.boot:spring-boot-starter-websocket")
 
+
+    //testing
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("io.mockk:mockk:1.13.8")
+    testImplementation("org.jetbrains.kotlin:kotlin-test")
+    testImplementation("org.junit.jupiter:junit-jupiter")
 }
 
 kotlin {

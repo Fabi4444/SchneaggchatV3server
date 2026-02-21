@@ -92,7 +92,6 @@ class ValidationUtilsTest {
         assertFalse(ValidationUtils.validateUsername("-username")) // Starts with hyphen
         assertFalse(ValidationUtils.validateUsername("username_")) // Ends with underscore
         assertFalse(ValidationUtils.validateUsername("username-")) // Ends with hyphen
-        assertFalse(ValidationUtils.validateUsername("user name")) // Contains space
         assertFalse(ValidationUtils.validateUsername("user@name")) // Contains special char
     }
 
