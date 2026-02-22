@@ -249,7 +249,8 @@ class MessageService(
 
             val query = Query(
                 Criteria.where("_id").`is`(message.id)
-                    .and("lastChanged").`is`(message.lastChanged)
+                    .and("lastChanged.epochSeconds").`is`(message.lastChanged.epochSeconds)
+                    .and("lastChanged.nanosecondsOfSecond").`is`(message.lastChanged.nanosecondsOfSecond)
             )
 
             val update = Update()
@@ -280,9 +281,12 @@ class MessageService(
 
     fun editMessage(messageId: ObjectId, editingUserId: ObjectId, newContent: String) : MessageResponse {
 
+
         require(ValidationUtils.validateStringMessage(newContent)) { "Invalid new content"}
 
         val message = canUserAccessMessage(messageId, editingUserId)
+
+        require(message.msgType == MessageType.TEXT) { "You can not edit a ${message.msgType} message" }
 
         //User can access message, change content
         val now = Clock.System.now()
