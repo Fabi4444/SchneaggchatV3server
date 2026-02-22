@@ -3,7 +3,6 @@
 package com.lerchenflo.schneaggchatv3server.message.messagemodel
 
 import org.bson.types.ObjectId
-import org.springframework.data.annotation.Version
 import org.springframework.data.mongodb.core.index.Indexed
 import org.springframework.data.mongodb.core.mapping.Document
 import kotlin.time.ExperimentalTime
