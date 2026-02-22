@@ -26,5 +26,8 @@ data class User(
     val birthDate: String,
 
     val createdAt: Instant,
-    val updatedAt: Instant
+    val updatedAt: Instant,
+
+    val profilePicUpdatedAt: Instant = updatedAt  // New field with default
+
 )

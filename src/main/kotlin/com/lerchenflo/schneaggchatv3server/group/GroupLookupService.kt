@@ -42,8 +42,9 @@ class GroupLookupService(
             id = group.id.toHexString(),
             name = group.name,
             description = group.description,
-            updatedAt = group.updatedAt.toEpochMilliseconds().toString(),
-            createdAt = group.createdAt.toEpochMilliseconds().toString(),
+            updatedAt = group.updatedAt.toEpochMilliseconds(),
+            profilePicUpdatedAt = group.profilePicUpdatedAt.toEpochMilliseconds(),
+            createdAt = group.createdAt.toEpochMilliseconds(),
             creatorId = group.creatorId.toHexString(),
             members = members.map { it.toGroupMemberResponse(userLookupService.getUsername(it.userid)) }
         )

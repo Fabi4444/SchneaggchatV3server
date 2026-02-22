@@ -2,7 +2,11 @@ package com.lerchenflo.schneaggchatv3server.message
 
 import com.lerchenflo.schneaggchatv3server.message.messagemodel.MessageRequest
 import com.lerchenflo.schneaggchatv3server.message.messagemodel.MessageResponse
+import com.lerchenflo.schneaggchatv3server.message.messagemodel.MessageType
+import com.lerchenflo.schneaggchatv3server.message.messagemodel.PollMessageRequest
+import com.lerchenflo.schneaggchatv3server.message.messagemodel.PollVoteRequest
 import com.lerchenflo.schneaggchatv3server.message.messagemodel.toMessageResponse
+import com.lerchenflo.schneaggchatv3server.message.messagemodel.toPoll
 import com.lerchenflo.schneaggchatv3server.user.UserController
 import com.lerchenflo.schneaggchatv3server.user.UserService
 import org.bson.types.ObjectId
@@ -39,12 +43,12 @@ class MessageController(
             sender = ObjectId(requestingUserId),
             receiver = ObjectId(messageRequest.receiverId),
             groupMessage = messageRequest.groupMessage,
-            messageType = messageRequest.msgType,
+            messageType = MessageType.TEXT,
             content = MessageService.MessageContent.Text(messageRequest.content),
             answerId = if (messageRequest.answerId != null) ObjectId(messageRequest.answerId) else null
         )
 
-        return message.toMessageResponse()
+        return message.toMessageResponse(ObjectId(requestingUserId))
     }
 
 
@@ -52,6 +56,55 @@ class MessageController(
     @PostMapping("/send/image")
 
      */
+
+
+
+    @PostMapping("/send/poll")
+    fun sendPollMessage(
+        @RequestBody pollMessageRequest: PollMessageRequest
+    ): MessageResponse {
+
+        val requestingUserId =
+            SecurityContextHolder.getContext().authentication?.principal as? String ?: throw ResponseStatusException(
+                /* status = */ HttpStatus.FORBIDDEN,
+                /* reason = */ "Not logged in"
+            )
+
+        //println("Message received: $messageRequest")
+        val message = messageService.sendMessage(
+            sender = ObjectId(requestingUserId),
+            receiver = ObjectId(pollMessageRequest.receiverId),
+            groupMessage = pollMessageRequest.groupMessage,
+            messageType = MessageType.POLL,
+            content = MessageService.MessageContent.Poll(
+                poll = pollMessageRequest.poll.toPoll(creatorId = ObjectId(requestingUserId))
+            ),
+            answerId = if (pollMessageRequest.answerId != null) ObjectId(pollMessageRequest.answerId) else null
+        )
+
+        return message.toMessageResponse(ObjectId(requestingUserId))
+    }
+
+    @PostMapping("/pollvote")
+    fun pollVote(
+        @RequestBody pollVoteRequest: PollVoteRequest
+    ): MessageResponse {
+        val requestingUserId =
+            SecurityContextHolder.getContext().authentication?.principal as? String ?: throw ResponseStatusException(
+                /* status = */ HttpStatus.FORBIDDEN,
+                /* reason = */ "Not logged in"
+            )
+
+        return messageService.votePoll(
+            requestingUserId = ObjectId(requestingUserId),
+            pollVoteRequest = pollVoteRequest
+        ).toMessageResponse(
+                requestingUserId = ObjectId(requestingUserId)
+            )
+
+    }
+
+
 
 
     @PostMapping("/sync")

@@ -52,6 +52,7 @@ class GroupService(
 
         require(membersInternal.size > 2) { "A group must have at least 3 members" }
         require(ValidationUtils.validateUsername(groupName)) { "Group name invalid" }
+        require(ValidationUtils.validateDescription(description)) { "Description invalid" }
         require(ValidationUtils.validatePicture(profilePic)) { "Profilepic invalid" }
 
         //Creator needs to be friends with everyone
@@ -66,6 +67,7 @@ class GroupService(
                 name = groupName.trim(),
                 description = description,
                 updatedAt = currentTime,
+                profilePicUpdatedAt = currentTime,
                 createdAt = currentTime,
                 creatorId = creatorId
             )
@@ -104,8 +106,9 @@ class GroupService(
                 id = group.id.toHexString(),
                 name = group.name,
                 description = group.description,
-                updatedAt = group.updatedAt.toEpochMilliseconds().toString(),
-                createdAt = group.createdAt.toEpochMilliseconds().toString(),
+                updatedAt = group.updatedAt.toEpochMilliseconds(),
+                profilePicUpdatedAt = group.profilePicUpdatedAt.toEpochMilliseconds(),
+                createdAt = group.createdAt.toEpochMilliseconds(),
                 creatorId = group.creatorId.toHexString(),
                 members = members.map { member ->
                     member.toGroupMemberResponse(
@@ -183,8 +186,10 @@ class GroupService(
             group = true
         )
 
+        val now = Clock.System.now()
         groupRepository.save(group.copy(
-            updatedAt = Clock.System.now()
+            updatedAt = now,
+            profilePicUpdatedAt = now
         ))
 
         notificationService.notifyGroupUpdate(groupLookupService.getGroupAsGroupResponse(groupId), false)
@@ -194,7 +199,7 @@ class GroupService(
     fun changeGroupDescription(userId: ObjectId, groupId: ObjectId, newDescription: String) {
 
         require(groupLookupService.isUserInGroup(userId, groupId))
-        require(ValidationUtils.validateString(newDescription)) { "Invalid string" }
+        require(ValidationUtils.validateDescription(newDescription)) { "Invalid string" }
 
         val group = groupLookupService.getGroupById(groupId)
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Group not found")

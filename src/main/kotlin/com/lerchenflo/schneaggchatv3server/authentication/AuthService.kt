@@ -24,6 +24,7 @@ import java.security.MessageDigest
 import java.util.*
 import java.util.Locale.getDefault
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
@@ -124,26 +125,45 @@ class AuthService(
 
         val hashed = hashToken(refreshToken)
 
-        //If there is no existing token saved exit
-        val existingToken =
-            refreshTokenRepository.findByUserIdAndHashedToken(user.id, hashed) ?: // Check if it was previously deleted
-            //val deletedToken = refreshTokenRepository.findByUserIdAndHashedToken(user.id, hashed)
-            //if (deletedToken?.deletedAt != null) {
-            //    println("Attempted to reuse refresh token that was deleted at ${deletedToken.deletedAt} for user $userId")
-            //}
+        //Find all existing tokens
+        val existingTokens = refreshTokenRepository.findByUserIdAndHashedToken(user.id, hashed)
+
+        //No tokens for this user
+        if (existingTokens.isEmpty()) {
             throw ResponseStatusException(
                 HttpStatusCode.valueOf(401),
-                "Refreshtoken not recognized (maybe used or expired)"
+                "Invalid refresh token"
             )
+        }
+
+        // Check if any token is valid (not deleted OR deleted within last 2 minutes)
+        val now = Clock.System.now()
+        val twoMinutesAgo = now.minus(2.minutes)
+
+        val hasValidToken = existingTokens.any { token ->
+            token.deletedAt == null || token.deletedAt!! > twoMinutesAgo
+        }
+
+        if (!hasValidToken) {
+            println("Attempted to reuse refresh token that was deleted more than 2 minutes ago for user $userId")
+            throw ResponseStatusException(
+                HttpStatusCode.valueOf(401),
+                "Invalid refresh token"
+            )
+        }
 
         //generate new token
         val newAccessToken = jwtService.generateAccessToken(userId)
         val newRefreshToken = jwtService.generateRefreshToken(userId)
 
-        // Soft delete old token
-        existingToken.deletedAt = Clock.System.now()
-        refreshTokenRepository.save(existingToken)
-        //println("Refresh token for user $userId deleted at ${existingToken.deletedAt}")
+        // Soft delete all existing tokens
+        existingTokens.forEach { token ->
+            if (token.deletedAt == null) {
+                token.deletedAt = now
+            }
+        }
+        refreshTokenRepository.saveAll(existingTokens)
+        println("Refresh token for user $userId deleted")
 
         storeRefreshToken(user.id, newRefreshToken)
 

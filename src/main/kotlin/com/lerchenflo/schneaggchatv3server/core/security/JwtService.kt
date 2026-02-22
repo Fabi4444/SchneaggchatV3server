@@ -153,11 +153,29 @@ class JwtService(
     ): String {
 
         val now = Date()
-        val expiryDate = Date(now.time + emailTokenValidityMs) //15 min valid
+        val expiryDate = Date(now.time + emailTokenValidityMs) //24 hours valid
 
         return Jwts.builder()
             .subject(userId)
             .claim("type", "accountdeletion")
+            .claim("email", email)
+            .issuedAt(now)
+            .expiration(expiryDate)
+            .signWith(secretKey, Jwts.SIG.HS256)
+            .compact()
+    }
+
+    fun generateDelAccConfirmToken(
+        userId: String,
+        email: String
+    ): String {
+
+        val now = Date()
+        val expiryDate = Date(now.time + (30 * 60 * 1000L)) //30 minutes valid
+
+        return Jwts.builder()
+            .subject(userId)
+            .claim("type", "accountdeletionconfirm")
             .claim("email", email)
             .issuedAt(now)
             .expiration(expiryDate)
@@ -172,6 +190,22 @@ class JwtService(
         val claims = parseAllClaims(token) ?: return null
         val tokentype = claims["type"] as? String ?: return null
         if (tokentype == "accountdeletion"
+            && claims["email"] is String){
+
+            val userid = ObjectId(getUserIdFromToken(token))
+            val email = claims["email"] as String
+            return Pair(email, userid)
+        }
+        return null
+    }
+
+    /**
+     * Validate a confirmation token. returns either null if not valid or the email and userid
+     */
+    fun validateDelAccConfirmToken(token: String): Pair<String, ObjectId>? {
+        val claims = parseAllClaims(token) ?: return null
+        val tokentype = claims["type"] as? String ?: return null
+        if (tokentype == "accountdeletionconfirm"
             && claims["email"] is String){
 
             val userid = ObjectId(getUserIdFromToken(token))

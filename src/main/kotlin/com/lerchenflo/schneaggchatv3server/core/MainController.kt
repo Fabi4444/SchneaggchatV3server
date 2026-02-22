@@ -5,7 +5,10 @@ package com.lerchenflo.schneaggchatv3server.core
 import com.lerchenflo.schneaggchatv3server.core.security.HashEncoder
 import com.lerchenflo.schneaggchatv3server.group.GroupLookupService
 import com.lerchenflo.schneaggchatv3server.group.GroupService
+import com.lerchenflo.schneaggchatv3server.group.model.Group
+import com.lerchenflo.schneaggchatv3server.message.messagemodel.Message
 import com.lerchenflo.schneaggchatv3server.repository.GroupRepository
+import com.lerchenflo.schneaggchatv3server.repository.UserRepository
 import com.lerchenflo.schneaggchatv3server.user.UserLookupService
 import com.lerchenflo.schneaggchatv3server.user.usermodel.User
 import com.lerchenflo.schneaggchatv3server.user.UserService
@@ -13,7 +16,12 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.event.EventListener
 import org.springframework.data.mongodb.core.MongoTemplate
+import org.springframework.data.mongodb.core.aggregation.AggregationUpdate
+import org.springframework.data.mongodb.core.aggregation.SetOperation
 import org.springframework.data.mongodb.core.index.IndexInfo
+import org.springframework.data.mongodb.core.query.Criteria
+import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.query.Update
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 import kotlin.time.Clock
@@ -33,6 +41,8 @@ class MainController(
     private val groupService: GroupService,
     private val groupRepository: GroupRepository,
 
+    private val userRepository: UserRepository,
+
 
     @Value("\${defaultaccount.password}") private val defaultPassword: String
 ){
@@ -44,6 +54,9 @@ class MainController(
 
     @EventListener(ApplicationReadyEvent::class)
     fun onStartup() {
+
+        migrateDBs()
+
         //Code to execute on app start finished
         //listMongoIndexes()
         printAllGroups()
@@ -92,6 +105,50 @@ class MainController(
         }
         println("========================================")
     }
+
+
+    fun migrateDBs() {
+        println("Running database migrations...")
+
+        val query = Query()
+        query.addCriteria(Criteria.where("profilePicUpdatedAt").exists(false))
+
+        // Use SetOperation to reference the updatedAt field
+        val update = AggregationUpdate.update()
+            .set(
+                SetOperation.builder()
+                .set("profilePicUpdatedAt")
+                .toValueOf("updatedAt")
+            )
+
+        val resultUsers = mongoTemplate.updateMulti(
+            query,
+            update,
+            User::class.java
+        )
+
+        val resultGroups = mongoTemplate.updateMulti(
+            query,
+            update,
+            Group::class.java
+        )
+
+        if (resultUsers.modifiedCount > 0) {
+            println("✅ Migration completed: Added profilePicUpdatedAt field to ${resultUsers.modifiedCount} users")
+        } else {
+            println("✅ Migration check: All users already have a profilePicUpdatedAt field")
+        }
+
+        if (resultGroups.modifiedCount > 0) {
+            println("✅ Migration completed: Added profilePicUpdatedAt field to ${resultGroups.modifiedCount} groups")
+        } else {
+            println("✅ Migration check: All groups already have a profilePicUpdatedAt field")
+        }
+
+
+    }
+
+
 
     /**
      * Prints all groups with their members, creator, and admin status in a table format.

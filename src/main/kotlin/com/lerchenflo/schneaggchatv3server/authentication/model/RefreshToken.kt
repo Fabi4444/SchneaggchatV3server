@@ -12,7 +12,13 @@ import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
 @Document("refreshTokens")
-@CompoundIndex(name = "user_token_deleted", def = "{'userId': 1, 'hashedToken': 1, 'deletedAt': 1}", unique = true)
+@CompoundIndex(
+    name = "active_user_token",
+    def = "{'userId': 1, 'hashedToken': 1}",
+    unique = true,
+    partialFilter = "{'deletedAt': null}"  // Only enforce uniqueness on active tokens
+)
+
 data class RefreshToken(
     @Id val id: ObjectId = ObjectId.get(),
     val userId: ObjectId,

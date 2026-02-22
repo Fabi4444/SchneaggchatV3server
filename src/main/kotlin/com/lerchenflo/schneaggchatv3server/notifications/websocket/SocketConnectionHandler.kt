@@ -1,13 +1,13 @@
 package com.lerchenflo.schneaggchatv3server.notifications.websocket
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.lerchenflo.schneaggchatv3server.core.security.JwtService
 import com.lerchenflo.schneaggchatv3server.notifications.websocket.model.SocketConnection
 import com.lerchenflo.schneaggchatv3server.notifications.websocket.model.SocketConnectionMessage
+import com.lerchenflo.schneaggchatv3server.user.UserLookupService
+import com.lerchenflo.schneaggchatv3server.user.UserService
+import com.lerchenflo.schneaggchatv3server.util.Json
 import org.bson.types.ObjectId
 import org.springframework.http.HttpStatus
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.socket.CloseStatus
@@ -16,14 +16,12 @@ import org.springframework.web.socket.WebSocketMessage
 import org.springframework.web.socket.WebSocketSession
 import org.springframework.web.socket.handler.TextWebSocketHandler
 import java.util.concurrent.CopyOnWriteArrayList
-import kotlin.text.startsWith
 
 @Component
 class SocketConnectionHandler(
     private val jwtService: JwtService,
+    private val userLookupService: UserLookupService,
 ): TextWebSocketHandler() {
-    private val objectMapper = ObjectMapper()
-
 
     var connections : CopyOnWriteArrayList<SocketConnection> = CopyOnWriteArrayList()
 
@@ -36,11 +34,11 @@ class SocketConnectionHandler(
         val userConnection = connections.find { it.userId == receiverId } ?: return false
 
         try {
-            val jsonMessage = objectMapper.writeValueAsString(message)
+            val jsonMessage = Json.mapper.writeValueAsString(message)
             userConnection.session.sendMessage(TextMessage(jsonMessage))
             return true
         } catch (e: Exception) {
-            println("Error sending message to user $receiverId: ${e.message}")
+            println("Error sending socket message to user $receiverId: ${e.message}")
             return false
         }
     }
@@ -76,7 +74,7 @@ class SocketConnectionHandler(
             }
 
 
-        println("New socket connection: ${session.remoteAddress}")
+        println("New socket connection from IP: ${session.handshakeHeaders["X-Real-IP"]}")
 
         //Update session or create new (Multiple connections from the same userid are allowed
         synchronized(connections) {

@@ -60,6 +60,9 @@ object ValidationUtils {
         // Must start with alphanumeric
         if (!username.first().isLetterOrDigit()) return false
 
+        if (!username.last().isLetterOrDigit()) return false
+
+
         if (username.lowercase(getDefault()) in RESERVED_USERNAMES) return false
 
         // Only alphanumeric, underscore, and hyphen allowed
@@ -95,9 +98,21 @@ object ValidationUtils {
         return true
     }
 
+    fun validateDescription(string: String) : Boolean {
+        if (string.length > 200) return false
 
-    fun validateString(string: String) : Boolean {
-        if (string.length > 2000) return false
+        return true
+    }
+
+    fun validateStringMessage(string: String) : Boolean {
+        if (string.length > 2000 || string.isEmpty()) return false
+
+        return true
+    }
+
+    fun validatePollVoteText(text: String): Boolean {
+        if (text.isBlank()) return false
+        if (text.length > 250) return false
 
         return true
     }

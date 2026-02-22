@@ -30,8 +30,12 @@ class NotificationService(
     
     /**
      * Send a notification to a client device
+     * @param message the message which changed
+     * @param newMessage is this a new message
+     * @param deleted did this message just get deleted
+     * @param changingUserId user which made the change
      */
-    fun notifyMessageUpdate(message: Message, newMessage: Boolean, deleted: Boolean) {
+    fun notifyMessageUpdate(message: Message, newMessage: Boolean, deleted: Boolean, changingUserId: ObjectId) {
 
         val group = message.groupMessage
 
@@ -42,12 +46,12 @@ class NotificationService(
 
             groupMembers.forEach { member ->
 
-                //Exclude the sender
-                if (member.userid == message.senderId) return@forEach
+                //Exclude the changing user
+                if (member.userid == changingUserId) return@forEach
 
                 if (!socketConnectionHandler.sendMessage(
                         message = SocketConnectionMessage.MessageChange(
-                            message = message.toMessageResponse(),
+                            message = message.toMessageResponse(member.userid),
                             deleted = deleted,
                             newMessage = newMessage,
                         ),
@@ -75,11 +79,11 @@ class NotificationService(
             //Try sending via socketconnection
             if (!socketConnectionHandler.sendMessage(
                     SocketConnectionMessage.MessageChange(
-                        message = message.toMessageResponse(),
+                        message = message.toMessageResponse(message.receiverId),
                         deleted = deleted,
                         newMessage = newMessage,
                     ),
-                    receiverId = message.receiverId
+                    receiverId = if (message.senderId == changingUserId) message.receiverId else message.senderId, //Notify the user which did not change the message
                 )) {
 
                 //Message sending failed, use firebase if new, else ignore
