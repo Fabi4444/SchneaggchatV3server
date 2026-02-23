@@ -140,6 +140,54 @@ class EmailService(
     }
 
 
+    /**
+     * Send a password reset email to a client (only if email is verified)
+     */
+    fun sendPasswordResetEmail(userId: ObjectId, email: String) {
+        val user = userLookupService.findByObjectId(userId)
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")
+
+        // Only send if email is verified
+        if (user.emailVerifiedAt == null) {
+            println("Password reset requested for unverified email $email")
+            return
+        }
+
+        val lastemailsenttimestamp = getLastEmailTimestamp(userId, LogType.PASSWORD_RESET_EMAIL_SENT)
+        if (lastemailsenttimestamp != null &&
+            (lastemailsenttimestamp.plus(Duration.parse("15m")) > Clock.System.now())) {
+            throw ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "You need to wait 15 minutes before sending the next mail")
+        }
+
+        val token = jwtService.generatePasswordResetToken(userId.toHexString(), email)
+        val resetUrl = "https://schneaggchatv3.lerchenflo.eu/auth/reset_password?token=$token"
+
+        val mail = SimpleMailMessage()
+        mail.setTo(email)
+        mail.subject = "Schneaggchat password reset"
+        mail.text = "Someone requested to reset your password. If this was not you, please ignore this email.\nTo reset your password, click the link below:\n$resetUrl\n\nThis link is valid for 1 hour."
+        try {
+            mailSender.send(mail)
+            loggingService.log(userId, LogType.PASSWORD_RESET_EMAIL_SENT)
+        } catch (e: Exception) {
+            println("Mail not sent, error")
+        }
+    }
+
+    /**
+     * Reset the password using a valid token
+     */
+    fun resetPassword(token: String, newPassword: String): Boolean {
+        val (email, userId) = jwtService.validatePasswordResetToken(token) ?: return false
+
+        val user = userLookupService.findByEmail(email) ?: return false
+        if (user.id != userId) return false
+
+        userService.resetPassword(userId, newPassword)
+        return true
+    }
+
+
     fun getLastEmailTimestamp(userId: ObjectId, logType: LogType) : Instant? {
         return loggingService.getLastLogByLogtype(logType = logType, userId = userId)?.timestamp
     }

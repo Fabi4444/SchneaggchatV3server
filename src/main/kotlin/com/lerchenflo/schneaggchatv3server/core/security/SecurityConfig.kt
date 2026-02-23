@@ -53,6 +53,13 @@ class SecurityConfig(
                     .requestMatchers("/delete_account.html")
                     .permitAll()
 
+                    //Passwort zurücksetzen
+                    .requestMatchers("/reset_password.html")
+                    .permitAll()
+
+                    .requestMatchers("/reset_password_form.html")
+                    .permitAll()
+
                     .requestMatchers("/stats.html")
                     .permitAll()
 
