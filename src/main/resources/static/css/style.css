@@ -1498,3 +1498,77 @@ header.scrolled {
         font-size: 1.8rem;
     }
 }
+
+/* Password Reset Styles */
+.reset-button {
+    width: 100%;
+    padding: 1rem 2rem;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 2rem;
+    box-shadow: 0 10px 25px rgba(67, 97, 238, 0.3);
+    font-family: 'Poppins', sans-serif;
+}
+
+.reset-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 30px rgba(67, 97, 238, 0.4);
+}
+
+.reset-button:active {
+    transform: translateY(0);
+}
+
+/* Password Requirements List */
+.password-requirements {
+    color: #94a3b8;
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    padding-left: 0.5rem;
+}
+
+.password-requirements li {
+    margin-bottom: 0.25rem;
+    list-style: none;
+    position: relative;
+    padding-left: 1.2rem;
+}
+
+.password-requirements li::before {
+    content: '•';
+    color: var(--accent);
+    position: absolute;
+    left: 0;
+}
+
+.password-requirements li.valid {
+    color: #10b981;
+}
+
+.password-requirements li.valid::before {
+    content: '✓';
+    color: #10b981;
+}
+
+/* Form Error Box */
+.form-error-box {
+    color: #721c24;
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    padding: 10px;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    text-align: center;
+    font-size: 0.9rem;
+}

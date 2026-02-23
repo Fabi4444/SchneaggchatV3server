@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.Pattern
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -227,6 +228,49 @@ class AuthController(
             </body>
             </html>
             """.trimIndent()
+        }
+    }
+
+
+    @PostMapping("/send_reset_email")
+    fun sendResetEmail(
+        @RequestParam("email") email: String,
+    ){
+        val user = userLookupService.findByEmail(email)
+        if (user == null){
+            println("No user found with email $email for password reset")
+            return
+        }
+
+        println("Password reset request for $email")
+        emailService.sendPasswordResetEmail(user.id, email)
+    }
+
+    @GetMapping("/reset_password")
+    fun resetPassword(
+        @RequestParam("token") token: String,
+    ) : ResponseEntity<Void> {
+        // Redirect to the static HTML page, passing the token as a query parameter
+        return ResponseEntity.status(HttpStatus.FOUND)
+            .header("Location", "/reset_password_form.html?token=$token")
+            .build()
+    }
+
+    @PostMapping("/confirm_reset_password")
+    fun confirmResetPassword(
+        @RequestParam("token") token: String,
+        @RequestParam("newPassword") newPassword: String,
+    ) : String {
+        // Validate password format server-side
+        val passwordRegex = Regex("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$")
+        if (!passwordRegex.matches(newPassword)) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Password does not meet requirements")
+        }
+        
+        return if (emailService.resetPassword(token, newPassword)) {
+            "true"
+        } else {
+            "false"
         }
     }
 

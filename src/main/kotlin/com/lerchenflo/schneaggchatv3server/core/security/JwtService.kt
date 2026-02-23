@@ -216,4 +216,39 @@ class JwtService(
     }
 
 
+    fun generatePasswordResetToken(
+        userId: String,
+        email: String
+    ): String {
+
+        val now = Date()
+        val expiryDate = Date(now.time + (60 * 60 * 1000L)) //1 hour valid
+
+        return Jwts.builder()
+            .subject(userId)
+            .claim("type", "passwordreset")
+            .claim("email", email)
+            .issuedAt(now)
+            .expiration(expiryDate)
+            .signWith(secretKey, Jwts.SIG.HS256)
+            .compact()
+    }
+
+    /**
+     * Validate a password reset token. returns either null if not valid or the email and userid
+     */
+    fun validatePasswordResetToken(token: String): Pair<String, ObjectId>? {
+        val claims = parseAllClaims(token) ?: return null
+        val tokentype = claims["type"] as? String ?: return null
+        if (tokentype == "passwordreset"
+            && claims["email"] is String){
+
+            val userid = ObjectId(getUserIdFromToken(token))
+            val email = claims["email"] as String
+            return Pair(email, userid)
+        }
+        return null
+    }
+
+
 }

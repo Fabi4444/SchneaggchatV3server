@@ -34,6 +34,7 @@ const footerHTML = `
                         <h4>Support</h4>
                         <a href="/donations.html">Spenden</a>
                         <a href="/delete_account.html">Account löschen</a>
+                        <a href="/reset_password.html">Passwort zurücksetzen</a>
                     </div>
                 </div>
             </footer>

@@ -293,6 +293,22 @@ class UserService(
 
     }
 
+    /**
+     * Reset password via email token (no old password required)
+     */
+    fun resetPassword(userId: ObjectId, newPassword: String) {
+        val user = userRepository.findById(userId).orElseThrow {
+            ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")
+        }
+
+        userRepository.save(user.copy(
+            hashedPassword = hashEncoder.encode(newPassword)
+        ))
+
+        //All tokens invalidated
+        refreshTokenRepository.deleteByUserId(user.id)
+    }
+
 
 
     /**
