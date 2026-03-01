@@ -54,6 +54,7 @@ services:
     volumes:
       - gradle-cache:/root/.gradle
       - app-images:/app/images
+      - app-images-messages:/app/images_messages
 
 
 networks:
@@ -63,3 +64,4 @@ networks:
 volumes:
   gradle-cache:
   app-images:
+  app-images-messages:
