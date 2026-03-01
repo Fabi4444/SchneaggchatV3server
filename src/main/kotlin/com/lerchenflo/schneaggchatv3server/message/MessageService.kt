@@ -317,7 +317,7 @@ class MessageService(
 
         require(message.msgType == MessageType.IMAGE) { "You can not access not image messages on this endpoint" }
 
-        return imageManager.loadImageFromFile(imageManager.getImageMessageFileName(
+        return imageManager.loadMessageImageFromFile(imageManager.getImageMessageFileName(
             messageId = messageId,
             group = message.groupMessage
         ))
