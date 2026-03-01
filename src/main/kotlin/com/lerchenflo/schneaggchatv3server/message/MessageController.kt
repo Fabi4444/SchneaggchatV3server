@@ -45,6 +45,10 @@ class MessageController(
                 /* reason = */ "Not logged in"
             )
 
+        if (messageRequest.messageId != null) {
+            return messageService.editMessage(ObjectId(messageRequest.messageId), ObjectId(requestingUserId), messageRequest.content)
+        }
+
         //println("Message received: $messageRequest")
         val message = messageService.sendMessage(
             sender = ObjectId(requestingUserId),

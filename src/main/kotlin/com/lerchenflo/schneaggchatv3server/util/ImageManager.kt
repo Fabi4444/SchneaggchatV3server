@@ -20,20 +20,7 @@ class ImageManager {
     }
 
 
-    private fun saveImageToFile(image: MultipartFile, fileName: String) {
-        val imagesDir = File("/app/images")
-        if (!imagesDir.exists()) {
-            imagesDir.mkdirs()
-        }
-        val targetFile = File(imagesDir, fileName)
-        image.inputStream.use { input ->
-            targetFile.outputStream().use { output ->
-                input.copyTo(output)
-            }
-        }
-    }
-
-    fun loadImageFromFile(fileName: String): ByteArray {
+    fun loadProfilePicFromFile(fileName: String): ByteArray {
         val imagesDir = File("/app/images")
         val targetFile = File(imagesDir, fileName)
 
@@ -67,6 +54,17 @@ class ImageManager {
     }
 
 
+    fun loadMessageImageFromFile(fileName: String): ByteArray {
+        val imagesDir = File("/app/images_messages")
+        val targetFile = File(imagesDir, fileName)
+
+        if (!targetFile.exists()) {
+            throw IllegalArgumentException("Image file not found: $fileName")
+        }
+
+        return targetFile.readBytes()
+    }
+
     fun saveImageMessage(image: MultipartFile, messageId: ObjectId, group: Boolean): String {
         val filename = getImageMessageFileName(messageId, group)
         val downscaledImage = downscaleIfNeeded(ImageIO.read(image.inputStream))
@@ -77,6 +75,8 @@ class ImageManager {
         }
         val targetFile = File(imagesDir, filename)
         ImageIO.write(downscaledImage, "PNG", targetFile)
+
+        println("Image saved in storage: $filename")
 
         return filename
     }

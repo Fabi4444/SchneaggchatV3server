@@ -162,7 +162,7 @@ class GroupService(
     fun getGroupProfilePic(groupId: ObjectId): ResponseEntity<ByteArray> {
         return try {
             val imageName = imageManager.getProfilePicFileName(groupId.toHexString(), true)
-            val imageBytes = imageManager.loadImageFromFile(imageName)
+            val imageBytes = imageManager.loadProfilePicFromFile(imageName)
             ResponseEntity.ok()
                 .contentType(MediaType.IMAGE_JPEG)
                 .body(imageBytes)
