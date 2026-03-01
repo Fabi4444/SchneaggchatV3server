@@ -67,7 +67,11 @@ class MessageService(
 
         val storedContent = when(content) {
             is Image -> {
-                imageManager.saveImageMessage(content.image, savedObjectId.toHexString())
+                imageManager.saveImageMessage(
+                    image = content.image,
+                    messageId = savedObjectId,
+                    group = groupMessage
+                )
             }
             is Text -> {
                 content.message
@@ -306,6 +310,19 @@ class MessageService(
 
         return newmessage.toMessageResponse(editingUserId)
     }
+
+
+    fun getImageMessage(messageId: ObjectId, requestingUserId: ObjectId) : ByteArray {
+        val message = canUserAccessMessage(messageId, requestingUserId)
+
+        require(message.msgType == MessageType.IMAGE) { "You can not access not image messages on this endpoint" }
+
+        return imageManager.loadImageFromFile(imageManager.getImageMessageFileName(
+            messageId = messageId,
+            group = message.groupMessage
+        ))
+    }
+
 
     fun deleteMessage(messageId: ObjectId, deletingUserId: ObjectId) {
         val message = canUserAccessMessage(messageId, deletingUserId)

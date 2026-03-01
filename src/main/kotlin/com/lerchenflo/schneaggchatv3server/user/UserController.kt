@@ -120,6 +120,7 @@ class UserController(
                 /* reason = */ "Not logged in"
             )
 
+        //TODO: Move into userservice
         return try {
             val imageName = imageManager.getProfilePicFileName(userId, false)
             val imageBytes = imageManager.loadImageFromFile(imageName)
