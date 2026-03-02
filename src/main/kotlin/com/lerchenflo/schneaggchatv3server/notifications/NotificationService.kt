@@ -3,6 +3,7 @@ package com.lerchenflo.schneaggchatv3server.notifications
 import com.lerchenflo.schneaggchatv3server.group.GroupLookupService
 import com.lerchenflo.schneaggchatv3server.group.model.GroupResponse
 import com.lerchenflo.schneaggchatv3server.message.messagemodel.Message
+import com.lerchenflo.schneaggchatv3server.message.messagemodel.MessageType
 import com.lerchenflo.schneaggchatv3server.message.messagemodel.toMessageResponse
 import com.lerchenflo.schneaggchatv3server.notifications.firebase.FirebaseService
 import com.lerchenflo.schneaggchatv3server.notifications.websocket.SocketConnectionHandler
@@ -35,7 +36,7 @@ class NotificationService(
      * @param deleted did this message just get deleted
      * @param changingUserId user which made the change
      */
-    fun notifyMessageUpdate(message: Message, newMessage: Boolean, deleted: Boolean, changingUserId: ObjectId) {
+    fun  notifyMessageUpdate(message: Message, newMessage: Boolean, deleted: Boolean, changingUserId: ObjectId) {
 
         val group = message.groupMessage
 
@@ -63,6 +64,7 @@ class NotificationService(
                         firebaseMessagingService.sendNewMessageNotificationToUser(
                             senderId = message.senderId,
                             receiverId = member.userid,
+                            messageType = message.msgType,
                             messageContent = message.content,
                             msgId = message.id.toHexString(),
                             groupMessage = true,
@@ -91,6 +93,7 @@ class NotificationService(
                     firebaseMessagingService.sendNewMessageNotificationToUser(
                         senderId = message.senderId,
                         receiverId = message.receiverId,
+                        messageType = message.msgType,
                         messageContent = message.content,
                         msgId = message.id.toHexString(),
                         groupMessage = false,

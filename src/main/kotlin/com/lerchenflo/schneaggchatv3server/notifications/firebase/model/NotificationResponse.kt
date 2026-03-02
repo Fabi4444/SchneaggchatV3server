@@ -2,6 +2,7 @@ package com.lerchenflo.schneaggchatv3server.notifications.firebase.model
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.lerchenflo.schneaggchatv3server.message.messagemodel.MessageType
 
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,
@@ -20,6 +21,7 @@ sealed interface NotificationResponse {
         val msgId: String,
         val senderName: String,
         val groupMessage: Boolean,
+        val messageType: MessageType,
         val groupName: String,
         val encodedContent: String
     ) : NotificationResponse

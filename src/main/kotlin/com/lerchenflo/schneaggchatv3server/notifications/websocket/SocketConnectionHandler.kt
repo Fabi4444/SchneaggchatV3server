@@ -98,7 +98,7 @@ class SocketConnectionHandler(
         //TODO: Log connection time?
 
         synchronized(connections) {
-            println("Socket connection closed: ${session.id}")
+            //println("Socket connection closed: ${session.id}")
             connections.removeIf { it.sessionId == session.id }
         }
 
