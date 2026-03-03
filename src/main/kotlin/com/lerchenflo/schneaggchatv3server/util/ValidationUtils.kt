@@ -105,7 +105,7 @@ object ValidationUtils {
     }
 
     fun validateStringMessage(string: String) : Boolean {
-        if (string.length > 2000 || string.isEmpty()) return false
+        if (string.length > 3000 || string.isEmpty()) return false
 
         return true
     }

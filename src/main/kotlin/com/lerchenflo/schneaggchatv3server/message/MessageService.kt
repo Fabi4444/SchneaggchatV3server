@@ -63,6 +63,39 @@ class MessageService(
             groupMessage = groupMessage,
         )
 
+
+        when (messageType) {
+            MessageType.TEXT -> {
+                require(content is Text) { "Message type must be Text" }
+
+                require(ValidationUtils.validateStringMessage(content.message)) { "Invalid text message" }
+            }
+            MessageType.IMAGE -> {
+
+                require(content is Image) { "Image message type must be Image" }
+
+                if (content.text.isNotEmpty()) {
+                    require(ValidationUtils.validateStringMessage(content.text)) { "Invalid text message" }
+                }
+
+                //TODO Image validation
+            }
+            MessageType.POLL -> {
+                require(content is MessageContent.Poll) { "Pollmessage with empty poll" }
+
+                //TODO: Poll validation
+                if (content.poll.closeDate != null) {
+                    require(content.poll.closeDate > Clock.System.now()) { "Poll closedate is in the past" }
+                }
+
+                content.poll.voteOptions.forEach { voteOption ->
+                    require(ValidationUtils.validatePollVoteText(voteOption.text)) {"Pollvote option text in wrong format"}
+                }
+            }
+        }
+
+
+
         val savedObjectId = ObjectId()
 
         val storedContent = when(content) {
@@ -81,22 +114,6 @@ class MessageService(
                 ""
             }
         }
-
-
-        if (messageType == MessageType.POLL) {
-            require(content is MessageContent.Poll) { "Pollmessage with empty poll" }
-
-            //TODO: Poll validation
-            if (content.poll.closeDate != null) {
-                require(content.poll.closeDate > Clock.System.now()) { "Poll closedate is in the past" }
-            }
-
-            content.poll.voteOptions.forEach { voteOption ->
-                require(ValidationUtils.validatePollVoteText(voteOption.text)) {"Pollvote option text in wrong format"}
-            }
-
-        }
-
 
 
         val sendDate = Clock.System.now()
