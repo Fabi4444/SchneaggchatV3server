@@ -290,7 +290,7 @@ class MessageService(
 
         val message = canUserAccessMessage(messageId, editingUserId)
 
-        require(message.msgType == MessageType.TEXT) { "You can not edit a ${message.msgType} message" }
+        require(message.msgType == MessageType.TEXT || message.msgType == MessageType.IMAGE) { "You can not edit a ${message.msgType} message" }
 
         //User can access message, change content
         val now = Clock.System.now()
