@@ -80,7 +80,7 @@ class MessageController(
             receiver = ObjectId(messageRequest.receiverId),
             groupMessage = messageRequest.groupMessage,
             messageType = MessageType.IMAGE,
-            content = MessageService.MessageContent.Image(image),
+            content = MessageService.MessageContent.Image(image, messageRequest.content),
             answerId = if (messageRequest.answerId != null) ObjectId(messageRequest.answerId) else null
         )
 

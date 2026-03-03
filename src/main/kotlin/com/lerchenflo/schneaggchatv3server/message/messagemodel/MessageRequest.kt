@@ -24,5 +24,6 @@ data class ImageMessageRequest(
     val receiverId: String,
     val groupMessage: Boolean,
     val msgType: MessageType,
+    val content: String,
     val answerId: String?
 )

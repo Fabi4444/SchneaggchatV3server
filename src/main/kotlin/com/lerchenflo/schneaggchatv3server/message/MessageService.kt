@@ -50,7 +50,7 @@ class MessageService(
 
     sealed class MessageContent {
         data class Text(val message: String) : MessageContent()
-        data class Image(val image: MultipartFile) : MessageContent()
+        data class Image(val image: MultipartFile, val text: String) : MessageContent()
 
         data class Poll(val poll: PollMessage) : MessageContent()
     }
@@ -511,7 +511,9 @@ class MessageService(
         messageId: ObjectId,
         userId: ObjectId,
     ) : Message {
-        val message = messageRepository.findById(messageId)?.get() ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
+        val message = messageRepository.findById(messageId).orElseThrow {
+            ResponseStatusException(HttpStatus.NOT_FOUND)
+        }
 
         if (message.groupMessage) {
             canUserAccessMessage(userId, message.receiverId, true)
