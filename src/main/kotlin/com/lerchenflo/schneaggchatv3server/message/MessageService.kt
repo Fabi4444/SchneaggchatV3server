@@ -100,11 +100,15 @@ class MessageService(
 
         val storedContent = when(content) {
             is Image -> {
+                //Save image to file
                 imageManager.saveImageMessage(
                     image = content.image,
                     messageId = savedObjectId,
                     group = groupMessage
                 )
+
+                //Save the text as content
+                content.text
             }
             is Text -> {
                 content.message
