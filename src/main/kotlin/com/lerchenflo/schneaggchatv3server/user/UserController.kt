@@ -120,9 +120,10 @@ class UserController(
                 /* reason = */ "Not logged in"
             )
 
+        //TODO: Move into userservice
         return try {
             val imageName = imageManager.getProfilePicFileName(userId, false)
-            val imageBytes = imageManager.loadImageFromFile(imageName)
+            val imageBytes = imageManager.loadProfilePicFromFile(imageName)
             ResponseEntity.ok()
                 .contentType(MediaType.IMAGE_JPEG)
                 .body(imageBytes)

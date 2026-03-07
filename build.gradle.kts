@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "com.lerchenflo"
-version = "3.0.0-BETA"
+version = "3.0.5"
 description = "SchneaggchatV3 server"
 
 java {

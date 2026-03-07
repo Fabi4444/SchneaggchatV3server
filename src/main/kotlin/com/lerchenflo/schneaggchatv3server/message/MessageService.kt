@@ -50,7 +50,7 @@ class MessageService(
 
     sealed class MessageContent {
         data class Text(val message: String) : MessageContent()
-        data class Image(val image: MultipartFile) : MessageContent()
+        data class Image(val image: MultipartFile, val text: String) : MessageContent()
 
         data class Poll(val poll: PollMessage) : MessageContent()
     }
@@ -63,11 +63,52 @@ class MessageService(
             groupMessage = groupMessage,
         )
 
+
+        when (messageType) {
+            MessageType.TEXT -> {
+                require(content is Text) { "Message type must be Text" }
+
+                require(ValidationUtils.validateStringMessage(content.message)) { "Invalid text message" }
+            }
+            MessageType.IMAGE -> {
+
+                require(content is Image) { "Image message type must be Image" }
+
+                if (content.text.isNotEmpty()) {
+                    require(ValidationUtils.validateStringMessage(content.text)) { "Invalid text message" }
+                }
+
+                //TODO Image validation
+            }
+            MessageType.POLL -> {
+                require(content is MessageContent.Poll) { "Pollmessage with empty poll" }
+
+                //TODO: Poll validation
+                if (content.poll.closeDate != null) {
+                    require(content.poll.closeDate > Clock.System.now()) { "Poll closedate is in the past" }
+                }
+
+                content.poll.voteOptions.forEach { voteOption ->
+                    require(ValidationUtils.validatePollVoteText(voteOption.text)) {"Pollvote option text in wrong format"}
+                }
+            }
+        }
+
+
+
         val savedObjectId = ObjectId()
 
         val storedContent = when(content) {
             is Image -> {
-                imageManager.saveImageMessage(content.image, savedObjectId.toHexString())
+                //Save image to file
+                imageManager.saveImageMessage(
+                    image = content.image,
+                    messageId = savedObjectId,
+                    group = groupMessage
+                )
+
+                //Save the text as content
+                content.text
             }
             is Text -> {
                 content.message
@@ -77,22 +118,6 @@ class MessageService(
                 ""
             }
         }
-
-
-        if (messageType == MessageType.POLL) {
-            require(content is MessageContent.Poll) { "Pollmessage with empty poll" }
-
-            //TODO: Poll validation
-            if (content.poll.closeDate != null) {
-                require(content.poll.closeDate > Clock.System.now()) { "Poll closedate is in the past" }
-            }
-
-            content.poll.voteOptions.forEach { voteOption ->
-                require(ValidationUtils.validatePollVoteText(voteOption.text)) {"Pollvote option text in wrong format"}
-            }
-
-        }
-
 
 
         val sendDate = Clock.System.now()
@@ -286,7 +311,7 @@ class MessageService(
 
         val message = canUserAccessMessage(messageId, editingUserId)
 
-        require(message.msgType == MessageType.TEXT) { "You can not edit a ${message.msgType} message" }
+        require(message.msgType == MessageType.TEXT || message.msgType == MessageType.IMAGE) { "You can not edit a ${message.msgType} message" }
 
         //User can access message, change content
         val now = Clock.System.now()
@@ -306,6 +331,19 @@ class MessageService(
 
         return newmessage.toMessageResponse(editingUserId)
     }
+
+
+    fun getImageMessage(messageId: ObjectId, requestingUserId: ObjectId) : ByteArray {
+        val message = canUserAccessMessage(messageId, requestingUserId)
+
+        require(message.msgType == MessageType.IMAGE) { "You can not access not image messages on this endpoint" }
+
+        return imageManager.loadMessageImageFromFile(imageManager.getImageMessageFileName(
+            messageId = messageId,
+            group = message.groupMessage
+        ))
+    }
+
 
     fun deleteMessage(messageId: ObjectId, deletingUserId: ObjectId) {
         val message = canUserAccessMessage(messageId, deletingUserId)
@@ -494,7 +532,9 @@ class MessageService(
         messageId: ObjectId,
         userId: ObjectId,
     ) : Message {
-        val message = messageRepository.findById(messageId)?.get() ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
+        val message = messageRepository.findById(messageId).orElseThrow {
+            ResponseStatusException(HttpStatus.NOT_FOUND)
+        }
 
         if (message.groupMessage) {
             canUserAccessMessage(userId, message.receiverId, true)

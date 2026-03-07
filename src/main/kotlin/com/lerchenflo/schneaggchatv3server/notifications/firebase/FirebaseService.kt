@@ -13,6 +13,7 @@ import com.google.firebase.messaging.FirebaseMessagingException
 import com.google.firebase.messaging.Message
 import com.google.firebase.messaging.MessagingErrorCode
 import com.lerchenflo.schneaggchatv3server.core.security.JwtService
+import com.lerchenflo.schneaggchatv3server.message.messagemodel.MessageType
 import com.lerchenflo.schneaggchatv3server.util.CryptoUtil
 import com.lerchenflo.schneaggchatv3server.notifications.firebase.model.FirebaseToken
 import com.lerchenflo.schneaggchatv3server.notifications.firebase.model.NotificationResponse
@@ -114,6 +115,7 @@ class FirebaseService(
         messageContent: String,
         msgId: String,
         groupMessage: Boolean,
+        messageType: MessageType,
         groupName: String? = null
     ) {
         val senderName = userLookupService.getUsername(senderId)
@@ -127,15 +129,16 @@ class FirebaseService(
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val encodedContent = CryptoUtil.Companion.encrypt(messageContent, jwtService.getEncryptionKey())
+                val encodedContent = CryptoUtil.encrypt(messageContent, jwtService.getEncryptionKey())
 
                 // Build the NotificationResponse and delegate to generic sender
                 val notification = NotificationResponse.MessageNotificationResponse(
                     msgId = msgId,
                     senderName = senderName,
+                    messageType = messageType,
                     groupMessage = groupMessage,
                     groupName = groupName ?: "",
-                    encodedContent = encodedContent
+                    encodedContent = encodedContent,
                 )
 
                 // Reuse the generic sender

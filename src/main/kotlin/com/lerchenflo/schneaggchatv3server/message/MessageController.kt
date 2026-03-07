@@ -1,5 +1,6 @@
 package com.lerchenflo.schneaggchatv3server.message
 
+import com.lerchenflo.schneaggchatv3server.message.messagemodel.ImageMessageRequest
 import com.lerchenflo.schneaggchatv3server.message.messagemodel.MessageRequest
 import com.lerchenflo.schneaggchatv3server.message.messagemodel.MessageResponse
 import com.lerchenflo.schneaggchatv3server.message.messagemodel.MessageType
@@ -11,13 +12,19 @@ import com.lerchenflo.schneaggchatv3server.user.UserController
 import com.lerchenflo.schneaggchatv3server.user.UserService
 import org.bson.types.ObjectId
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
 
 @RequestMapping("/messages")
@@ -38,6 +45,10 @@ class MessageController(
                 /* reason = */ "Not logged in"
             )
 
+        if (messageRequest.messageId != null) {
+            return messageService.editMessage(ObjectId(messageRequest.messageId), ObjectId(requestingUserId), messageRequest.content)
+        }
+
         //println("Message received: $messageRequest")
         val message = messageService.sendMessage(
             sender = ObjectId(requestingUserId),
@@ -52,10 +63,30 @@ class MessageController(
     }
 
 
-    /*
-    @PostMapping("/send/image")
 
-     */
+    @PostMapping("/send/image", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    fun sendImageMessage(
+        @RequestPart("image") image: MultipartFile,
+        @RequestPart("request") messageRequest: ImageMessageRequest
+    ): MessageResponse {
+        val requestingUserId =
+            SecurityContextHolder.getContext().authentication?.principal as? String ?: throw ResponseStatusException(
+                /* status = */ HttpStatus.FORBIDDEN,
+                /* reason = */ "Not logged in"
+            )
+
+        val message = messageService.sendMessage(
+            sender = ObjectId(requestingUserId),
+            receiver = ObjectId(messageRequest.receiverId),
+            groupMessage = messageRequest.groupMessage,
+            messageType = MessageType.IMAGE,
+            content = MessageService.MessageContent.Image(image, messageRequest.content),
+            answerId = if (messageRequest.answerId != null) ObjectId(messageRequest.answerId) else null
+        )
+
+        return message.toMessageResponse(ObjectId(requestingUserId))
+    }
+
 
 
 
@@ -172,6 +203,26 @@ class MessageController(
             newContent = editMessageRequest.newContent
         )
     }
+
+
+    @GetMapping("/images/{id}")
+    fun getImage(@PathVariable("id") messageId: String): ResponseEntity<ByteArray> {
+        val requestingUserId =
+            SecurityContextHolder.getContext().authentication?.principal as? String ?: throw ResponseStatusException(
+                /* status = */ HttpStatus.FORBIDDEN,
+                /* reason = */ "Not logged in"
+            )
+
+        val bytearray = messageService.getImageMessage(
+            messageId = ObjectId(messageId),
+            requestingUserId = ObjectId(requestingUserId)
+        )
+
+        return ResponseEntity.ok()
+            .contentType(MediaType.IMAGE_PNG)
+            .body(bytearray)
+    }
+
 
     @DeleteMapping("/delete")
     fun deleteMessage(

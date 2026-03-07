@@ -1,5 +1,6 @@
 package com.lerchenflo.schneaggchatv3server.util
 
+import org.bson.types.ObjectId
 import org.springframework.stereotype.Component
 import org.springframework.web.multipart.MultipartFile
 import java.awt.RenderingHints
@@ -7,6 +8,7 @@ import java.awt.geom.Ellipse2D
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.ObjectInput
 import javax.imageio.ImageIO
 import kotlin.math.sqrt
 
@@ -18,20 +20,7 @@ class ImageManager {
     }
 
 
-    private fun saveImageToFile(image: MultipartFile, fileName: String) {
-        val imagesDir = File("/app/images")
-        if (!imagesDir.exists()) {
-            imagesDir.mkdirs()
-        }
-        val targetFile = File(imagesDir, fileName)
-        image.inputStream.use { input ->
-            targetFile.outputStream().use { output ->
-                input.copyTo(output)
-            }
-        }
-    }
-
-    fun loadImageFromFile(fileName: String): ByteArray {
+    fun loadProfilePicFromFile(fileName: String): ByteArray {
         val imagesDir = File("/app/images")
         val targetFile = File(imagesDir, fileName)
 
@@ -65,14 +54,35 @@ class ImageManager {
     }
 
 
-    fun saveImageMessage(image: MultipartFile, messageId: String): String {
-        val filename = getImageMessageFileName(messageId)
-        saveImageToFile(image, filename)
+    fun loadMessageImageFromFile(fileName: String): ByteArray {
+        val imagesDir = File("/app/images_messages")
+        val targetFile = File(imagesDir, fileName)
+
+        if (!targetFile.exists()) {
+            throw IllegalArgumentException("Image file not found: $fileName")
+        }
+
+        return targetFile.readBytes()
+    }
+
+    fun saveImageMessage(image: MultipartFile, messageId: ObjectId, group: Boolean): String {
+        val filename = getImageMessageFileName(messageId, group)
+        val downscaledImage = downscaleIfNeeded(ImageIO.read(image.inputStream))
+
+        val imagesDir = File("/app/images_messages")
+        if (!imagesDir.exists()) {
+            imagesDir.mkdirs()
+        }
+        val targetFile = File(imagesDir, filename)
+        ImageIO.write(downscaledImage, "PNG", targetFile)
+
+        println("Image saved in storage: $filename")
+
         return filename
     }
 
-    fun getImageMessageFileName(messageId: String): String {
-        return "image_${messageId}_message.jpg"
+    fun getImageMessageFileName(messageId: ObjectId, group: Boolean): String {
+        return "${if (group) "group" else "user"}_image_${messageId.toHexString()}_message.png"
     }
 
 

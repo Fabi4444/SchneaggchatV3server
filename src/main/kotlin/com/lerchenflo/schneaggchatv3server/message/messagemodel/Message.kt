@@ -56,7 +56,7 @@ fun Message.toMessageResponse(requestingUserId: ObjectId) : MessageResponse {
         groupMessage = this.groupMessage,
         msgType = this.msgType,
 
-        content = if (msgType == MessageType.IMAGE) "" else this.content,
+        content = this.content,
 
         pollResponse = this.poll?.toPollMessageResponse(requestingUserId),
 

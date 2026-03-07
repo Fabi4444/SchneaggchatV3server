@@ -150,7 +150,7 @@ class EmailService(
         // Only send if email is verified
         if (user.emailVerifiedAt == null) {
             println("Password reset requested for unverified email $email")
-            return
+            //return (Allow unverified email passwort resets)
         }
 
         val lastemailsenttimestamp = getLastEmailTimestamp(userId, LogType.PASSWORD_RESET_EMAIL_SENT)
