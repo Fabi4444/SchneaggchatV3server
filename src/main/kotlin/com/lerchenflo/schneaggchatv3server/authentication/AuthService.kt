@@ -14,6 +14,11 @@ import com.lerchenflo.schneaggchatv3server.util.LoggingService
 import com.lerchenflo.schneaggchatv3server.util.ValidationUtils
 import org.bson.types.ObjectId
 import org.springframework.dao.DuplicateKeyException
+import org.springframework.data.mongodb.core.FindAndModifyOptions
+import org.springframework.data.mongodb.core.MongoTemplate
+import org.springframework.data.mongodb.core.query.Criteria
+import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.query.Update
 import org.springframework.http.HttpStatusCode
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.stereotype.Service
@@ -36,7 +41,9 @@ class AuthService(
     private val hashEncoder: HashEncoder,
     private val refreshTokenRepository: RefreshTokenRepository,
     private val loggingService: LoggingService,
-    private val imageManager: ImageManager
+    private val imageManager: ImageManager,
+
+    private val mongoTemplate: MongoTemplate,
 ) {
 
     data class TokenPair(
@@ -124,6 +131,55 @@ class AuthService(
             ?: throw ResponseStatusException(HttpStatusCode.valueOf(401) ,"Invalid refresh token")
 
         val hashed = hashToken(refreshToken)
+        val now = Clock.System.now()
+
+
+        val query = Query().addCriteria(
+            Criteria.where("userId").`is`(userId)
+                .and("hashedToken").`is`(hashed)
+                .and("deletedAt").`is`(null)
+        )
+
+        val update = Update().set("deletedAt", now)
+
+        // Returns the document BEFORE the update — null if already claimed
+        val claimedToken = mongoTemplate.findAndModify(
+            query,
+            update,
+            FindAndModifyOptions.options().returnNew(false),
+            RefreshToken::class.java
+        )
+
+
+        if (claimedToken == null) {
+            // Token was already consumed — check if it's within the 2-minute grace window
+            // (handles the legitimate case of in-flight requests from the same client)
+            val recentlyDeleted = refreshTokenRepository
+                .findByUserIdAndHashedToken(user.id, hashed)
+                .firstOrNull()
+
+            val twoMinutesAgo = now.minus(2.minutes)
+
+            if (recentlyDeleted?.deletedAt != null && recentlyDeleted.deletedAt!! > twoMinutesAgo) {
+
+                println("Token refresh failed for user ${user.username}: Already refreshing")
+
+                // Likely a duplicate in-flight request — let it through safely
+                // (The other request already issued new tokens; this one should retry with those)
+                throw ResponseStatusException(HttpStatusCode.valueOf(409), "Token already being refreshed")
+            }
+
+            println("Token refresh failed for user ${user.username}: TOO OLD")
+            // Deleted too long ago — likely a replay attack
+            throw ResponseStatusException(HttpStatusCode.valueOf(401), "Invalid refresh token")
+        }
+
+        val newAccessToken = jwtService.generateAccessToken(userId)
+        val newRefreshToken = jwtService.generateRefreshToken(userId)
+        storeRefreshToken(user.id, newRefreshToken)
+
+
+        /*
 
         //Find all existing tokens
         val existingTokens = refreshTokenRepository.findByUserIdAndHashedToken(user.id, hashed)
@@ -137,7 +193,6 @@ class AuthService(
         }
 
         // Check if any token is valid (not deleted OR deleted within last 2 minutes)
-        val now = Clock.System.now()
         val twoMinutesAgo = now.minus(2.minutes)
 
         val hasValidToken = existingTokens.any { token ->
@@ -173,11 +228,15 @@ class AuthService(
 
         storeRefreshToken(user.id, newRefreshToken)
 
+         */
+
         return TokenPair(
             accessToken = newAccessToken,
             refreshToken = newRefreshToken,
             encryptionKey = jwtService.getEncryptionKey()
         )
+
+
     }
 
 
