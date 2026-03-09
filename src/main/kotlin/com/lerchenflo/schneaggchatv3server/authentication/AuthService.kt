@@ -169,7 +169,8 @@ class AuthService(
                 throw ResponseStatusException(HttpStatusCode.valueOf(409), "Token already being refreshed")
             }
 
-            println("Token refresh failed for user ${user.username}: TOO OLD")
+            val deletedFor = now.minus(recentlyDeleted?.deletedAt!!)
+            println("Attempted to reuse refresh token that was deleted more than 2 minutes ago for user ${user.username}, deleted ${deletedFor.inWholeMinutes} minutes ago")
             // Deleted too long ago — likely a replay attack
             throw ResponseStatusException(HttpStatusCode.valueOf(401), "Invalid refresh token")
         }
