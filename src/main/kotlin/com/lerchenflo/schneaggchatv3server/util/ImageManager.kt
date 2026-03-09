@@ -76,7 +76,7 @@ class ImageManager {
         val targetFile = File(imagesDir, filename)
         ImageIO.write(downscaledImage, "PNG", targetFile)
 
-        println("Image saved in storage: $filename")
+        //println("Image saved in storage: $filename")
 
         return filename
     }

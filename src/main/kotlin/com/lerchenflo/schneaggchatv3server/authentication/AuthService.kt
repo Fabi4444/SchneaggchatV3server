@@ -145,7 +145,13 @@ class AuthService(
         }
 
         if (!hasValidToken) {
-            println("Attempted to reuse refresh token that was deleted more than 2 minutes ago for user $userId")
+            try {
+                val deletedFor = now.minus(existingTokens.first().deletedAt!!)
+                println("Attempted to reuse refresh token that was deleted more than 2 minutes ago for user ${user.username}, deleted ${deletedFor.inWholeMinutes} minutes ago")
+            } catch (e: Exception) {
+                println("Deletedfor calculation failed")
+            }
+
             throw ResponseStatusException(
                 HttpStatusCode.valueOf(401),
                 "Invalid refresh token"
@@ -163,7 +169,7 @@ class AuthService(
             }
         }
         refreshTokenRepository.saveAll(existingTokens)
-        println("Refresh token for user $userId deleted")
+        //println("Refresh token for user $userId deleted")
 
         storeRefreshToken(user.id, newRefreshToken)
 
