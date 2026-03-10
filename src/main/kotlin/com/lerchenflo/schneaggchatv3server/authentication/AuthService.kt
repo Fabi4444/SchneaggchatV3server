@@ -128,14 +128,17 @@ class AuthService(
 
         //find the user to the userid (If no user is found exception is thrown)
         val user = userLookupService.findById(userId)
-            ?: throw ResponseStatusException(HttpStatusCode.valueOf(401) ,"Invalid refresh token")
+            ?: run {
+                println("User from token not found: $userId")
+                throw ResponseStatusException(HttpStatusCode.valueOf(401) ,"Invalid refresh token")
+            }
 
         val hashed = hashToken(refreshToken)
         val now = Clock.System.now()
 
 
         val query = Query().addCriteria(
-            Criteria.where("userId").`is`(userId)
+            Criteria.where("userId").`is`(ObjectId(userId))
                 .and("hashedToken").`is`(hashed)
                 .and("deletedAt").`is`(null)
         )
@@ -169,9 +172,9 @@ class AuthService(
                 throw ResponseStatusException(HttpStatusCode.valueOf(409), "Token already being refreshed")
             }
 
-            val deletedFor = now.minus(recentlyDeleted?.deletedAt!!)
-            println("Attempted to reuse refresh token that was deleted more than 2 minutes ago for user ${user.username}, deleted ${deletedFor.inWholeMinutes} minutes ago")
+
             // Deleted too long ago — likely a replay attack
+            println("401: No existing token found for user ${user.username}")
             throw ResponseStatusException(HttpStatusCode.valueOf(401), "Invalid refresh token")
         }
 
