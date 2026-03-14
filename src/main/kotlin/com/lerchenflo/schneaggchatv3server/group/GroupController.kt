@@ -27,7 +27,7 @@ class GroupController(
 ) {
 
     @PostMapping("/create", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
-    fun register(
+    fun createGroup(
         @RequestParam("name") groupname: String,
         @RequestParam("memberlist") members: String,
         @RequestParam("description") description: String,

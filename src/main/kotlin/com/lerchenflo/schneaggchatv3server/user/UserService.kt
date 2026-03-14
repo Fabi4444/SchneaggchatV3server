@@ -235,7 +235,9 @@ class UserService(
                 require(ValidationUtils.validateEmail(userRequest.newEmail)) { "New email is invalid" }
             }
 
-            //TODO: birthdate validation
+            if (userRequest.newBirthDate != null) {
+                require(ValidationUtils.validateBirthdate(userRequest.newBirthDate)) { "New birthdate is invalid" }
+            }
 
             userLookupService.save(requestingUser.copy(
                 updatedAt = if (somethingChanged) Clock.System.now() else requestingUser.updatedAt,

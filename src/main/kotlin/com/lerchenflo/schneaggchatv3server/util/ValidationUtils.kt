@@ -1,6 +1,9 @@
 package com.lerchenflo.schneaggchatv3server.util
 
 import org.springframework.web.multipart.MultipartFile
+import java.time.LocalDate
+import java.time.Period
+import java.time.format.DateTimeParseException
 import java.util.Locale
 import java.util.Locale.getDefault
 
@@ -44,6 +47,35 @@ object ValidationUtils {
         val hasSpecial = password.any { !it.isLetterOrDigit() }
 
         return hasUpperCase && hasLowerCase && hasDigit && hasSpecial
+    }
+
+
+    /**
+     * Validates birthdate format and value
+     * - Must follow YYYY-MM-DD format
+     * - Must be a valid calendar date
+     * - Must not be in the future
+     * - User must be at least 8 years old
+     * - User must not be older than 120 years
+     */
+    fun validateBirthdate(birthdate: String): Boolean {
+        if (birthdate.isBlank()) return false
+
+        val BIRTHDATE_REGEX = "^\\d{4}-\\d{2}-\\d{2}$".toRegex()
+        if (!BIRTHDATE_REGEX.matches(birthdate)) return false
+
+        return try {
+            val date = LocalDate.parse(birthdate)
+            val today = LocalDate.now()
+
+            if (date.isAfter(today)) return false
+            if (Period.between(date, today).years < 8) return false
+            if (Period.between(date, today).years > 120) return false
+
+            true
+        } catch (e: DateTimeParseException) {
+            false
+        }
     }
 
     /**
