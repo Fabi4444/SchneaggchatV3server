@@ -50,6 +50,7 @@ class AuthService(
         require(ValidationUtils.validateUsername(username)) { "Username invalid" }
         require(ValidationUtils.validatePassword(password)) { "Password invalid" }
         require(ValidationUtils.validateEmail(email)) { "Email invalid" }
+        require(ValidationUtils.validateBirthdate(birthdate)) { "Birthdate invalid" }
         require(ValidationUtils.validatePicture(profilePic)) { "Picture invalid" }
 
         userLookupService.checkExistingUser(username, email)

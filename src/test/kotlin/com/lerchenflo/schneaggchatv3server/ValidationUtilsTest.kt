@@ -88,10 +88,10 @@ class ValidationUtilsTest {
     }
 
     @Test
-    @DisplayName("User exactly 13 years old should pass validation")
-    fun `validateBirthdate should return true if user is exactly 10`() {
-        val exactlyThirteen = LocalDate.now().minusYears(10).toString()
-        assertTrue(ValidationUtils.validateBirthdate(exactlyThirteen))
+    @DisplayName("User exactly 8 years old should pass validation")
+    fun `validateBirthdate should return true if user is exactly 8`() {
+        val exactlyEight = LocalDate.now().minusYears(8).toString()
+        assertTrue(ValidationUtils.validateBirthdate(exactlyEight))
     }
 
     @Test

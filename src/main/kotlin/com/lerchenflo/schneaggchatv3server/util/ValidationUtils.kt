@@ -55,7 +55,7 @@ object ValidationUtils {
      * - Must follow YYYY-MM-DD format
      * - Must be a valid calendar date
      * - Must not be in the future
-     * - User must be at least 13 years old
+     * - User must be at least 8 years old
      * - User must not be older than 120 years
      */
     fun validateBirthdate(birthdate: String): Boolean {
@@ -69,7 +69,7 @@ object ValidationUtils {
             val today = LocalDate.now()
 
             if (date.isAfter(today)) return false
-            if (Period.between(date, today).years < 10) return false
+            if (Period.between(date, today).years < 8) return false
             if (Period.between(date, today).years > 120) return false
 
             true
