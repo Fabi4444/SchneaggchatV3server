@@ -13,6 +13,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.server.ResponseStatusException
+import org.springframework.web.servlet.resource.NoResourceFoundException
 import java.util.function.Consumer
 
 @RestControllerAdvice
@@ -58,6 +59,18 @@ class GlobalExceptionHandler(
         return ResponseEntity
             .status(e.statusCode)
             .body(error)
+    }
+
+    @ExceptionHandler(NoResourceFoundException::class)
+    fun handleNoResourceFoundException(e: NoResourceFoundException): ResponseEntity<String> {
+        println("NoResourceFound Error happened: ${e.message}")
+        val resourcePath = e.resourcePath
+        
+        logError(e)
+        return ResponseEntity
+            .status(404)
+            .header("Location", "/error?path=" + resourcePath)
+            .build()
     }
 
 
