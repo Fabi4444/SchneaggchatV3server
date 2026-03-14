@@ -175,7 +175,7 @@ class UserService(
             throw ResponseStatusException(HttpStatus.CONFLICT, "A user with username $normalizedNewName already exists")
         }
 
-        ValidationUtils.validateUsername(normalizedNewName)
+        require(ValidationUtils.validateUsername(normalizedNewName)) { "New username is invalid: $normalizedNewName" }
 
         val user = userRepository.findById(ObjectId(requestingUserId)).get()
 
