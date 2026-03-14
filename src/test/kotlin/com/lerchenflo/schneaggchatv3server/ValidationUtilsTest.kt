@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.DisplayName
 import org.springframework.mock.web.MockMultipartFile
+import java.time.LocalDate
 
 @DisplayName("ValidationUtils Tests")
 class ValidationUtilsTest {
@@ -39,6 +40,72 @@ class ValidationUtilsTest {
     fun `validateEmail should return false for emails longer than 254 characters`() {
         val longEmail = "a".repeat(250) + "@example.com"
         assertFalse(ValidationUtils.validateEmail(longEmail))
+    }
+
+
+    // ===== BIRTHDATE VALIDATION TESTS =====
+
+    @Test
+    @DisplayName("Valid birthdate should pass validation")
+    fun `validateBirthdate should return true for valid birthdates`() {
+        assertTrue(ValidationUtils.validateBirthdate("2000-01-01"))
+        assertTrue(ValidationUtils.validateBirthdate("1990-12-31"))
+        assertTrue(ValidationUtils.validateBirthdate("2004-08-13"))
+        assertTrue(ValidationUtils.validateBirthdate("1980-06-15"))
+    }
+
+    @Test
+    @DisplayName("Invalid format should fail validation")
+    fun `validateBirthdate should return false for invalid formats`() {
+        assertFalse(ValidationUtils.validateBirthdate(""))           // Empty
+        assertFalse(ValidationUtils.validateBirthdate("   "))        // Blank
+        assertFalse(ValidationUtils.validateBirthdate("13-08-2004")) // DD-MM-YYYY
+        assertFalse(ValidationUtils.validateBirthdate("08/13/2004")) // MM/DD/YYYY
+        assertFalse(ValidationUtils.validateBirthdate("2004.08.13")) // Dots as separator
+        assertFalse(ValidationUtils.validateBirthdate("20040813"))   // No separators
+        assertFalse(ValidationUtils.validateBirthdate("2004-8-13"))  // Missing leading zero
+    }
+
+    @Test
+    @DisplayName("Invalid calendar date should fail validation")
+    fun `validateBirthdate should return false for invalid calendar dates`() {
+        assertFalse(ValidationUtils.validateBirthdate("2004-02-30")) // Feb 30 doesn't exist
+        assertFalse(ValidationUtils.validateBirthdate("2004-02-31")) // Feb 31 doesn't exist
+        assertFalse(ValidationUtils.validateBirthdate("2004-13-01")) // Month 13 doesn't exist
+        assertFalse(ValidationUtils.validateBirthdate("2004-00-01")) // Month 0 doesn't exist
+        assertFalse(ValidationUtils.validateBirthdate("2004-01-00")) // Day 0 doesn't exist
+        assertFalse(ValidationUtils.validateBirthdate("2004-01-32")) // Day 32 doesn't exist
+    }
+
+    @Test
+    @DisplayName("Future birthdate should fail validation")
+    fun `validateBirthdate should return false for future dates`() {
+        val tomorrow = LocalDate.now().plusDays(1).toString()
+        val nextYear = LocalDate.now().plusYears(1).toString()
+
+        assertFalse(ValidationUtils.validateBirthdate(tomorrow))
+        assertFalse(ValidationUtils.validateBirthdate(nextYear))
+    }
+
+    @Test
+    @DisplayName("User exactly 13 years old should pass validation")
+    fun `validateBirthdate should return true if user is exactly 10`() {
+        val exactlyThirteen = LocalDate.now().minusYears(10).toString()
+        assertTrue(ValidationUtils.validateBirthdate(exactlyThirteen))
+    }
+
+    @Test
+    @DisplayName("Unrealistically old birthdate should fail validation")
+    fun `validateBirthdate should return false if user is older than 120 years`() {
+        val tooOld = LocalDate.now().minusYears(121).toString()
+        assertFalse(ValidationUtils.validateBirthdate(tooOld))
+    }
+
+    @Test
+    @DisplayName("Exactly 120 years old should pass validation")
+    fun `validateBirthdate should return true if user is exactly 120 years old`() {
+        val exactlyMaxAge = LocalDate.now().minusYears(120).toString()
+        assertTrue(ValidationUtils.validateBirthdate(exactlyMaxAge))
     }
 
     // ===== PASSWORD VALIDATION TESTS =====
