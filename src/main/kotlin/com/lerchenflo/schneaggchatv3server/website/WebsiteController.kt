@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestParam
 
 @Component
 @Controller
@@ -25,6 +26,12 @@ class WebsiteController(
         model.addAttribute("total", total)
 
         return "stats"
+    }
+
+    @GetMapping("/error")
+    fun getErrorPage(@RequestParam(name = "path", required = false) path: String?, model: Model): String {
+        model.addAttribute("requestedPath", path ?: "Unbekannte Route")
+        return "error"
     }
 
 }

@@ -3,6 +3,7 @@ package com.lerchenflo.schneaggchatv3server.authentication
 import com.lerchenflo.schneaggchatv3server.user.UserLookupService
 import com.lerchenflo.schneaggchatv3server.user.UserService
 import com.lerchenflo.schneaggchatv3server.util.LoggingService
+import com.lerchenflo.schneaggchatv3server.util.ValidationUtils
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.Pattern
 import org.springframework.http.HttpStatus
@@ -262,10 +263,7 @@ class AuthController(
         @RequestParam("newPassword") newPassword: String,
     ) : String {
         // Validate password format server-side
-        val passwordRegex = Regex("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$")
-        if (!passwordRegex.matches(newPassword)) {
-            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Password does not meet requirements")
-        }
+        require(ValidationUtils.validatePassword(newPassword)) { "New password does not match requirements" }
         
         return if (emailService.resetPassword(token, newPassword)) {
             "true"
